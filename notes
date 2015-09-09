@@ -1,0 +1,24 @@
+Items created:
+
+EC2 Instances
+Autoscaling Groups
+ELBs
+EBS Volumes
+
+
+Items to create:
+
+ii.      S3 Buckets
+iv.      Subnets
+vii.      Redshift Clusters
+viii.      Elasticache Nodes
+ix.      VPCs
+x.      RDS Instances
+xi.      RDS Storage volumes
+xii.      Internet Gateways
+xiii.      Cloudfront buckets
+xiv.      Dynamo Tables
+xv.      Reserved Instances (even though it won’t have any effect yet)
+xvi.      Route53 resources
+xvii.      EMR clusters
+xviii.      Data Pipelines
