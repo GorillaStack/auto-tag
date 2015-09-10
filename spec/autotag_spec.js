@@ -14,11 +14,11 @@ describe('AutoTag', function() {
     expect(fn).not.toThrow();
   });
 
-  it('should throw error without application context', function() {
+  it('should throw error without application context', function(done) {
     var fn = function() {
       sut.handler({});
     };
 
-    expect(fn).toThrow();
+    expect(fn.then(done)).toThrow();
   });
 });
