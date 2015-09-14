@@ -37,8 +37,8 @@ describe('AwsCloudTrailListener', function() {
       listener.retrieveLogFileDetails().then(
         function(result) {
           expect(result).toEqual([
-            {bucket: 'bucket1', fileKey: 'fileKey1.json.gz'},
-            {bucket: 'bucket2', fileKey: 'fileKey2.json.gz'}
+            {Bucket: 'bucket1', Key: 'fileKey1.json.gz'},
+            {Bucket: 'bucket2', Key: 'fileKey2.json.gz'}
           ]);
           done();
         },
