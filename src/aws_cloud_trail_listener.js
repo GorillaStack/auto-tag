@@ -1,15 +1,16 @@
 require('babel/polyfill');
-const fs = require('fs');
-const lib = require('zlib');
+const zlib = require('zlib');
 const AWS = require('aws-sdk');
 const co = require('co');
+const _ = require('underscore');
 
 class AwsCloudTrailListener {
   constructor(cloudtrailEvent, applicationContext) {
     this.cloudtrailEvent = cloudtrailEvent;
     this.applicationContext = applicationContext;
-    this.records = [];
-  };
+    this.s3 = new AWS.S3();
+    this.autotagActions = [];
+  }
 
   execute() {
     let _this = this;
@@ -19,13 +20,13 @@ class AwsCloudTrailListener {
       //yield _this.performAutotagActions();
     }).then(function() {
       _this.applicationContext.succeed();
-    }).catch(function() {
-      _this.handleError();
+    }).catch(function(e) {
+      _this.handleError(e);
     });
   }
 
   handleError(err) {
-    this.applicationContext.fail(JSON.stringify(err));
+    this.applicationContext.fail(err);
   }
 
   retrieveLogFileDetails() {
@@ -33,7 +34,7 @@ class AwsCloudTrailListener {
     return new Promise(function(resolve, reject) {
       try {
         let logFiles = _this.cloudtrailEvent.Records.map((event) => {
-          return {bucket: event.s3.bucket.name, fileKey: event.s3.object.key};
+          return {Bucket: event.s3.bucket.name, Key: event.s3.object.key};
         });
         resolve(logFiles);
       } catch (e) {
@@ -42,15 +43,56 @@ class AwsCloudTrailListener {
     });
   }
 
+  performAutotagActions() {
+
+  }
+
   collectAutotagActions(logFiles) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
-      console.log(logFiles);
-      // let logFiles = _this.cloudtrailEvent.map((event) => {
-      //   return {bucket: event.s3.bucket.name, fileKey: event.s3.object.key};
-      // });
-      resolve();
+    return co(function* () {
+      for (let i in logFiles) {
+        let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
+        _.each(log.Records, function(event) {
+          dumpRecord(event);
+        });
+      }
     });
+  }
+
+  retrieveAndUnGzipLog(logFile) {
+    let _this = this;
+    return co(function* () {
+      let gzippedContent = yield _this.retrieveFromS3(logFile);
+      let rawContent = yield _this.unGzipContent(gzippedContent);
+      return rawContent;
+    });
+  }
+
+  retrieveFromS3(logFile) {
+    let _this = this;
+    return new Promise(function(resolve, reject) {
+      _this.s3.getObject(logFile, function(err, res) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(res.Body);
+        }
+      });
+    });
+  }
+
+  unGzipContent(zippedContent) {
+    let _this = this;
+    return new Promise(function(resolve, reject) {
+      zlib.gunzip(zippedContent, function(err, result) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(JSON.parse(result.toString()));
+        }
+      });
+    });
+
   }
 }
 
