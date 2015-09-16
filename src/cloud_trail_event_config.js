@@ -1,15 +1,15 @@
 export default {
   EC2: {
     name: 'ec2',
-    targetEventName: '',
-    targetEventType: '',
-    targetEventSource: ''
+    targetEventName: 'RunInstances',
+    targetEventType: null,
+    targetEventSource: null
   },
   S3: {
     name: 's3',
-    targetEventName: '',
-    targetEventType: '',
-    targetEventSource: ''
+    targetEventName: 'CreateBucket',
+    targetEventType: null,
+    targetEventSource: null
   },
   AUTOSCALE_GROUPS: {
     name: 'autoscaleGroups',
@@ -40,5 +40,11 @@ export default {
     targetEventName: '',
     targetEventType: '',
     targetEventSource: ''
+  },
+  SECURITY_GROUP: {
+    name: 'securityGroup',
+    targetEventName: 'CreateSecurityGroup',
+    targetEventType: null,
+    targetEventSource: null
   }
 };
