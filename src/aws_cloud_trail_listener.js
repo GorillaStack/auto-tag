@@ -3,7 +3,8 @@ const zlib = require('zlib');
 const AWS = require('aws-sdk');
 const co = require('co');
 const _ = require('underscore');
-const constants = require ('./cloud_trail_event_config');
+const constants = require('./cloud_trail_event_config');
+const AutotagFactory = require('./autotag_factory');
 
 class AwsCloudTrailListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
@@ -18,8 +19,7 @@ class AwsCloudTrailListener {
     let _this = this;
     return co(function* () {
       let logFiles = yield _this.retrieveLogFileDetails();
-      yield _this.collectAutotagActions(logFiles);
-      yield _this.performAutotagActions();
+      yield _this.collectAndPerformAutotagActionsFromLogFile(logFiles);
     }).then(function() {
       _this.applicationContext.succeed();
     }).catch(function(e) {
@@ -45,18 +45,16 @@ class AwsCloudTrailListener {
     });
   }
 
-  performAutotagActions() {
-
-  }
-
-  collectAutotagActions(logFiles) {
+  collectAndPerformAutotagActionsFromLogFile(logFiles) {
     let _this = this;
     return co(function* () {
       for (let i in logFiles) {
         let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
-        _.each(log.Records, function(event) {
-          dumpRecord(event);
-        });
+        for (let j in log.Records) {
+          let event = log.Records[j];
+          let worker = AutotagFactory.createWorker(event, _this.enabledServices);
+          yield worker.tagResource();
+        }
       }
     });
   }
