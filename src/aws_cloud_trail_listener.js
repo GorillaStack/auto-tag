@@ -3,11 +3,13 @@ const zlib = require('zlib');
 const AWS = require('aws-sdk');
 const co = require('co');
 const _ = require('underscore');
+const constants = require ('./cloud_trail_event_config');
 
 class AwsCloudTrailListener {
-  constructor(cloudtrailEvent, applicationContext) {
+  constructor(cloudtrailEvent, applicationContext, enabledServices) {
     this.cloudtrailEvent = cloudtrailEvent;
     this.applicationContext = applicationContext;
+    this.enabledServices = enabledServices;
     this.s3 = new AWS.S3();
     this.autotagActions = [];
   }
@@ -17,7 +19,7 @@ class AwsCloudTrailListener {
     return co(function* () {
       let logFiles = yield _this.retrieveLogFileDetails();
       yield _this.collectAutotagActions(logFiles);
-      //yield _this.performAutotagActions();
+      yield _this.performAutotagActions();
     }).then(function() {
       _this.applicationContext.succeed();
     }).catch(function(e) {
@@ -111,5 +113,9 @@ var dumpRecord = function(event) {
   console.log('s3:');
   console.log(event.s3);
 };
+
+_.each(constants, function(value, key) {
+  AwsCloudTrailListener[key] = value;
+});
 
 export default AwsCloudTrailListener;
