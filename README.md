@@ -58,6 +58,7 @@ Actions to allow for all resources:
 * EBS: `ec2:CreateTags` (Same as EC2)
 * VPC: `ec2:CreateTags` (Same as EC2)
 * Subnet: `ec2:CreateTags` (Same as EC2)
+* InternetGateway: `ec2:CreateTags` (Same as EC2)
 
 ## Whole master policy
 ```json
