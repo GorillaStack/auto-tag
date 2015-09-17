@@ -19,7 +19,7 @@ export default {
   },
   VPC: {
     name: 'vpc',
-    targetEventName: null,
+    targetEventName: 'CreateVpc',
     targetEventType: null,
     targetEventSource: null
   },
