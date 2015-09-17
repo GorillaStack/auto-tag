@@ -5,6 +5,7 @@ const AutotagS3Worker = require('./autotag_s3_worker.js');
 const AutotagELBWorker = require('./autotag_elb_worker.js');
 const AutotagAutoscaleWorker = require('./autotag_autoscale_worker.js');
 const AutotagVPCWorker = require('./autotag_vpc_worker.js');
+const AutotagSubnetWorker = require('./autotag_subnet_worker.js');
 const CONFIG = require('./cloud_trail_event_config');
 
 let AutotagFactory = {
@@ -40,6 +41,10 @@ let AutotagFactory = {
 
       case CONFIG.VPC.name:
         return new AutotagVPCWorker(event);
+        break;
+
+      case CONFIG.SUBNETS.name:
+        return new AutotagSubnetWorker(event);
         break;
 
       default:
