@@ -13,7 +13,7 @@ export default {
   },
   AUTOSCALE_GROUPS: {
     name: 'autoscaleGroups',
-    targetEventName: null,
+    targetEventName: 'CreateAutoScalingGroup',
     targetEventType: null,
     targetEventSource: null
   },

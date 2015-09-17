@@ -5,8 +5,8 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   constructor(event) {
     super(event);
     this.elb = new AWS.ELB({region: event.awsRegion});
-
   }
+
   /* tagResource
   ** method: tagResource
   **
