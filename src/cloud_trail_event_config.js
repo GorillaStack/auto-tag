@@ -25,7 +25,7 @@ export default {
   },
   SUBNETS: {
     name: 'subnets',
-    targetEventName: null,
+    targetEventName: 'CreateSubnet',
     targetEventType: null,
     targetEventSource: null
   },

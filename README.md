@@ -56,6 +56,7 @@ Actions to allow for all resources:
 * ELB: `elasticloadbalancing:AddTags`
 * AutoScaling: `autoscaling:CreateOrUpdateTags`
 * VPC: `ec2:CreateTags` (Same as EC2)
+* Subnet: `ec2:CreateTags` (Same as EC2)
 
 ## Whole master policy
 ```json
