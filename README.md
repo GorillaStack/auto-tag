@@ -51,4 +51,46 @@ If you install your lambda function and don't plan on tagging resources, at very
 
 * S3: `s3:GetBucketTagging`
       `s3:PutBucketTagging`
-* EC2: 
+* EC2: `ec2:CreateTags`
+
+
+## Whole master policy
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Sid": "Stmt1442379848000",
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:GetBucketTagging",
+                "s3:PutBucketTagging"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "Stmt1442464541000",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateTags"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+```
