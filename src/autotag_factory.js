@@ -20,12 +20,10 @@ let AutotagFactory = {
     // Select the relevant worker
     switch (matchingService.name) {
       case CONFIG.EC2.name:
-        console.log('matched EC2 worker');
         return new AutotagEC2Worker(event);
         break;
 
       case CONFIG.S3.name:
-        console.log('matched S3 worker');
         return new AutotagS3Worker(event);
         break;
 

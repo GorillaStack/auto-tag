@@ -1,7 +1,13 @@
 const AutotagDefaultWorker = require('./autotag_default_worker');
+const AWS = require('aws-sdk');
+const co = require('co');
 
 class AutotagS3Worker extends AutotagDefaultWorker {
 
+  constructor(event) {
+    super(event);
+    this.s3 = new AWS.S3({region: event.awsRegion});
+  }
   /* tagResource
   ** method: tagResource
   **
@@ -10,17 +16,66 @@ class AutotagS3Worker extends AutotagDefaultWorker {
 
   tagResource() {
     let _this = this;
-    console.log('called tagResource for s3');
+    return co(function* () {
+      let tags = yield _this.getExistingTags();
+      tags.push(_this.getAutotagPair());
+      yield _this.setTags(tags);
+    });
+  }
+
+  getExistingTags() {
+    let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        console.log('AutotagS3Worker');
-        _this.dumpEventInfo();
-        // Do nothing
-        resolve(true);
+        _this.s3.getBucketTagging({
+          Bucket: _this.getBucketName(),
+        }, function(err, res) {
+          if (err) {
+            if (err.code === 'NoSuchTagSet' && err.statusCode === 404)
+              resolve([]);
+            else
+              reject(err);
+          } else {
+            resolve(res.TagSet);
+          }
+        })
       } catch(e) {
         reject(e);
       }
     });
+  }
+
+  getAutotagPair() {
+    return {
+      Key: this.getTagName(),
+      Value: this.getTagValue()
+    };
+  }
+
+  setTags(tags) {
+    let _this = this;
+    return new Promise(function(resolve, reject) {
+      try {
+        _this.s3.putBucketTagging({
+          Bucket: _this.getBucketName(),
+          Tagging: {
+            TagSet: tags
+          }
+        }, function(err, res) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res);
+          }
+        })
+      } catch(e) {
+        reject(e);
+      }
+    });
+  }
+
+  getBucketName() {
+    return this.event.requestParameters.bucketName;
   }
 };
 
