@@ -31,7 +31,7 @@ export default {
   },
   ELB: {
     name: 'elb',
-    targetEventName: null,
+    targetEventName: 'CreateLoadBalancer',
     targetEventType: null,
     targetEventSource: null
   },

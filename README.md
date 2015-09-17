@@ -48,10 +48,12 @@ If you install your lambda function and don't plan on tagging resources, at very
 
 
 ## Necessary policies for your lambda's IAM role
+Actions to allow for all resources:
 
 * S3: `s3:GetBucketTagging`
       `s3:PutBucketTagging`
 * EC2: `ec2:CreateTags`
+* ELB: `elasticloadbalancing:AddTags`
 
 
 ## Whole master policy
@@ -86,6 +88,16 @@ If you install your lambda function and don't plan on tagging resources, at very
             "Effect": "Allow",
             "Action": [
                 "ec2:CreateTags"
+            ],
+            "Resource": [
+                "*"
+            ]
+        },
+        {
+            "Sid": "Stmt1442466333000",
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:AddTags"
             ],
             "Resource": [
                 "*"
