@@ -1,3 +1,5 @@
+const AUTOTAG_TAG_NAME = 'AutoTag_Creator';
+
 class AutotagDefaultWorker {
   constructor(event) {
     this.event = event;
@@ -26,6 +28,14 @@ class AutotagDefaultWorker {
     console.log('Event Source: ' + this.event.eventSource);
     console.log('AWS Region: ' + this.event.awsRegion);
     console.log('---');
+  }
+
+  getTagName() {
+    return AUTOTAG_TAG_NAME;
+  }
+
+  getTagValue() {
+    return this.event.userIdentity.arn;
   }
 };
 
