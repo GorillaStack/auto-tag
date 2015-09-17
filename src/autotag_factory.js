@@ -2,6 +2,7 @@ const _ = require('underscore');
 const AutotagDefaultWorker = require('./autotag_default_worker.js');
 const AutotagEC2Worker = require('./autotag_ec2_worker.js');
 const AutotagS3Worker = require('./autotag_s3_worker.js');
+const AutotagELBWorker = require('./autotag_elb_worker.js');
 const CONFIG = require('./cloud_trail_event_config');
 
 let AutotagFactory = {
@@ -25,6 +26,11 @@ let AutotagFactory = {
 
       case CONFIG.S3.name:
         return new AutotagS3Worker(event);
+        break;
+
+      case CONFIG.ELB.name:
+        console.log('creating load balancer worker');
+        return new AutotagELBWorker(event);
         break;
 
       default:

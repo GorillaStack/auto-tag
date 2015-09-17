@@ -27,7 +27,7 @@ module.exports = {
           arn: 'arn:aws:s3:::autotag-cloudtrail-logs'
         },
         object: {
-          key: 'AWSLogs/002790823159/CloudTrail/ap-northeast-1/2015/09/17/002790823159_CloudTrail_ap-northeast-1_20150917T0420Z_E0HHGkSUyOw4sdXw.json.gz',
+          key: 'AWSLogs/002790823159/CloudTrail/ap-northeast-1/2015/09/17/002790823159_CloudTrail_ap-northeast-1_20150917T0425Z_2IgNRRM6XgW2vhSA.json.gz',
           size: 2858,
           eTag: '1dca20ce134f8165f2ec7508cda93b39',
           sequencer: '0055F2489B160B9FA4'
