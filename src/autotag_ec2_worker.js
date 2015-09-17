@@ -1,20 +1,26 @@
 const AutotagDefaultWorker = require('./autotag_default_worker');
 
 class AutotagEC2Worker extends AutotagDefaultWorker {
-  constructor(event) {
-    super(event);
-  }
 
   /* tagResource
   ** method: tagResource
   **
   ** Do nothing
-  ** return: true <- so that yielding does not complain about undefined
   */
+
   tagResource() {
-    // Do nothing
-    return true;
+    let _this = this;
+    return new Promise(function(resolve, reject) {
+      try {
+        console.log('AutotagEC2Worker');
+        _this.dumpEventInfo();
+        // Do nothing
+        resolve(true);
+      } catch(e) {
+        reject(e);
+      }
+    });
   }
 };
 
-export default AutotagDefaultWorker;
+export default AutotagEC2Worker;

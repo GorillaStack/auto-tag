@@ -13,33 +13,33 @@ export default {
   },
   AUTOSCALE_GROUPS: {
     name: 'autoscaleGroups',
-    targetEventName: '',
-    targetEventType: '',
-    targetEventSource: ''
+    targetEventName: null,
+    targetEventType: null,
+    targetEventSource: null
   },
   VPC: {
     name: 'vpc',
-    targetEventName: '',
-    targetEventType: '',
-    targetEventSource: ''
+    targetEventName: null,
+    targetEventType: null,
+    targetEventSource: null
   },
   SUBNETS: {
     name: 'subnets',
-    targetEventName: '',
-    targetEventType: '',
-    targetEventSource: ''
+    targetEventName: null,
+    targetEventType: null,
+    targetEventSource: null
   },
   ELB: {
     name: 'elb',
-    targetEventName: '',
-    targetEventType: '',
-    targetEventSource: ''
+    targetEventName: null,
+    targetEventType: null,
+    targetEventSource: null
   },
   EBS: {
     name: 'ebs',
-    targetEventName: '',
-    targetEventType: '',
-    targetEventSource: ''
+    targetEventName: null,
+    targetEventType: null,
+    targetEventSource: null
   },
   SECURITY_GROUP: {
     name: 'securityGroup',
