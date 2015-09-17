@@ -28,6 +28,8 @@ class AwsCloudTrailListener {
   }
 
   handleError(err) {
+    console.log(err);
+    console.log(err.stack);
     this.applicationContext.fail(err);
   }
 
@@ -35,7 +37,7 @@ class AwsCloudTrailListener {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        let logFiles = _this.cloudtrailEvent.Records.map((event) => {
+        let logFiles = _this.cloudtrailEvent.Records.map(event => {
           return {Bucket: event.s3.bucket.name, Key: event.s3.object.key};
         });
         resolve(logFiles);

@@ -7,14 +7,11 @@ class AutotagDefaultWorker {
   ** method: tagResource
   **
   ** Do nothing
-  ** return: true <- so that yielding does not complain about undefined
   */
   tagResource() {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        console.log('AutotagDefaultWorker: Doing nothing');
-        _this.dumpEventInfo();
         // Do nothing
         resolve(true);
       } catch(e) {

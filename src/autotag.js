@@ -1,7 +1,6 @@
 const AwsCloudTrailListener = require('./aws_cloud_trail_listener');
 const exports = {};
 exports.handler = function(cloudtrailEvent, context) {
-  console.log(AwsCloudTrailListener);
   let autotagTargetComponents = [
     AwsCloudTrailListener.EC2.name,
     AwsCloudTrailListener.S3.name,
