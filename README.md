@@ -54,6 +54,7 @@ Actions to allow for all resources:
       `s3:PutBucketTagging`
 * EC2: `ec2:CreateTags`
 * ELB: `elasticloadbalancing:AddTags`
+* AutoScaling: `autoscaling:CreateOrUpdateTags`
 
 
 ## Whole master policy
@@ -102,6 +103,16 @@ Actions to allow for all resources:
             "Resource": [
                 "*"
             ]
+        },
+        {
+          "Sid": "Stmt1442468133000",
+          "Effect": "Allow",
+          "Action": [
+            "autoscaling:CreateOrUpdateTags"
+          ],
+          "Resource": [
+            "*"
+          ]
         }
     ]
 }
