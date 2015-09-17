@@ -45,13 +45,6 @@ class AutotagS3Worker extends AutotagDefaultWorker {
     });
   }
 
-  getAutotagPair() {
-    return {
-      Key: this.getTagName(),
-      Value: this.getTagValue()
-    };
-  }
-
   setTags(tags) {
     let _this = this;
     return new Promise(function(resolve, reject) {

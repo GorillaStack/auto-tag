@@ -30,6 +30,13 @@ class AutotagDefaultWorker {
     console.log('---');
   }
 
+  getAutotagPair() {
+    return {
+      Key: this.getTagName(),
+      Value: this.getTagValue()
+    };
+  }
+
   getTagName() {
     return AUTOTAG_TAG_NAME;
   }
