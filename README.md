@@ -55,6 +55,7 @@ Actions to allow for all resources:
 * EC2: `ec2:CreateTags`
 * ELB: `elasticloadbalancing:AddTags`
 * AutoScaling: `autoscaling:CreateOrUpdateTags`
+* EBS: `ec2:CreateTags` (Same as EC2)
 * VPC: `ec2:CreateTags` (Same as EC2)
 * Subnet: `ec2:CreateTags` (Same as EC2)
 

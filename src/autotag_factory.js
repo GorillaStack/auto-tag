@@ -3,6 +3,7 @@ const AutotagDefaultWorker = require('./autotag_default_worker.js');
 const AutotagEC2Worker = require('./autotag_ec2_worker.js');
 const AutotagS3Worker = require('./autotag_s3_worker.js');
 const AutotagELBWorker = require('./autotag_elb_worker.js');
+const AutotagEBSWorker = require('./autotag_ebs_worker.js');
 const AutotagAutoscaleWorker = require('./autotag_autoscale_worker.js');
 const AutotagVPCWorker = require('./autotag_vpc_worker.js');
 const AutotagSubnetWorker = require('./autotag_subnet_worker.js');
@@ -45,6 +46,10 @@ let AutotagFactory = {
 
       case CONFIG.SUBNETS.name:
         return new AutotagSubnetWorker(event);
+        break;
+
+      case CONFIG.EBS.name:
+        return new AutotagEBSWorker(event);
         break;
 
       default:

@@ -37,7 +37,7 @@ export default {
   },
   EBS: {
     name: 'ebs',
-    targetEventName: null,
+    targetEventName: 'CreateVolume',
     targetEventType: null,
     targetEventSource: null
   },
