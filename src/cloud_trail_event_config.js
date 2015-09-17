@@ -41,6 +41,12 @@ export default {
     targetEventType: null,
     targetEventSource: null
   },
+  INTERNET_GATEWAY: {
+    name: 'internetGateway',
+    targetEventName: 'CreateInternetGateway',
+    targetEventType: null,
+    targetEventSource: null
+  },
   SECURITY_GROUP: {
     name: 'securityGroup',
     targetEventName: 'CreateSecurityGroup',

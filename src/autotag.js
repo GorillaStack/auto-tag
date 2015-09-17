@@ -8,7 +8,8 @@ exports.handler = function(cloudtrailEvent, context) {
     AwsCloudTrailListener.VPC.name,
     AwsCloudTrailListener.SUBNETS.name,
     AwsCloudTrailListener.ELB.name,
-    AwsCloudTrailListener.EBS.name
+    AwsCloudTrailListener.EBS.name,
+    AwsCloudTrailListener.INTERNET_GATEWAY.name
   ];
 
   let listener = new AwsCloudTrailListener(cloudtrailEvent, context, autotagTargetComponents);

@@ -1,7 +1,7 @@
 const AutotagDefaultWorker = require('./autotag_default_worker');
 const AWS = require('aws-sdk');
 
-class AutotagEBSWorker extends AutotagDefaultWorker {
+class AutotagInternetGatewayWorker extends AutotagDefaultWorker {
   constructor(event) {
     super(event);
     this.ec2 = new AWS.EC2({region: event.awsRegion});
@@ -16,10 +16,11 @@ class AutotagEBSWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return new Promise(function(resolve, reject) {
+      console.log('trying to tag internet gateway');
       try {
         _this.ec2.createTags({
           Resources: [
-            _this.getVolumeId()
+            _this.getInternetGatewayId()
           ],
           Tags: [
             _this.getAutotagPair()
@@ -36,9 +37,9 @@ class AutotagEBSWorker extends AutotagDefaultWorker {
     });
   }
 
-  getVolumeId() {
-    return this.event.responseElements.volumeId;
+  getInternetGatewayId() {
+    return this.event.responseElements.internetGateway.internetGatewayId;
   }
 };
 
-export default AutotagEBSWorker;
+export default AutotagInternetGatewayWorker;
