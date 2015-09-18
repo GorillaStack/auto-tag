@@ -61,6 +61,7 @@ Actions to allow for all resources:
 * InternetGateway: `ec2:CreateTags` (Same as EC2)
 * RDS: `rds:AddTagsToResource`
 * EMR: `elasticmapreduce:AddTags`
+* DataPipeline: `datapipeline:AddTags`
 
 ## Whole master policy
 ```json
@@ -83,62 +84,18 @@ Actions to allow for all resources:
                 "s3:GetObject",
                 "s3:ListBucket",
                 "s3:GetBucketTagging",
-                "s3:PutBucketTagging"
+                "s3:PutBucketTagging",
+                "ec2:CreateTags",
+                "elasticloadbalancing:AddTags",
+                "autoscaling:CreateOrUpdateTags",
+                "rds:AddTagsToResource",
+                "elasticmapreduce:AddTags",
+                "datapipeline:AddTags"
             ],
             "Resource": [
                 "*"
             ]
-        },
-        {
-            "Sid": "Stmt1442464541000",
-            "Effect": "Allow",
-            "Action": [
-                "ec2:CreateTags"
-            ],
-            "Resource": [
-                "*"
-            ]
-        },
-        {
-            "Sid": "Stmt1442466333000",
-            "Effect": "Allow",
-            "Action": [
-                "elasticloadbalancing:AddTags"
-            ],
-            "Resource": [
-                "*"
-            ]
-        },
-        {
-          "Sid": "Stmt1442468133000",
-          "Effect": "Allow",
-          "Action": [
-            "autoscaling:CreateOrUpdateTags"
-          ],
-          "Resource": [
-            "*"
-          ]
-        },
-        {
-            "Sid": "Stmt1442546250000",
-            "Effect": "Allow",
-            "Action": [
-                "rds:AddTagsToResource"
-            ],
-            "Resource": [
-                "*"
-            ]
-        },
-        {
-           "Sid": "Stmt1442547487000",
-           "Effect": "Allow",
-           "Action": [
-               "elasticmapreduce:AddTags"
-           ],
-           "Resource": [
-               "*"
-           ]
-       }
+        }
     ]
 }
 ```
