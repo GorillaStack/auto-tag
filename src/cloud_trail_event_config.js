@@ -58,5 +58,11 @@ export default {
     targetEventName: 'CreateDBInstance',
     targetEventType: null,
     targetEventSource: null
+  },
+  EMR: {
+    name: 'emr',
+    targetEventName: 'RunJobFlow',
+    targetEventType: null,
+    targetEventSource: null
   }
 };

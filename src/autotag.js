@@ -10,7 +10,8 @@ exports.handler = function(cloudtrailEvent, context) {
     AwsCloudTrailListener.ELB.name,
     AwsCloudTrailListener.EBS.name,
     AwsCloudTrailListener.INTERNET_GATEWAY.name,
-    AwsCloudTrailListener.RDS.name
+    AwsCloudTrailListener.RDS.name,
+    AwsCloudTrailListener.EMR.name
   ];
 
   let listener = new AwsCloudTrailListener(cloudtrailEvent, context, enabledListeners);
