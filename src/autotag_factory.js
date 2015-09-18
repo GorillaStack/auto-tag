@@ -8,6 +8,7 @@ const AutotagAutoscaleWorker = require('./autotag_autoscale_worker.js');
 const AutotagVPCWorker = require('./autotag_vpc_worker.js');
 const AutotagSubnetWorker = require('./autotag_subnet_worker.js');
 const AutotagInternetGatewayWorker = require('./autotag_internet_gateway_worker.js');
+const AutotagRDSWorker = require('./autotag_rds_worker.js');
 const CONFIG = require('./cloud_trail_event_config');
 
 let AutotagFactory = {
@@ -55,6 +56,10 @@ let AutotagFactory = {
 
       case CONFIG.INTERNET_GATEWAY.name:
         return new AutotagInternetGatewayWorker(event);
+        break;
+
+      case CONFIG.RDS.name:
+        return new AutotagRDSWorker(event);
         break;
 
       default:

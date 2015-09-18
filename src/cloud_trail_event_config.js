@@ -52,5 +52,11 @@ export default {
     targetEventName: 'CreateSecurityGroup',
     targetEventType: null,
     targetEventSource: null
+  },
+  RDS: {
+    name: 'rds',
+    targetEventName: 'CreateDBInstance',
+    targetEventType: null,
+    targetEventSource: null
   }
 };

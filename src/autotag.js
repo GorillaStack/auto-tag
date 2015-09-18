@@ -1,7 +1,7 @@
 const AwsCloudTrailListener = require('./aws_cloud_trail_listener');
 const exports = {};
 exports.handler = function(cloudtrailEvent, context) {
-  let autotagTargetComponents = [
+  let enabledListeners = [
     AwsCloudTrailListener.EC2.name,
     AwsCloudTrailListener.S3.name,
     AwsCloudTrailListener.AUTOSCALE_GROUPS.name,
@@ -9,10 +9,11 @@ exports.handler = function(cloudtrailEvent, context) {
     AwsCloudTrailListener.SUBNETS.name,
     AwsCloudTrailListener.ELB.name,
     AwsCloudTrailListener.EBS.name,
-    AwsCloudTrailListener.INTERNET_GATEWAY.name
+    AwsCloudTrailListener.INTERNET_GATEWAY.name,
+    AwsCloudTrailListener.RDS.name
   ];
 
-  let listener = new AwsCloudTrailListener(cloudtrailEvent, context, autotagTargetComponents);
+  let listener = new AwsCloudTrailListener(cloudtrailEvent, context, enabledListeners);
   return listener.execute();
 
   // context.succeed();  // Echo back the first key value
