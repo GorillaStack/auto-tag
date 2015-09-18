@@ -60,6 +60,7 @@ Actions to allow for all resources:
 * Subnet: `ec2:CreateTags` (Same as EC2)
 * InternetGateway: `ec2:CreateTags` (Same as EC2)
 * RDS: `rds:AddTagsToResource`
+* EMR: `elasticmapreduce:AddTags`
 
 ## Whole master policy
 ```json
@@ -127,7 +128,17 @@ Actions to allow for all resources:
             "Resource": [
                 "*"
             ]
-        }
+        },
+        {
+           "Sid": "Stmt1442547487000",
+           "Effect": "Allow",
+           "Action": [
+               "elasticmapreduce:AddTags"
+           ],
+           "Resource": [
+               "*"
+           ]
+       }
     ]
 }
 ```
