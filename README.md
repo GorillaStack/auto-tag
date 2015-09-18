@@ -59,6 +59,7 @@ Actions to allow for all resources:
 * VPC: `ec2:CreateTags` (Same as EC2)
 * Subnet: `ec2:CreateTags` (Same as EC2)
 * InternetGateway: `ec2:CreateTags` (Same as EC2)
+* RDS: `rds:AddTagsToResource`
 
 ## Whole master policy
 ```json
@@ -116,6 +117,16 @@ Actions to allow for all resources:
           "Resource": [
             "*"
           ]
+        },
+        {
+            "Sid": "Stmt1442546250000",
+            "Effect": "Allow",
+            "Action": [
+                "rds:AddTagsToResource"
+            ],
+            "Resource": [
+                "*"
+            ]
         }
     ]
 }
