@@ -1,10 +1,12 @@
 # Autotag
 
-This is an open-source tagging solution for AWS.  Deploy autotag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.
+This is an open-source tagging solution for AWS.  Deploy autotag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by GorillaStack.
+
+
 
 ## Setup
 
-## Baseline policies for your lambda IAM role
+#### Baseline policies for your lambda IAM role
 
 If you install your lambda function and don't plan on tagging resources, at very least you will need these permissions:
 
@@ -47,7 +49,7 @@ If you install your lambda function and don't plan on tagging resources, at very
 ```
 
 
-## Necessary policies for your lambda's IAM role
+#### Necessary policies for your lambda's IAM role
 Actions to allow for all resources:
 
 * S3: `s3:GetBucketTagging`
@@ -98,4 +100,30 @@ Actions to allow for all resources:
         }
     ]
 }
+```
+
+## Contributing
+
+If you have questions, feature requests or bugs to report, please do so on the github repository.
+
+If you are interested in contributing, please get started by forking our github repository and submit pull-requests.
+
+### Development guide
+
+Autotag is implemented in Javascript (ECMAScript 2015 - a.k.a. es6).  To make this compatible with lambda and other es5 environments, we use [babel](https://babeljs.io/) to transpile the es6 code to es5.  For this reason, you will need to install babel globally to get started:
+
+```bash
+$ npm install -g babel
+```
+
+To setup babel to listen to the `src/` directory and transpile the code to es5, run:
+
+```bash
+$ babel -d lib --watch src  
+```
+
+To assist you in packaging and deploying your code to your lambda function, I have provided a script `deploy_lambda_code.sh`.  For this to run, you need the AWS CLI installed and an AWS profile available with sufficient access to deploy code.  Edit the script to provide your aws account id, lambda function name and location of the zipfile on your filesystem.
+
+```bash
+$ bash deploy_lambda_code.sh
 ```

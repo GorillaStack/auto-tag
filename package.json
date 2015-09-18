@@ -1,0 +1,25 @@
+{
+  "name": "autotag",
+  "version": "1.0.0",
+  "description": "Autotagging for AWS resources",
+  "main": "autotag.js",
+  "private": true,
+  "dependencies": {
+    "aws-sdk": "^2.1.50",
+    "babel": "^5.8.23",
+    "co": "^4.6.0",
+    "underscore": "^1.8.3",
+    "jasmine": "^2.3.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:GorillaStack/autotag.git"
+  },
+  "author": "Elliott Spira",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/gorillastack/autotag#readme"
+}
