@@ -64,5 +64,11 @@ export default {
     targetEventName: 'RunJobFlow',
     targetEventType: null,
     targetEventSource: null
+  },
+  DATA_PIPELINE: {
+    name: 'dataPipeline',
+    targetEventName: 'CreatePipeline',
+    targetEventType: null,
+    targetEventSource: null
   }
 };
