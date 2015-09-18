@@ -8,4 +8,5 @@ mv lib/autotag.zip .
 zip -g autotag.zip -r node_modules/
 echo ---
 echo 2. Uploading code via AWS CLI
-aws lambda --region ap-northeast-1 update-function-code --function-name arn:aws:lambda:[AWS_REGION]:[AWS_ACCOUNT_ID]:function:gs_autotag --zip-file fileb:///[PATH_TO_AUTOTAG_DIR]/autotag.zip
+aws lambda --region ap-northeast-1 update-function-code --function-name arn:aws:lambda:ap-northeast-1:002790823159:function:gs_autotag --zip-file fileb:///home/e/dev/gs/autotag/autotag.zip
+# aws s3 cp autotag.zip s3://gs-lambda-functions/autotag.zip
