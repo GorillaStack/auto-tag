@@ -14,13 +14,15 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   */
 
   tagResource() {
+    return this.tagEC2Resources([this.getInstanceId()]);
+  }
+
+  tagEC2Resources(resources) {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
         _this.ec2.createTags({
-          Resources: [
-            _this.getInstanceId()
-          ],
+          Resources: resources,
           Tags: [
             _this.getAutotagPair()
           ]
