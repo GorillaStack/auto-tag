@@ -1,6 +1,6 @@
 # Autotag
 
-This is an open-source tagging solution for AWS.  Deploy autotag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by GorillaStack.
+This is an open-source tagging solution for AWS.  Deploy autotag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by [GorillaStack](http://www.gorillastack.com/).
 
 ## Setup
 
