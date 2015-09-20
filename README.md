@@ -152,5 +152,5 @@ $ bash deploy_lambda_code.sh
 To assist with running during development without having to deploy to lambda, use the `main.js` and `sample_data.js` files we have provided.
 
 ```bash
-$ bash sample_data.sh
+$ node main.js
 ```
