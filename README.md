@@ -1,6 +1,6 @@
 # Auto Tag
 
-This is an open-source tagging solution for AWS.  Deploy auto tag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by GorillaStack.
+This is an open-source tagging solution for AWS.  Deploy auto tag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by [GorillaStack](http://www.gorillastack.com/).
 
 ## Setup
 
@@ -152,5 +152,5 @@ $ bash deploy_lambda_code.sh
 To assist with running during development without having to deploy to lambda, use the `main.js` and `sample_data.js` files we have provided.
 
 ```bash
-$ bash sample_data.sh
+$ node main.js
 ```

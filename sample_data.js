@@ -7,10 +7,10 @@ module.exports = {
       eventTime: '2015-09-11T03:20:59.155Z',
       eventName: 'ObjectCreated:Put',
       userIdentity: {
-        principalId: 'AWS:AROAIPOEHXEMYWYY6EMLG:i-19e872eb'
+        principalId: '[PRINCIPAL_ID]'
       },
       requestParameters: {
-        sourceIPAddress: '52.69.142.61'
+        sourceIPAddress: '[IP_ADDRESS]'
       },
       responseElements: {
         'x-amz-request-id': '0E14F7F4EA235F69',
@@ -20,11 +20,11 @@ module.exports = {
         s3SchemaVersion: '1.0',
         configurationId: 'YjQ3OWI0OWItYmY4Zi00MjVmLTg3MTItNjk1NTU0OGNmNDkz',
         bucket: {
-          name: 'autotag-cloudtrail-logs',
+          name: '[AUTOTAG_BUCKET_NAME]',
           ownerIdentity: {
-            principalId: 'A2OB0Q5JPT1H5J'
+            principalId: '[PRINCIPAL_ID]'
           },
-          arn: 'arn:aws:s3:::autotag-cloudtrail-logs'
+          arn: 'arn:aws:s3:::[AUTOTAG_BUCKET_NAME]'
         },
         object: {
           key: 'AWSLogs/[YOUR_ACCOUNT_ID]/CloudTrail/ap-northeast-1/2015/09/18/[FILE_NAME].json.gz',

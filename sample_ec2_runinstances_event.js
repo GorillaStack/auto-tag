@@ -2,11 +2,11 @@ module.exports = {
   eventVersion: '1.02',
   userIdentity: {
     type: 'IAMUser',
-    principalId: 'AIDAIBZBCZLHJB63J323U',
-    arn: 'arn:aws:iam::002790823159:user/elliott.spira',
-    accountId: '002790823159',
-    accessKeyId: 'ASIAJ3L5KXYW2TYEP2DQ',
-    userName: 'elliott.spira',
+    principalId: '[PRINCIPAL_ID]',
+    arn: 'arn:aws:iam::[AWS_ACCOUNT_ID]:user/[USER_NAME]',
+    accountId: '[AWS_ACCOUNT_ID]',
+    accessKeyId: '[ACCESS_KEY_ID]',
+    userName: '[USER_NAME]',
     sessionContext: {
       attributes: {
         mfaAuthenticated: 'true',
@@ -19,7 +19,7 @@ module.exports = {
   eventSource: 'ec2.amazonaws.com',
   eventName: 'RunInstances',
   awsRegion: 'ap-northeast-1',
-  sourceIPAddress: '49.2.15.22',
+  sourceIPAddress: '[IP_ADDRESS]',
   userAgent: 'signin.amazonaws.com',
   requestParameters: {
     instancesSet: {
@@ -34,7 +34,7 @@ module.exports = {
     groupSet: {
       items: [
         {
-          groupId: 'sg-c6eca7a3'
+          groupId: 'sg-c0eca0a0'
         }
       ]
     },
@@ -60,7 +60,7 @@ module.exports = {
   },
   responseElements: {
     reservationId: 'r-1710f8e5',
-    ownerId: '002790823159',
+    ownerId: '[AWS_ACCOUNT_ID]',
     groupSet: {},
     instancesSet: {
       items: [
@@ -83,8 +83,8 @@ module.exports = {
           monitoring: {
             state: 'disabled'
           },
-          subnetId: 'subnet-2cb31d5b',
-          vpcId: 'vpc-637ba506',
+          subnetId: 'subnet-0cb00d0b',
+          vpcId: 'vpc-000ba000',
           privateIpAddress: '172.31.26.223',
           stateReason: {
             code: 'pending',
@@ -112,10 +112,10 @@ module.exports = {
               {
                 networkInterfaceId: 'eni-5e8c9528',
                 internalInterfaceId: 'interface-5e8c9528',
-                subnetId: 'subnet-2cb31d5b',
-                vpcId: 'vpc-637ba506',
+                subnetId: 'subnet-0cb00d0b',
+                vpcId: 'vpc-000ba000',
                 availabilityZone: 'ap-northeast-1a',
-                ownerId: '002790823159',
+                ownerId: '[AWS_ACCOUNT_ID]',
                 requesterManaged: false,
                 status: 'in-use',
                 macAddress: '06:ab:72:41:26:b3',
@@ -125,7 +125,7 @@ module.exports = {
                 groupSet: {
                   items: [
                     {
-                      groupId: 'sg-c6eca7a3',
+                      groupId: 'sg-c0eca0a0',
                       groupName: 'launch-wizard-2'
                     }
                   ]
@@ -133,7 +133,7 @@ module.exports = {
                 attachment: {
                   attachmentId: 'eni-attach-45a74c5e',
                   instanceId: '3423151686',
-                  instanceOwnerId: '002790823159',
+                  instanceOwnerId: '[AWS_ACCOUNT_ID]',
                   deviceIndex: 0,
                   status: 'attaching',
                   attachTime: 1442381480000,
@@ -162,5 +162,5 @@ module.exports = {
   requestID: '371bfe0f-c883-4612-af72-0f9cca00a766',
   eventID: '01db8111-5bf5-43ec-a075-ce318ec46574',
   eventType: 'AwsApiCall',
-  recipientAccountId: '002790823159'
+  recipientAccountId: '[AWS_ACCOUNT_ID]'
 };
