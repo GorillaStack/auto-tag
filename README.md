@@ -1,6 +1,6 @@
-# Autotag
+# Auto Tag
 
-This is an open-source tagging solution for AWS.  Deploy autotag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by GorillaStack.
+This is an open-source tagging solution for AWS.  Deploy auto tag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by GorillaStack.
 
 ## Setup
 
@@ -8,7 +8,7 @@ This is an open-source tagging solution for AWS.  Deploy autotag to lambda and s
 
 1. Turn on CloudTrail.
 2. Create a new Amazon S3 bucket for storing your log files, or specify an existing bucket where you want the log files delivered.
-3. (Optional and NOT REQUIRED for Autotag) Create a new Amazon SNS topic in order to receive notifications when new log files are delivered.
+3. (Optional and NOT REQUIRED for auto tag) Create a new Amazon SNS topic in order to receive notifications when new log files are delivered.
 
 More [documentation on creating a Trail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-create-and-update-a-trail.html)
 
@@ -131,7 +131,7 @@ If you are interested in contributing, please get started by forking our github 
 
 ### Development guide
 
-Autotag is implemented in Javascript (ECMAScript 2015 - a.k.a. es6).  To make this compatible with lambda and other es5 environments, we use [babel](https://babeljs.io/) to transpile the es6 code to es5.  For this reason, you will need to install babel globally to get started:
+Auto tag is implemented in Javascript (ECMAScript 2015 - a.k.a. es6).  To make this compatible with lambda and other es5 environments, we use [babel](https://babeljs.io/) to transpile the es6 code to es5.  For this reason, you will need to install babel globally to get started:
 
 ```bash
 $ npm install -g babel
