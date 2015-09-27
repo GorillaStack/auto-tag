@@ -18,7 +18,7 @@ More [documentation on creating a Trail](https://docs.aws.amazon.com/awscloudtra
 2. Press the 'Skip' button to bypass the suggested blueprints
 3. Enter the lambda function name (e.g. 'autotag')
 4. Select 'Node.js' as the Runtime
-5. Upload the latest release's zip file
+5. Upload the [latest release's zip file](https://github.com/GorillaStack/auto-tag/releases)
 6. Under 'Handler' add 'autotag.handler'
 
 More [documentation on Lambda](https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html)
