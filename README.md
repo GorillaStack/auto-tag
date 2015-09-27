@@ -1,10 +1,33 @@
-# Autotag
+# Auto Tag
 
-This is an open-source tagging solution for AWS.  Deploy autotag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by GorillaStack.
+This is an open-source tagging solution for AWS.  Deploy auto tag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by [GorillaStack](http://www.gorillastack.com/).
 
-
+[Read a blog post about the project](http://blog.gorillastack.com/gorillastack-presents-auto-tag).
 
 ## Setup
+
+### 1. Turn on CloudTrail for your region
+
+1. Turn on CloudTrail.
+2. Create a new Amazon S3 bucket for storing your log files, or specify an existing bucket where you want the log files delivered.
+3. (Optional and NOT REQUIRED for auto tag) Create a new Amazon SNS topic in order to receive notifications when new log files are delivered.
+
+More [documentation on creating a Trail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-create-and-update-a-trail.html)
+
+### 2. Create a lambda function
+
+1. Within lambda, press the 'Create a Lambda Function' button
+2. Press the 'Skip' button to bypass the suggested blueprints
+3. Enter the lambda function name (e.g. 'autotag')
+4. Select 'Node.js' as the Runtime
+5. Upload the [latest release's zip file](https://github.com/GorillaStack/auto-tag/releases)
+6. Under 'Handler' add 'autotag.handler'
+
+More [documentation on Lambda](https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html)
+
+### 3. Configure the access policy for your lambda role
+
+For the complete role's policy, scroll down for the master policy.  Read on for finer details on the access permissions required below.
 
 #### Baseline policies for your lambda IAM role
 
@@ -110,7 +133,7 @@ If you are interested in contributing, please get started by forking our github 
 
 ### Development guide
 
-Autotag is implemented in Javascript (ECMAScript 2015 - a.k.a. es6).  To make this compatible with lambda and other es5 environments, we use [babel](https://babeljs.io/) to transpile the es6 code to es5.  For this reason, you will need to install babel globally to get started:
+Auto tag is implemented in Javascript (ECMAScript 2015 - a.k.a. es6).  To make this compatible with lambda and other es5 environments, we use [babel](https://babeljs.io/) to transpile the es6 code to es5.  For this reason, you will need to install babel globally to get started:
 
 ```bash
 $ npm install -g babel
@@ -126,4 +149,10 @@ To assist you in packaging and deploying your code to your lambda function, I ha
 
 ```bash
 $ bash deploy_lambda_code.sh
+```
+
+To assist with running during development without having to deploy to lambda, use the `main.js` and `sample_data.js` files we have provided.
+
+```bash
+$ node main.js
 ```
