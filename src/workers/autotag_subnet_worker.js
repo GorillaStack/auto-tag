@@ -12,7 +12,11 @@ class AutotagSubnetWorker extends AutotagEC2Worker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      yield _this.assumeRole(AWS);
+      let credentials = yield _this.assumeRole();
+      _this.ec2 = new AWS.EC2({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
       yield _this.tagEC2Resources([_this.getSubnetId()]);
     });
   }

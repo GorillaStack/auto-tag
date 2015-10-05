@@ -16,7 +16,11 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      yield _this.assumeRole(AWS);
+      let credentials = yield _this.assumeRole();
+      _this.autoscaling = new AWS.AutoScaling({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
       yield _this.tagAutoscalingGroup();
     });
   }
@@ -29,8 +33,7 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
         tagConfig.ResourceId = _this.getAutoscalingGroupName();
         tagConfig.ResourceType = 'auto-scaling-group';
         tagConfig.PropagateAtLaunch = true;
-        let autoscaling = new AWS.AutoScaling({region: _this.event.awsRegion});
-        autoscaling.createOrUpdateTags({
+        _this.autoscaling.createOrUpdateTags({
           Tags: [
             tagConfig
           ]

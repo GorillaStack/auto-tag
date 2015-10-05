@@ -15,7 +15,11 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      yield _this.assumeRole(AWS);
+      let credentials = yield _this.assumeRole();
+      _this.ec2 = new AWS.EC2({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
       yield _this.tagEC2Resources([_this.getInstanceId()]);
     });
   }
@@ -24,8 +28,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        let ec2 = new AWS.EC2({region: _this.event.awsRegion});
-        ec2.createTags({
+        _this.ec2.createTags({
           Resources: resources,
           Tags: [
             _this.getAutotagPair()

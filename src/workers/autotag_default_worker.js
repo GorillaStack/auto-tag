@@ -1,3 +1,4 @@
+const AWS = require('aws-sdk');
 const AUTOTAG_TAG_NAME = 'AutoTag_Creator';
 const ROLE_PREFIX = 'arn:aws:iam::';
 const ROLE_SUFFIX = ':role/AutoTagRole';
@@ -24,12 +25,12 @@ class AutotagDefaultWorker {
     });
   }
 
-  assumeRole(awsSdk) {
+  assumeRole() {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        awsSdk.config.region = 'us-east-1';
-        let sts = new awsSdk.STS();
+        AWS.config.region = 'us-east-1';
+        let sts = new AWS.STS();
         sts.assumeRole({
           RoleArn: ROLE_PREFIX + _this.event.recipientAccountId + ROLE_SUFFIX,
           RoleSessionName: 'AutoTag-' + (new Date()).getTime(),
@@ -38,12 +39,12 @@ class AutotagDefaultWorker {
           if (err) {
             reject(err);
           } else {
-            awsSdk.config.credentials = {
+            let credentials = {
               accessKeyId: data.Credentials.AccessKeyId,
               secretAccessKey: data.Credentials.SecretAccessKey,
               sessionToken: data.Credentials.SessionToken
             };
-            resolve(data);
+            resolve(credentials);
           }
         });
       } catch (err) {

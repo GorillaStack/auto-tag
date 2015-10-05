@@ -15,8 +15,11 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      yield _this.assumeRole(AWS);
-      _this.s3 = new AWS.S3({region: _this.event.awsRegion});
+      let credentials = yield _this.assumeRole();
+      _this.s3 = new AWS.S3({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
       let tags = yield _this.getExistingTags();
       tags.push(_this.getAutotagPair());
       yield _this.setTags(tags);

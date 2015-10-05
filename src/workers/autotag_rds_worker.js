@@ -16,7 +16,11 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      yield _this.assumeRole(AWS);
+      let credentials = yield _this.assumeRole();
+      _this.rds = new AWS.RDS({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
       yield _this.tagRDSResource();
     });
   }
@@ -25,8 +29,7 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        let rds = new AWS.RDS({region: _this.event.awsRegion});
-        rds.addTagsToResource({
+        _this.rds.addTagsToResource({
           ResourceName: _this.getDbARN(),
           Tags: [
             _this.getAutotagPair()

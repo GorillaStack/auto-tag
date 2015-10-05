@@ -16,7 +16,11 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      yield _this.assumeRole(AWS);
+      let credentials = yield _this.assumeRole();
+      _this.emr = new AWS.EMR({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
       yield _this.tagEMRResource();
     });
   }
@@ -25,8 +29,7 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        let emr = new AWS.EMR({region: _this.event.awsRegion});
-        emr.addTags({
+        _this.emr.addTags({
           ResourceId: _this.getEMRClusterId(),
           Tags: [
             _this.getAutotagPair()

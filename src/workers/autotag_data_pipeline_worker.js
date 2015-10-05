@@ -17,7 +17,11 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      yield _this.assumeRole(AWS);
+      let credentials = yield _this.assumeRole();
+      _this.dataPipeline = new AWS.DataPipeline({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
       yield _this.tagDataPipelineResource();
     });
   }
@@ -26,8 +30,7 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        let dataPipeline = new AWS.DataPipeline({region: _this.event.awsRegion});
-        dataPipeline.addTags({
+        _this.dataPipeline.addTags({
           pipelineId: _this.getDataPipelineId(),
           tags: [
             _this.getAutotagPair()
