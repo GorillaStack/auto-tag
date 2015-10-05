@@ -1,5 +1,6 @@
 const AutotagEC2Worker = require('./autotag_ec2_worker');
 const AWS = require('aws-sdk');
+const co = require('co');
 
 class AutotagSubnetWorker extends AutotagEC2Worker {
   /* tagResource
@@ -9,7 +10,11 @@ class AutotagSubnetWorker extends AutotagEC2Worker {
   */
 
   tagResource() {
-    return this.tagEC2Resources([this.getSubnetId()]);
+    let _this = this;
+    return co(function* () {
+      yield _this.assumeRole(AWS);
+      yield _this.tagEC2Resources([_this.getSubnetId()]);
+    });
   }
 
   getSubnetId() {

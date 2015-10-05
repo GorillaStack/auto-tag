@@ -1,36 +1,41 @@
 const AutotagDefaultWorker = require('./autotag_default_worker');
 const AWS = require('aws-sdk');
+const co = require('co');
 
 class AutotagEC2Worker extends AutotagDefaultWorker {
   constructor(event) {
     super(event);
-    this.ec2 = new AWS.EC2({region: event.awsRegion});
-
   }
+
   /* tagResource
   ** method: tagResource
   **
-  ** Do nothing
+  ** Tag the ec2 instance
   */
-
   tagResource() {
-    return this.tagEC2Resources([this.getInstanceId()]);
+    let _this = this;
+    return co(function* () {
+      yield _this.assumeRole(AWS);
+      yield _this.tagEC2Resources([_this.getInstanceId()]);
+    });
   }
 
   tagEC2Resources(resources) {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        _this.ec2.createTags({
+        let ec2 = new AWS.EC2({region: _this.event.awsRegion});
+        ec2.createTags({
           Resources: resources,
           Tags: [
             _this.getAutotagPair()
           ]
         }, function(err, res) {
-          if (err)
+          if (err) {
             reject(err);
-          else
+          } else {
             resolve(true);
+          }
         });
       } catch(e) {
         reject(e);

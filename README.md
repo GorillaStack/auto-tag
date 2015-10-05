@@ -27,68 +27,9 @@ More [documentation on Lambda](https://docs.aws.amazon.com/lambda/latest/dg/gett
 
 ### 3. Configure the access policy for your lambda role
 
-For the complete role's policy, scroll down for the master policy.  Read on for finer details on the access permissions required below.
+Your lambda function will run as an IAM role.  This is where we configure the permissions required.
 
-#### Baseline policies for your lambda IAM role
-
-If you install your lambda function and don't plan on tagging resources, at very least you will need these permissions:
-
-1. Permissions to save logs for your lambda execution.
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "arn:aws:logs:*:*:*"
-    }
-  ]
-}
-```
-
-2. Permissions to retrieve zipped CloudTrail log items from S3.
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "Stmt1442379848000",
-            "Effect": "Allow",
-            "Action": [
-                "s3:GetObject",
-                "s3:ListBucket"
-            ],
-            "Resource": [
-                "*"
-            ]
-        }
-    ]
-}
-```
-
-
-#### Necessary policies for your lambda's IAM role
-Actions to allow for all resources:
-
-* S3: `s3:GetBucketTagging`
-      `s3:PutBucketTagging`
-* EC2: `ec2:CreateTags`
-* ELB: `elasticloadbalancing:AddTags`
-* AutoScaling: `autoscaling:CreateOrUpdateTags`
-* EBS: `ec2:CreateTags` (Same as EC2)
-* VPC: `ec2:CreateTags` (Same as EC2)
-* Subnet: `ec2:CreateTags` (Same as EC2)
-* InternetGateway: `ec2:CreateTags` (Same as EC2)
-* RDS: `rds:AddTagsToResource`
-* EMR: `elasticmapreduce:AddTags`
-* DataPipeline: `datapipeline:AddTags`
-
-## Whole master policy
+#### Lambda function master policy
 ```json
 {
     "Version": "2012-10-17",
@@ -108,6 +49,38 @@ Actions to allow for all resources:
             "Action": [
                 "s3:GetObject",
                 "s3:ListBucket",
+                "sts:*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+```
+
+This contains permissions for:
+
+1. Saving logs for your lambda execution.
+2. Retrieving zipped CloudTrail log items from S3.
+3. Assuming the auto-tag role on targeted accounts.
+
+### 4. Configure the access policy for your Auto-Tag role
+
+When auto-tag finds an event that indicated the creation of a resource, it needs permissions to tag that resource.  On each account, a role for cross account access will need to be created, with the following permissions.
+
+*NOTE;* The role must be named 'AutoTagRole'.  
+(This is a temporary hard requirement, given that after uploading the code via zip file, AWS doesn't allow the user to edit the main file inline.  This introduces complexity in user defined configuration for the lambda function.)
+
+#### Auto-Tag role master policy
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1442379848000",
+            "Effect": "Allow",
+            "Action": [
                 "s3:GetBucketTagging",
                 "s3:PutBucketTagging",
                 "ec2:CreateTags",
@@ -124,6 +97,22 @@ Actions to allow for all resources:
     ]
 }
 ```
+
+Details on specific requirements for each service, in case you want a subset of this master policy:
+
+* S3: `s3:GetBucketTagging`
+      `s3:PutBucketTagging`
+* EC2: `ec2:CreateTags`
+* ELB: `elasticloadbalancing:AddTags`
+* AutoScaling: `autoscaling:CreateOrUpdateTags`
+* EBS: `ec2:CreateTags` (Same as EC2)
+* VPC: `ec2:CreateTags` (Same as EC2)
+* Subnet: `ec2:CreateTags` (Same as EC2)
+* InternetGateway: `ec2:CreateTags` (Same as EC2)
+* RDS: `rds:AddTagsToResource`
+* EMR: `elasticmapreduce:AddTags`
+* DataPipeline: `datapipeline:AddTags`
+
 
 ## Contributing
 

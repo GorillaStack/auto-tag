@@ -1,10 +1,10 @@
 const AutotagDefaultWorker = require('./autotag_default_worker');
 const AWS = require('aws-sdk');
+const co = require('co');
 
 class AutotagEMRWorker extends AutotagDefaultWorker {
   constructor(event) {
     super(event);
-    this.emr = new AWS.EMR({region: event.awsRegion});
   }
 
   /* tagResource
@@ -15,9 +15,18 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
 
   tagResource() {
     let _this = this;
+    return co(function* () {
+      yield _this.assumeRole(AWS);
+      yield _this.tagEMRResource();
+    });
+  }
+
+  tagEMRResource() {
+    let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        _this.emr.addTags({
+        let emr = new AWS.EMR({region: _this.event.awsRegion});
+        emr.addTags({
           ResourceId: _this.getEMRClusterId(),
           Tags: [
             _this.getAutotagPair()

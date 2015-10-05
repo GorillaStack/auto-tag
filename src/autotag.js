@@ -16,15 +16,6 @@ exports.handler = function(cloudtrailEvent, context) {
     AwsCloudTrailListener.DATA_PIPELINE.name
   ];
 
-  /*
-  ** An object where:
-  ** Keys: linked account ids
-  ** Values: the arn of the role configured for cross account access on that
-  ** account
-  */
-  const rolesForCrossAccountAccess = {
-    '002': 'arn'
-  };
   let listener = new AwsCloudTrailListener(cloudtrailEvent, context, enabledListeners);
   return listener.execute();
 

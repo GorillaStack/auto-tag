@@ -1,10 +1,10 @@
 const AutotagDefaultWorker = require('./autotag_default_worker');
 const AWS = require('aws-sdk');
+const co = require('co');
 
 class AutotagELBWorker extends AutotagDefaultWorker {
   constructor(event) {
     super(event);
-    this.elb = new AWS.ELB({region: event.awsRegion});
   }
 
   /* tagResource
@@ -12,12 +12,20 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   **
   ** Add tag to elastic load balancer
   */
-
   tagResource() {
+    let _this = this;
+    return co(function* () {
+      yield _this.assumeRole(AWS);
+      yield _this.tagELBResource();
+    });
+  }
+
+  tagELBResource() {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {
-        _this.elb.addTags({
+        let elb = new AWS.ELB({region: _this.event.awsRegion});
+        elb.addTags({
           LoadBalancerNames: [
             _this.getLoadBalancerName()
           ],
