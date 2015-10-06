@@ -1,7 +1,8 @@
 const AwsCloudTrailListener = require('./aws_cloud_trail_listener');
 const exports = {};
+
 exports.handler = function(cloudtrailEvent, context) {
-  let enabledListeners = [
+  const enabledListeners = [
     AwsCloudTrailListener.EC2.name,
     AwsCloudTrailListener.S3.name,
     AwsCloudTrailListener.AUTOSCALE_GROUPS.name,

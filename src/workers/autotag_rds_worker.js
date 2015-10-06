@@ -1,10 +1,10 @@
 const AutotagDefaultWorker = require('./autotag_default_worker');
 const AWS = require('aws-sdk');
+const co = require('co');
 
 class AutotagRDSWorker extends AutotagDefaultWorker {
   constructor(event) {
     super(event);
-    this.rds = new AWS.RDS({region: event.awsRegion});
   }
 
   /* tagResource
@@ -14,6 +14,18 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
   */
 
   tagResource() {
+    let _this = this;
+    return co(function* () {
+      let credentials = yield _this.assumeRole();
+      _this.rds = new AWS.RDS({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
+      yield _this.tagRDSResource();
+    });
+  }
+
+  tagRDSResource() {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {

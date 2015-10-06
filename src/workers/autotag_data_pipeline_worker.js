@@ -1,11 +1,11 @@
 const AutotagDefaultWorker = require('./autotag_default_worker');
 const AWS = require('aws-sdk');
+const co = require('co');
 const _ = require('underscore');
 
 class AutotagDataPipelineWorker extends AutotagDefaultWorker {
   constructor(event) {
     super(event);
-    this.dataPipeline = new AWS.DataPipeline({region: event.awsRegion});
   }
 
   /* tagResource
@@ -15,6 +15,18 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
   */
 
   tagResource() {
+    let _this = this;
+    return co(function* () {
+      let credentials = yield _this.assumeRole();
+      _this.dataPipeline = new AWS.DataPipeline({
+        region: _this.event.awsRegion,
+        credentials: credentials
+      });
+      yield _this.tagDataPipelineResource();
+    });
+  }
+
+  tagDataPipelineResource() {
     let _this = this;
     return new Promise(function(resolve, reject) {
       try {

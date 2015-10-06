@@ -1,2 +1,5 @@
 lib/
 *.bak
+*.sh
+sample*.js
+!test_create_instances.sh
