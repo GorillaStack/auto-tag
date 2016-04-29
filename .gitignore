@@ -1,5 +1,7 @@
 lib/
+node_modules/
 *.bak
 *.sh
+*.zip
 sample*.js
 !test_create_instances.sh
