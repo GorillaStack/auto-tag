@@ -1,6 +1,6 @@
-const AutotagDefaultWorker = require('./autotag_default_worker');
-const AWS = require('aws-sdk');
-const co = require('co');
+import AutotagDefaultWorker from './autotag_default_worker';
+import AWS  from 'aws-sdk';
+import co from 'co';
 
 class AutotagEC2Worker extends AutotagDefaultWorker {
   constructor(event) {
@@ -26,21 +26,21 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
 
   tagEC2Resources(resources) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       try {
         _this.ec2.createTags({
           Resources: resources,
           Tags: [
             _this.getAutotagPair()
           ]
-        }, function(err, res) {
+        }, (err, res) => {
           if (err) {
             reject(err);
           } else {
             resolve(true);
           }
         });
-      } catch(e) {
+      } catch (e) {
         reject(e);
       }
     });

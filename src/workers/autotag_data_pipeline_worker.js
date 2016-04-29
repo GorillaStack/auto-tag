@@ -1,7 +1,7 @@
-const AutotagDefaultWorker = require('./autotag_default_worker');
-const AWS = require('aws-sdk');
-const co = require('co');
-const _ = require('underscore');
+import AutotagDefaultWorker from './autotag_default_worker';
+import AWS from 'aws-sdk';
+import co from 'co';
+import _ from 'underscore';
 
 class AutotagDataPipelineWorker extends AutotagDefaultWorker {
   constructor(event) {
@@ -28,20 +28,21 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
 
   tagDataPipelineResource() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       try {
         _this.dataPipeline.addTags({
           pipelineId: _this.getDataPipelineId(),
           tags: [
             _this.getAutotagPair()
           ]
-        }, function(err, res) {
-          if (err)
+        }, (err, res) => {
+          if (err) {
             reject(err);
-          else
+          } else {
             resolve(true);
+          }
         });
-      } catch(e) {
+      } catch (e) {
         reject(e);
       }
     });

@@ -1,6 +1,6 @@
-const AutotagDefaultWorker = require('./autotag_default_worker');
-const AWS = require('aws-sdk');
-const co = require('co');
+import AutotagDefaultWorker from './autotag_default_worker';
+import AWS from 'aws-sdk';
+import co from 'co';
 
 class AutotagS3Worker extends AutotagDefaultWorker {
   constructor(event) {
@@ -28,21 +28,22 @@ class AutotagS3Worker extends AutotagDefaultWorker {
 
   getExistingTags() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       try {
         _this.s3.getBucketTagging({
           Bucket: _this.getBucketName(),
-        }, function(err, res) {
+        }, (err, res) => {
           if (err) {
-            if (err.code === 'NoSuchTagSet' && err.statusCode === 404)
+            if (err.code === 'NoSuchTagSet' && err.statusCode === 404) {
               resolve([]);
-            else
+            } else {
               reject(err);
+            }
           } else {
             resolve(res.TagSet);
           }
-        })
-      } catch(e) {
+        });
+      } catch (e) {
         reject(e);
       }
     });
@@ -50,21 +51,21 @@ class AutotagS3Worker extends AutotagDefaultWorker {
 
   setTags(tags) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       try {
         _this.s3.putBucketTagging({
           Bucket: _this.getBucketName(),
           Tagging: {
             TagSet: tags
           }
-        }, function(err, res) {
+        }, (err, res) => {
           if (err) {
             reject(err);
           } else {
             resolve(res);
           }
-        })
-      } catch(e) {
+        });
+      } catch (e) {
         reject(e);
       }
     });

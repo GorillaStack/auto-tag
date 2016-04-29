@@ -1,6 +1,6 @@
-const AutotagDefaultWorker = require('./autotag_default_worker');
-const AWS = require('aws-sdk');
-const co = require('co');
+import AutotagDefaultWorker from './autotag_default_worker';
+import AWS from 'aws-sdk';
+import co from  'co';
 
 class AutotagAutoscaleWorker extends AutotagDefaultWorker {
   constructor(event) {
@@ -27,9 +27,9 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
 
   tagAutoscalingGroup() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       try {
-        let tagConfig = _this.getAutotagPair()
+        let tagConfig = _this.getAutotagPair();
         tagConfig.ResourceId = _this.getAutoscalingGroupName();
         tagConfig.ResourceType = 'auto-scaling-group';
         tagConfig.PropagateAtLaunch = true;
@@ -37,13 +37,14 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
           Tags: [
             tagConfig
           ]
-        }, function(err, res) {
-          if (err)
+        }, (err, res) => {
+          if (err) {
             reject(err);
-          else
+          } else {
             resolve(true);
+          }
         });
-      } catch(e) {
+      } catch (e) {
         reject(e);
       }
     });

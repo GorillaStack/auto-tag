@@ -1,6 +1,6 @@
-const AutotagDefaultWorker = require('./autotag_default_worker');
-const AWS = require('aws-sdk');
-const co = require('co');
+import AutotagDefaultWorker from './autotag_default_worker';
+import AWS from 'aws-sdk';
+import co from 'co';
 
 class AutotagELBWorker extends AutotagDefaultWorker {
   constructor(event) {
@@ -26,7 +26,7 @@ class AutotagELBWorker extends AutotagDefaultWorker {
 
   tagELBResource() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       try {
         _this.elb.addTags({
           LoadBalancerNames: [
@@ -35,13 +35,14 @@ class AutotagELBWorker extends AutotagDefaultWorker {
           Tags: [
             _this.getAutotagPair()
           ]
-        }, function(err, res) {
-          if (err)
+        }, (err, res) => {
+          if (err) {
             reject(err);
-          else
+          } else {
             resolve(true);
+          }
         });
-      } catch(e) {
+      } catch (e) {
         reject(e);
       }
     });

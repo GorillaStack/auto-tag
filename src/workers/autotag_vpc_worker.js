@@ -1,6 +1,6 @@
-const AutotagEC2Worker = require('./autotag_ec2_worker');
-const AWS = require('aws-sdk');
-const co = require('co');
+import AutotagEC2Worker from './autotag_ec2_worker';
+import AWS from 'aws-sdk';
+import co from 'co';
 
 class AutotagVPCWorker extends AutotagEC2Worker {
   /* tagResource

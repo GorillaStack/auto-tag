@@ -1,7 +1,6 @@
-const AwsCloudTrailListener = require('./aws_cloud_trail_listener');
-const exports = {};
+import AwsCloudTrailListener from './aws_cloud_trail_listener';
 
-exports.handler = function(cloudtrailEvent, context) {
+export function handler(cloudtrailEvent, context) {
   const enabledListeners = [
     AwsCloudTrailListener.EC2.name,
     AwsCloudTrailListener.S3.name,
@@ -22,5 +21,3 @@ exports.handler = function(cloudtrailEvent, context) {
   // context.succeed();  // Echo back the first key value
   // context.fail('Something went wrong');
 };
-
-export default exports;

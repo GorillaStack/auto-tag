@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+import AWS from 'aws-sdk';
 const AUTOTAG_TAG_NAME = 'AutoTag_Creator';
 const ROLE_PREFIX = 'arn:aws:iam::';
 const ROLE_SUFFIX = ':role/AutoTagRole';
@@ -15,11 +15,11 @@ class AutotagDefaultWorker {
   */
   tagResource() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       try {
         // Do nothing
         resolve(true);
-      } catch(e) {
+      } catch (e) {
         reject(e);
       }
     });
@@ -35,7 +35,7 @@ class AutotagDefaultWorker {
           RoleArn: ROLE_PREFIX + _this.event.recipientAccountId + ROLE_SUFFIX,
           RoleSessionName: 'AutoTag-' + (new Date()).getTime(),
           DurationSeconds: 900
-        }, function(err, data) {
+        }, (err, data) => {
           if (err) {
             reject(err);
           } else {

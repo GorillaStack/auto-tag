@@ -1,23 +1,23 @@
-const _ = require('underscore');
-const AutotagDefaultWorker = require('./workers/autotag_default_worker.js');
-const AutotagEC2Worker = require('./workers/autotag_ec2_worker.js');
-const AutotagS3Worker = require('./workers/autotag_s3_worker.js');
-const AutotagELBWorker = require('./workers/autotag_elb_worker.js');
-const AutotagEBSWorker = require('./workers/autotag_ebs_worker.js');
-const AutotagAutoscaleWorker = require('./workers/autotag_autoscale_worker.js');
-const AutotagVPCWorker = require('./workers/autotag_vpc_worker.js');
-const AutotagSubnetWorker = require('./workers/autotag_subnet_worker.js');
-const AutotagInternetGatewayWorker = require('./workers/autotag_internet_gateway_worker.js');
-const AutotagRDSWorker = require('./workers/autotag_rds_worker.js');
-const AutotagEMRWorker = require('./workers/autotag_emr_worker.js');
-const AutotagDataPipelineWorker = require('./workers/autotag_data_pipeline_worker.js');
-const CONFIG = require('./cloud_trail_event_config');
+import _ from 'underscore';
+import AutotagDefaultWorker from './workers/autotag_default_worker.js';
+import AutotagEC2Worker from './workers/autotag_ec2_worker.js';
+import AutotagS3Worker from './workers/autotag_s3_worker.js';
+import AutotagELBWorker from './workers/autotag_elb_worker.js';
+import AutotagEBSWorker from './workers/autotag_ebs_worker.js';
+import AutotagAutoscaleWorker from './workers/autotag_autoscale_worker.js';
+import AutotagVPCWorker from './workers/autotag_vpc_worker.js';
+import AutotagSubnetWorker from './workers/autotag_subnet_worker.js';
+import AutotagInternetGatewayWorker from './workers/autotag_internet_gateway_worker.js';
+import AutotagRDSWorker from './workers/autotag_rds_worker.js';
+import AutotagEMRWorker from './workers/autotag_emr_worker.js';
+import AutotagDataPipelineWorker from './workers/autotag_data_pipeline_worker.js';
+import CONFIG from './cloud_trail_event_config';
 
 let AutotagFactory = {
 
-  createWorker: function(event, enabledServices) {
+  createWorker: (event, enabledServices) => {
     // Match Service
-    let matchingService = _.findWhere(CONFIG, {targetEventName: event.eventName});
+    let matchingService = _.findWhere(CONFIG, { targetEventName: event.eventName });
 
     // Check service found and service enabled
     if (_.isUndefined(matchingService)
@@ -77,9 +77,7 @@ let AutotagFactory = {
         return new AutotagDefaultWorker(event);
 
     }
-
   }
-
 };
 
 export default AutotagFactory;

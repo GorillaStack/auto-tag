@@ -1,10 +1,10 @@
-require('babel/polyfill');
-const zlib = require('zlib');
-const AWS = require('aws-sdk');
-const co = require('co');
-const _ = require('underscore');
-const constants = require('./cloud_trail_event_config');
-const AutotagFactory = require('./autotag_factory');
+import 'babel/polyfill';
+import zlib from 'zlib';
+import AWS from 'aws-sdk';
+import co from 'co';
+import _ from 'underscore';
+import constants from './cloud_trail_event_config';
+import AutotagFactory from './autotag_factory';
 
 class AwsCloudTrailListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
@@ -20,9 +20,15 @@ class AwsCloudTrailListener {
     return co(function* () {
       let logFiles = yield _this.retrieveLogFileDetails();
       yield _this.collectAndPerformAutotagActionsFromLogFile(logFiles);
-    }).then(function() {
+    })
+
+    .then(() => {
       _this.applicationContext.succeed();
-    }).catch(function(e) {
+    }, (e) => {
+      _this.handleError(e);
+    })
+
+    .catch((e) => {
       _this.handleError(e);
     });
   }
@@ -35,10 +41,10 @@ class AwsCloudTrailListener {
 
   retrieveLogFileDetails() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
       try {
         let logFiles = _this.cloudtrailEvent.Records.map(event => {
-          return {Bucket: event.s3.bucket.name, Key: event.s3.object.key};
+          return { Bucket: event.s3.bucket.name, Key: event.s3.object.key };
         });
         resolve(logFiles);
       } catch (e) {
@@ -72,8 +78,8 @@ class AwsCloudTrailListener {
 
   retrieveFromS3(logFile) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
-      _this.s3.getObject(logFile, function(err, res) {
+    return new Promise((resolve, reject) => {
+      _this.s3.getObject(logFile, (err, res) => {
         if (err) {
           reject(err);
         } else {
@@ -85,8 +91,8 @@ class AwsCloudTrailListener {
 
   unGzipContent(zippedContent) {
     let _this = this;
-    return new Promise(function(resolve, reject) {
-      zlib.gunzip(zippedContent, function(err, result) {
+    return new Promise((resolve, reject) => {
+      zlib.gunzip(zippedContent, (err, result) => {
         if (err) {
           reject(err);
         } else {
@@ -94,12 +100,10 @@ class AwsCloudTrailListener {
         }
       });
     });
-
   }
-}
+};
 
-
-var dumpRecord = function(event) {
+const dumpRecord = (event) => {
   console.log('Event Name: ' + event.eventName);
   console.log('Event Type: ' + event.eventType);
   console.log('Event Source: ' + event.eventSource);
