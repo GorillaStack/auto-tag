@@ -1,12 +1,13 @@
-var sut = require('../lib/aws_cloud_trail_listener');
+import SutClass from '../lib/aws_cloud_trail_listener';
 
-describe('AwsCloudTrailListener', function() {
-  var applicationContext = {
-    succeed: function() {},
-    fail: function() {}
+describe('AwsCloudTrailListener', () => {
+  const applicationContext = {
+    succeed: () => {},
+
+    fail: () => {}
   };
 
-  var cloudtrailObject = {
+  let cloudtrailObject = {
     Records: [
       {
         s3: {
@@ -33,17 +34,17 @@ describe('AwsCloudTrailListener', function() {
 
   describe('retrieveLogFileDetails', function() {
     it('should retrieve a list of objects with the bucket name and bucket fileKey', function(done) {
-      var listener = new sut(cloudtrailObject, applicationContext);
+      var listener = new SutClass(cloudtrailObject, applicationContext);
       listener.retrieveLogFileDetails().then(
-        function(result) {
+        (result) => {
           expect(result).toEqual([
-            {Bucket: 'bucket1', Key: 'fileKey1.json.gz'},
-            {Bucket: 'bucket2', Key: 'fileKey2.json.gz'}
+            { Bucket: 'bucket1', Key: 'fileKey1.json.gz' },
+            { Bucket: 'bucket2', Key: 'fileKey2.json.gz' }
           ]);
           done();
         },
 
-        function(err) {
+        (err) => {
           expect(err).toBe(undefined);
           done();
         }
