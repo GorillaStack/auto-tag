@@ -1,0 +1,7 @@
+{
+    "preset": "airbnb",
+    "esnext": true,
+    "requireTrailingComma": null,
+    "requireSpacesInsideObjectBrackets": null,
+    "requireSpacesInAnonymousFunctionExpression": null
+}
