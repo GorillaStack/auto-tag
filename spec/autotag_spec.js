@@ -1,24 +1,56 @@
-var sut = require('../lib/autotag.js');
+import requireMock from 'mock-require';
+import cloudTrailEventConfig from '../lib/cloud_trail_event_config';
+import _ from 'underscore';
 
-describe('AutoTag', function() {
-  var applicationContext = {
-    succeed: function() {},
-    fail: function() {}
+let sut = null;
+let constructorFlag = false;
+let executeFlag = false;
+let AwsCloudTrailListenerMock = class {
+  constructor() {
+    constructorFlag = true;
+  }
+
+  execute() {
+    executeFlag = true;
+  }
+};
+
+_.each(cloudTrailEventConfig, function(value, key) {
+  AwsCloudTrailListenerMock[key] = value;
+});
+
+describe('AutoTag index file', () => {
+  beforeAll(() => {
+    requireMock('../lib/aws_cloud_trail_listener', AwsCloudTrailListenerMock);
+    sut = require('../lib/autotag.js').default;
+  });
+
+  afterAll(() => {
+    requireMock.stopAll();
+  });
+
+  const applicationContext = {
+    succeed: () => {},
+
+    fail: () => {}
   };
 
-  // it('should run without error with application context', function() {
-  //   var fn = function() {
-  //     sut.handler({}, applicationContext);
-  //   };
-  //
-  //   expect(fn).not.toThrow();
-  // });
-  //
-  // it('should throw error without application context', function(done) {
-  //   var fn = function() {
-  //     sut.handler({});
-  //   };
-  //
-  //   expect(fn).toThrow();
-  // });
+  it('should define a function called "handler"', () => {
+    expect(sut).not.toBeUndefined();
+    expect(sut.handler).not.toBeUndefined();
+  });
+
+  describe('autotag.handler', () => {
+    beforeAll(() => {
+      sut.handler();
+    });
+
+    it('creates an "AwsCloudTrailListener" object', function() {
+      expect(constructorFlag).toBeTruthy();
+    });
+
+    it('invokes a method "execute"', function() {
+      expect(executeFlag).toBeTruthy();
+    });
+  });
 });
