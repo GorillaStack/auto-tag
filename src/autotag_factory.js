@@ -72,8 +72,8 @@ let AutotagFactory = {
         return new AutotagDataPipelineWorker(event);
         break;
 
+      // Default: worker that does nothing
       default:
-        // Default: worker that does nothing
         return new AutotagDefaultWorker(event);
 
     }
