@@ -1,0 +1,227 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Auto Tag (Open Source by GorillaStack)",
+  "Parameters" : {
+    "CodeS3Bucket" : {
+      "Description" : "The name of the code bucket in S3",
+      "Type" : "String",
+      "Default" : "gorillastack-autotag-releases-ap-northeast-1"
+    },
+    "CodeS3Path" : {
+      "Description" : "The path of the code zip file in the code bucket in S3",
+      "Type" : "String",
+      "Default" : "autotag-0.3.0.zip"
+    },
+    "CloudTrailBucketName" : {
+      "Description" : "The name you want to give the bucket for your CloudTrail logs",
+      "Type" : "String",
+      "Default": "my-cloudtrail-bucket"
+    }
+  },
+
+  "Mappings" : {
+  },
+
+  "Resources": {
+
+    "AutoTagExecutionRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+
+    "AutoTagLambdaFunction" : {
+      "Type" : "AWS::Lambda::Function",
+      "Properties" : {
+        "Code" : {
+          "S3Bucket": { "Ref" : "CodeS3Bucket" },
+          "S3Key": { "Ref" : "CodeS3Path" }
+        },
+        "Description" : "Auto Tag (Open Source by GorillaStack)",
+        "FunctionName" : "AutoTag",
+        "Handler" : "autotag.handler",
+        "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
+        "Runtime" : "nodejs4.3",
+        "Timeout" : 3
+      }
+    },
+
+    "AutoTagMasterRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+
+    "AutoTagMasterPolicy" : {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "AutoTagMasterPolicy",
+        "Roles": [ { "Ref": "AutoTagMasterRole" } ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetBucketTagging",
+                "s3:PutBucketTagging",
+                "ec2:CreateTags",
+                "elasticloadbalancing:AddTags",
+                "autoscaling:CreateOrUpdateTags",
+                "rds:AddTagsToResource",
+                "elasticmapreduce:AddTags",
+                "datapipeline:AddTags"
+              ],
+              "Resource": [
+                "*"
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    "AutoTagExecutionPolicy" : {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "AutoTagExecutionPolicy",
+        "Roles": [ { "Ref": "AutoTagExecutionRole" } ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": "arn:aws:logs:*:*:*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:ListBucket"
+              ],
+              "Resource": [
+                "*"
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sts:*"
+              ],
+              "Resource": [
+                { "Fn::GetAtt" : [ "AutoTagMasterRole", "Arn" ] }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    "TriggerLambdaPermission": {
+      "Type" : "AWS::Lambda::Permission",
+      "DependsOn" : "AutoTagLambdaFunction",
+      "Properties" : {
+        "Action" : "lambda:InvokeFunction",
+        "FunctionName" : { "Fn::GetAtt" : [ "AutoTagLambdaFunction", "Arn" ] },
+        "Principal" : "s3.amazonaws.com",
+        "SourceAccount": { "Ref" : "AWS::AccountId" },
+        "SourceArn": { "Fn::Join" : [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" } ] ] }
+      }
+    },
+
+    "BucketPolicy" : {
+      "Type" : "AWS::S3::BucketPolicy",
+      "Properties" : {
+        "Bucket" : { "Ref" : "CloudTrailS3Bucket" },
+        "PolicyDocument" : {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AWSCloudTrailAclCheck",
+              "Effect": "Allow",
+              "Principal": { "Service" : "cloudtrail.amazonaws.com"},
+              "Action": "s3:GetBucketAcl",
+              "Resource": { "Fn::Join" : [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" } ] ] }
+            },
+            {
+              "Sid": "AWSCloudTrailWrite",
+              "Effect": "Allow",
+              "Principal": { "Service":"cloudtrail.amazonaws.com" },
+              "Action": "s3:PutObject",
+              "Resource": { "Fn::Join" : [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName"}, "/AWSLogs/", { "Ref":"AWS::AccountId" }, "/*" ] ] },
+              "Condition": {
+               "StringEquals": {
+                 "s3:x-amz-acl": "bucket-owner-full-control"
+               }
+              }
+            }
+          ]
+        }
+      }
+    },
+
+    "CloudTrailS3Bucket" : {
+      "DependsOn" : "TriggerLambdaPermission",
+      "Type" : "AWS::S3::Bucket",
+      "Properties" : {
+        "BucketName" : { "Ref" : "CloudTrailBucketName" },
+        "NotificationConfiguration" : {
+          "LambdaConfigurations" : [
+            {
+              "Event" : "s3:ObjectCreated:*",
+              "Function" : { "Fn::GetAtt" : [ "AutoTagLambdaFunction", "Arn" ] }
+            }
+          ]
+        }
+      }
+    },
+
+    "CloudTrail" : {
+      "DependsOn": "CloudTrailS3Bucket",
+      "Type" : "AWS::CloudTrail::Trail",
+      "Properties" : {
+        "IsLogging" : true,
+        "IncludeGlobalServiceEvents": true,
+        "IsMultiRegionTrail" : true,
+        "S3BucketName" : { "Ref" : "CloudTrailBucketName" }
+      }
+    }
+  }
+}
