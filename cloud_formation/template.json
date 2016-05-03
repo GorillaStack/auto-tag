@@ -42,7 +42,7 @@
             }
           ]
         },
-        "Path": "/"
+        "Path": "/gorillastack/autotag/execution/"
       }
     },
 
@@ -80,7 +80,7 @@
             }
           ]
         },
-        "Path": "/"
+        "Path": "/gorillastack/autotag/master/"
       }
     },
 
@@ -143,6 +143,15 @@
             {
               "Effect": "Allow",
               "Action": [
+                "cloudformation:DescribeStackResource"
+              ],
+              "Resource": [
+                  { "Ref" : "AWS::StackId" }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
                 "sts:*"
               ],
               "Resource": [
@@ -168,6 +177,7 @@
 
     "BucketPolicy" : {
       "Type" : "AWS::S3::BucketPolicy",
+      "DependsOn": "CloudTrailS3Bucket",
       "Properties" : {
         "Bucket" : { "Ref" : "CloudTrailS3Bucket" },
         "PolicyDocument" : {
@@ -191,6 +201,17 @@
                  "s3:x-amz-acl": "bucket-owner-full-control"
                }
               }
+            },
+            {
+              "Sid": "AWSLambdaFunctionRead",
+              "Effect": "Allow",
+              "Principal": { "AWS": [
+                { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref":"AWS::AccountId" }, ":user/*" ] ] },
+                { "Fn::GetAtt" : [ "AutoTagMasterRole", "Arn" ] },
+                { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] }
+              ] },
+              "Action": "s3:GetObject",
+              "Resource": { "Fn::Join" : [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName"}, "/*" ] ] }
             }
           ]
         }
@@ -214,7 +235,7 @@
     },
 
     "CloudTrail" : {
-      "DependsOn": "CloudTrailS3Bucket",
+      "DependsOn": "BucketPolicy",
       "Type" : "AWS::CloudTrail::Trail",
       "Properties" : {
         "IsLogging" : true,
