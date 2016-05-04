@@ -1,4 +1,4 @@
-import 'babel/polyfill';
+import 'babel-polyfill';
 import zlib from 'zlib';
 import AWS from 'aws-sdk';
 import co from 'co';
@@ -12,6 +12,7 @@ class AwsCloudTrailListener {
     this.applicationContext = applicationContext;
     this.enabledServices = enabledServices;
     this.s3 = new AWS.S3();
+    this.s3Region = '';
     this.autotagActions = [];
   }
 
@@ -43,6 +44,7 @@ class AwsCloudTrailListener {
     let _this = this;
     return new Promise((resolve, reject) => {
       try {
+        this.s3Region = _this.cloudtrailEvent.Records[0].awsRegion;
         let logFiles = _this.cloudtrailEvent.Records.map(event => {
           return { Bucket: event.s3.bucket.name, Key: event.s3.object.key };
         });
@@ -60,7 +62,7 @@ class AwsCloudTrailListener {
         let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
         for (let j in log.Records) {
           let event = log.Records[j];
-          let worker = AutotagFactory.createWorker(event, _this.enabledServices);
+          let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
           yield worker.tagResource();
         }
       }

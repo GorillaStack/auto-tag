@@ -15,7 +15,7 @@ import CONFIG from './cloud_trail_event_config';
 
 let AutotagFactory = {
 
-  createWorker: (event, enabledServices) => {
+  createWorker: (event, enabledServices, s3Region) => {
     // Match Service
     let matchingService = _.findWhere(CONFIG, { targetEventName: event.eventName });
 
@@ -23,58 +23,58 @@ let AutotagFactory = {
     if (_.isUndefined(matchingService)
       || !_.contains(enabledServices, matchingService.name)) {
       // Default: worker that does nothing
-      return new AutotagDefaultWorker(event);
+      return new AutotagDefaultWorker(event, s3Region);
     }
 
     // Select the relevant worker
     switch (matchingService.name) {
       case CONFIG.EC2.name:
-        return new AutotagEC2Worker(event);
+        return new AutotagEC2Worker(event, s3Region);
         break;
 
       case CONFIG.S3.name:
-        return new AutotagS3Worker(event);
+        return new AutotagS3Worker(event, s3Region);
         break;
 
       case CONFIG.ELB.name:
-        return new AutotagELBWorker(event);
+        return new AutotagELBWorker(event, s3Region);
         break;
 
       case CONFIG.AUTOSCALE_GROUPS.name:
-        return new AutotagAutoscaleWorker(event);
+        return new AutotagAutoscaleWorker(event, s3Region);
         break;
 
       case CONFIG.VPC.name:
-        return new AutotagVPCWorker(event);
+        return new AutotagVPCWorker(event, s3Region);
         break;
 
       case CONFIG.SUBNETS.name:
-        return new AutotagSubnetWorker(event);
+        return new AutotagSubnetWorker(event, s3Region);
         break;
 
       case CONFIG.EBS.name:
-        return new AutotagEBSWorker(event);
+        return new AutotagEBSWorker(event, s3Region);
         break;
 
       case CONFIG.INTERNET_GATEWAY.name:
-        return new AutotagInternetGatewayWorker(event);
+        return new AutotagInternetGatewayWorker(event, s3Region);
         break;
 
       case CONFIG.RDS.name:
-        return new AutotagRDSWorker(event);
+        return new AutotagRDSWorker(event, s3Region);
         break;
 
       case CONFIG.EMR.name:
-        return new AutotagEMRWorker(event);
+        return new AutotagEMRWorker(event, s3Region);
         break;
 
       case CONFIG.DATA_PIPELINE.name:
-        return new AutotagDataPipelineWorker(event);
+        return new AutotagDataPipelineWorker(event, s3Region);
         break;
 
       // Default: worker that does nothing
       default:
-        return new AutotagDefaultWorker(event);
+        return new AutotagDefaultWorker(event, s3Region);
 
     }
   }
