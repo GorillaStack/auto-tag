@@ -3,9 +3,6 @@ import AWS from 'aws-sdk';
 import co from  'co';
 
 class AutotagAutoscaleWorker extends AutotagDefaultWorker {
-  constructor(event) {
-    super(event);
-  }
 
   /* tagResource
   ** method: tagResource
@@ -16,7 +13,8 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let credentials = yield _this.assumeRole();
+      let roleName = yield _this.getRoleName();
+      let credentials = yield _this.assumeRole(roleName);
       _this.autoscaling = new AWS.AutoScaling({
         region: _this.event.awsRegion,
         credentials: credentials

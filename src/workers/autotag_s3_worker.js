@@ -3,9 +3,6 @@ import AWS from 'aws-sdk';
 import co from 'co';
 
 class AutotagS3Worker extends AutotagDefaultWorker {
-  constructor(event) {
-    super(event);
-  }
   /* tagResource
   ** method: tagResource
   **
@@ -15,13 +12,15 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let credentials = yield _this.assumeRole();
+      let roleName = yield _this.getRoleName();
+      let credentials = yield _this.assumeRole(roleName);
       _this.s3 = new AWS.S3({
         region: _this.event.awsRegion,
         credentials: credentials
       });
       let tags = yield _this.getExistingTags();
       tags.push(_this.getAutotagPair());
+      console.log('tags', tags);
       yield _this.setTags(tags);
     });
   }

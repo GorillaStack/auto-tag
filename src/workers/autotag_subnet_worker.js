@@ -12,7 +12,8 @@ class AutotagSubnetWorker extends AutotagEC2Worker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let credentials = yield _this.assumeRole();
+      let roleName = yield _this.getRoleName();
+      let credentials = yield _this.assumeRole(roleName);
       _this.ec2 = new AWS.EC2({
         region: _this.event.awsRegion,
         credentials: credentials

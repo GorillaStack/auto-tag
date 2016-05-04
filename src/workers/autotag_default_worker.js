@@ -1,11 +1,15 @@
 import AWS from 'aws-sdk';
 const AUTOTAG_TAG_NAME = 'AutoTag_Creator';
 const ROLE_PREFIX = 'arn:aws:iam::';
-const ROLE_SUFFIX = ':role/AutoTagRole';
+const ROLE_SUFFIX = ':role';
+const DEFAULT_STACK_NAME = 'autotag';
+const MASTER_ROLE_NAME = 'AutoTagMasterRole';
+const MASTER_ROLE_PATH = '/gorillastack/autotag/master/';
 
 class AutotagDefaultWorker {
-  constructor(event) {
+  constructor(event, s3Region) {
     this.event = event;
+    this.s3Region = s3Region;
   }
 
   /* tagResource
@@ -25,14 +29,35 @@ class AutotagDefaultWorker {
     });
   }
 
-  assumeRole() {
+  getRoleName() {
     let _this = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise((resolve, reject) => {
+      try {
+        let cloudFormation = new AWS.CloudFormation({ region: _this.s3Region });
+        cloudFormation.describeStackResource({
+          StackName: DEFAULT_STACK_NAME,
+          LogicalResourceId: MASTER_ROLE_NAME
+        }, (err, data) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(data.StackResourceDetail.PhysicalResourceId);
+          }
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  assumeRole(roleName) {
+    let _this = this;
+    return new Promise((resolve, reject) => {
       try {
         AWS.config.region = 'us-east-1';
         let sts = new AWS.STS();
         sts.assumeRole({
-          RoleArn: ROLE_PREFIX + _this.event.recipientAccountId + ROLE_SUFFIX,
+          RoleArn: ROLE_PREFIX + _this.event.recipientAccountId + ROLE_SUFFIX + MASTER_ROLE_PATH + roleName,
           RoleSessionName: 'AutoTag-' + (new Date()).getTime(),
           DurationSeconds: 900
         }, (err, data) => {

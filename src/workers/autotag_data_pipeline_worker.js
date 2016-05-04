@@ -4,9 +4,6 @@ import co from 'co';
 import _ from 'underscore';
 
 class AutotagDataPipelineWorker extends AutotagDefaultWorker {
-  constructor(event) {
-    super(event);
-  }
 
   /* tagResource
   ** method: tagResource
@@ -17,7 +14,8 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let credentials = yield _this.assumeRole();
+      let roleName = yield _this.getRoleName();
+      let credentials = yield _this.assumeRole(roleName);
       _this.dataPipeline = new AWS.DataPipeline({
         region: _this.event.awsRegion,
         credentials: credentials

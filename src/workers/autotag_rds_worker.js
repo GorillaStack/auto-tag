@@ -3,10 +3,6 @@ import AWS from 'aws-sdk';
 import co from 'co';
 
 class AutotagRDSWorker extends AutotagDefaultWorker {
-  constructor(event) {
-    super(event);
-  }
-
   /* tagResource
   ** method: tagResource
   **
@@ -16,7 +12,8 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let credentials = yield _this.assumeRole();
+      let roleName = yield _this.getRoleName();
+      let credentials = yield _this.assumeRole(roleName);
       _this.rds = new AWS.RDS({
         region: _this.event.awsRegion,
         credentials: credentials

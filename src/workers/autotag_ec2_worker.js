@@ -3,9 +3,6 @@ import AWS  from 'aws-sdk';
 import co from 'co';
 
 class AutotagEC2Worker extends AutotagDefaultWorker {
-  constructor(event) {
-    super(event);
-  }
 
   /* tagResource
   ** method: tagResource
@@ -15,7 +12,8 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let credentials = yield _this.assumeRole();
+      let roleName = yield _this.getRoleName();
+      let credentials = yield _this.assumeRole(roleName);
       _this.ec2 = new AWS.EC2({
         region: _this.event.awsRegion,
         credentials: credentials
