@@ -2,6 +2,12 @@ import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
 import co from 'co';
 
+const TAG_NAME_PREFIXES_TO_FILTER = [
+  'aws:'
+];
+
+const AUTOTAG_TAG_PREFIX = 'at_';
+
 class AutotagS3Worker extends AutotagDefaultWorker {
   /* tagResource
   ** method: tagResource
@@ -20,7 +26,7 @@ class AutotagS3Worker extends AutotagDefaultWorker {
       });
       let tags = yield _this.getExistingTags();
       tags.push(_this.getAutotagPair());
-      console.log('tags', tags);
+      tags = _this.touchReservedTagKeys(tags);
       yield _this.setTags(tags);
     });
   }
@@ -45,6 +51,35 @@ class AutotagS3Worker extends AutotagDefaultWorker {
       } catch (e) {
         reject(e);
       }
+    });
+  }
+
+  /**
+  * touchReservedTagKeys
+  *
+  * S3 requires us to set all bucket tags at once using a call to 'putBucketTagging'
+  * AWS does not allow us to set tags with certain namespaces, including those
+  * created by CloudFormation. Therefore we need to touch these to support
+  * cases where the S3 bucket was created by CloudFormation.
+  */
+  touchReservedTagKeys(tags) {
+    return tags.map((tag) => {
+      if (this.tagKeyIsReserved(tag)) {
+        tag.Key = AUTOTAG_TAG_PREFIX + tag.Key;
+      }
+
+      return tag;
+    });
+  }
+
+  /**
+  * tagKeyIsReserved
+  *
+  * check if tag key is reserved
+  */
+  tagKeyIsReserved(tag) {
+    return TAG_NAME_PREFIXES_TO_FILTER.some((prefix) => {
+      return tag.Key.startsWith(prefix);
     });
   }
 
