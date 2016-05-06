@@ -6,6 +6,8 @@
   "private": true,
   "dependencies": {
     "aws-sdk": "^2.1.50",
+    "babel": "^6.5.2",
+    "babel-polyfill": "^6.7.4",
     "co": "^4.6.0",
     "underscore": "^1.8.3"
   },
