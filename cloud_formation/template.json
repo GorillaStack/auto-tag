@@ -58,7 +58,7 @@
         "Handler" : "autotag.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
         "Runtime" : "nodejs4.3",
-        "Timeout" : 3
+        "Timeout" : 8
       }
     },
 
@@ -70,9 +70,7 @@
             {
               "Effect": "Allow",
               "Principal": {
-                "Service": [
-                  "lambda.amazonaws.com"
-                ]
+                "AWS" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] }
               },
               "Action": [
                 "sts:AssumeRole"
@@ -146,7 +144,7 @@
                 "cloudformation:DescribeStackResource"
               ],
               "Resource": [
-                  { "Ref" : "AWS::StackId" }
+                { "Fn::Join": [ "", [ "arn:aws:cloudformation:", { "Ref" : "AWS::Region" }, ":", { "Ref" : "AWS::AccountId" }, ":stack/autotag/*" ] ] }
               ]
             },
             {
