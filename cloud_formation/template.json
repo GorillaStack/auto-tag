@@ -201,17 +201,6 @@
                  "s3:x-amz-acl": "bucket-owner-full-control"
                }
               }
-            },
-            {
-              "Sid": "AWSLambdaFunctionRead",
-              "Effect": "Allow",
-              "Principal": { "AWS": [
-                { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref":"AWS::AccountId" }, ":user/*" ] ] },
-                { "Fn::GetAtt" : [ "AutoTagMasterRole", "Arn" ] },
-                { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] }
-              ] },
-              "Action": "s3:GetObject",
-              "Resource": { "Fn::Join" : [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName"}, "/*" ] ] }
             }
           ]
         }
