@@ -6,7 +6,7 @@ This is an open-source tagging solution for AWS.  Deploy auto tag to lambda and 
 
 ### Installation
 
-We have [created a CloudFormation template](https://github.com/GorillaStack/auto-tag/blob/master/cloud_formation/template.json) that creates all the resources required for AutoTag.
+We have [created a CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/template.json) that creates all the resources required for AutoTag.
 
 We also host each release of AutoTag in public s3 buckets in each region, such that all you have to do is install the CloudFormation template.
 
@@ -14,7 +14,7 @@ We also host each release of AutoTag in public s3 buckets in each region, such t
 
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the blue "Create Stack" button
-1. Select "Upload a template to Amazon S3", choosing the downloaded [CloudFormation template](https://github.com/GorillaStack/auto-tag/blob/master/cloud_formation/template.json), then click the blue "Next" button
+1. Select "Upload a template to Amazon S3", choosing the downloaded [CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/template.json), then click the blue "Next" button
 1. Name the stack "autotag" - this part is important, as the autotag code need to find the created resources through the API
 1. In the parameter section:
   * CloudTrailBucketName: Name the S3 bucket that the template will create.  This needs to be unique for the region, so select something specific
