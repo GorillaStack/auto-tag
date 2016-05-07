@@ -1,4 +1,4 @@
-var autotag = require('./lib/autotag.js');
+var autotag = require('./lib/autotag.js').default;
 var sampleData = require('./sample_data.js');
 
 autotag.handler(sampleData, {
