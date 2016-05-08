@@ -3,4 +3,4 @@ node_js:
   - "5"
 before_script:
   - npm install grunt-cli -g
-  - grunt run:babel
+  - grunt run:babel-once
