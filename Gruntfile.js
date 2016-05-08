@@ -10,6 +10,9 @@ module.exports = function(grunt) {
       babel: {
         exec: 'node node_modules/babel-cli/bin/babel --presets es2015 -d lib --watch src'
       },
+      'babel-once': {
+        exec: 'node node_modules/babel-cli/bin/babel --presets es2015 -d lib src'
+      },
       tests: {
         exec: 'node node_modules/jasmine-es6/bin/jasmine.js'
       }
