@@ -22,7 +22,7 @@ _.each(cloudTrailEventConfig, function(value, key) {
 describe('AutoTag index file', () => {
   beforeAll(() => {
     requireMock('../lib/aws_cloud_trail_listener', AwsCloudTrailListenerMock);
-    sut = require('../lib/autotag.js').default;
+    sut = require('../lib/autotag.js');
   });
 
   afterAll(() => {
