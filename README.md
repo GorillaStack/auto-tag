@@ -1,5 +1,7 @@
 # Auto Tag
 
+[![Build Status](https://travis-ci.org/GorillaStack/auto-tag.svg?branch=master)](https://travis-ci.org/GorillaStack/auto-tag)
+
 This is an open-source tagging solution for AWS.  Deploy auto tag to lambda and set up CloudTrail and have each of your resources tagged with the resource who created it.  It was written by [GorillaStack](http://www.gorillastack.com/).
 
 [Read a blog post about the project](http://blog.gorillastack.com/gorillastack-presents-auto-tag).
