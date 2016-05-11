@@ -20,7 +20,7 @@ We also host each release of AutoTag in public s3 buckets in each region, such t
 1. Name the stack "autotag" - this part is important, as the autotag code need to find the created resources through the API
 1. In the parameter section:
   * CloudTrailBucketName: Name the S3 bucket that the template will create.  This needs to be unique for the region, so select something specific
-  * CodeS3Bucket: As mentioned, we have a version of AutoTag in each region, to make deployment easy regardless of what region you are deploying your CloudFormation template.  Edit this parameter to match your region.  It should have the following pattern: `gorillastack-autotag-releases-${regionId}`.  E.g. `gorillastack-autotag-releases-ap-northeast-1`, `gorillastack-autotag-releases-us-west-1`
+  * CodeS3Bucket: As mentioned, we have a version of AutoTag in each region, to make deployment easy regardless of what region you are deploying your CloudFormation template.  Edit this parameter to match your region.  It should have the following pattern: `gorillastack-autotag-releases-${regionId}`.  E.g. `gorillastack-autotag-releases-ap-northeast-1`, `gorillastack-autotag-releases-us-west-2`
   * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
 
 ## Contributing
