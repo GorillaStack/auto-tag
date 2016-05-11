@@ -23,6 +23,22 @@ We also host each release of AutoTag in public s3 buckets in each region, such t
   * CodeS3Bucket: As mentioned, we have a version of AutoTag in each region, to make deployment easy regardless of what region you are deploying your CloudFormation template.  Edit this parameter to match your region.  It should have the following pattern: `gorillastack-autotag-releases-${regionId}`.  E.g. `gorillastack-autotag-releases-ap-northeast-1`, `gorillastack-autotag-releases-us-west-2`
   * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
 
+## Supported Resource Types
+
+Right now Auto Tag, supports the following resource types in AWS:
+
+* EC2 instances
+* RDS instances
+* S3 buckets
+* ELBs
+* EBS volumes
+* Elastic Map Reduce clusters
+* Internet Gateways
+* AutoScaling Groups
+* VPCs
+* VPC Subnets
+* Data Pipelines
+
 ## Contributing
 
 If you have questions, feature requests or bugs to report, please do so on [the issues section of our github repository](https://github.com/GorillaStack/auto-tag/issues).
