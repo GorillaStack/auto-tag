@@ -58,7 +58,7 @@
         "Handler" : "autotag.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
         "Runtime" : "nodejs4.3",
-        "Timeout" : 8
+        "Timeout" : 30
       }
     },
 
