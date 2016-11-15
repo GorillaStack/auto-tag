@@ -6,6 +6,12 @@ This is an open-source tagging solution for AWS.  Deploy auto tag to lambda and 
 
 [Read a blog post about the project](http://blog.gorillastack.com/gorillastack-presents-auto-tag).
 
+### About
+
+Automatically tagging resources can greatly improve the ease of cost allocation and governance.
+
+Within 5-7 minutes of creating a supported resource type, CloudTrail will write to s3 logs, which triggers our AutoTag code to tag the resource with the ARN of it's creator.
+
 ### Installation
 
 We have [created a CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/template.json) that creates all the resources required for AutoTag.
