@@ -98,7 +98,8 @@ class AwsCloudTrailListener {
         if (err) {
           reject(err);
         } else {
-          resolve(JSON.parse(result.toString()));
+          const unzippedLog = result.toString() ? JSON.parse(result.toString()) : { Records: [] };
+          resolve(unzippedLog);
         }
       });
     });
