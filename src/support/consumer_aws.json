@@ -1,0 +1,16 @@
+[
+	{
+		"appName": "1pSearch",
+		"Role": "service",
+		"financial-identifier": "123456",
+		"owner-email": "sam.sgro@thomsonreuters.com",
+		"application-asset-insight-id": "998877"
+	},
+	{
+		"appName": "1pAuth",
+		"Role": "service",
+		"financial-identifier": "123456",
+		"owner-email": "sam.sgro@thomsonreuters.com",
+		"application-asset-insight-id": "998877"
+	}
+]

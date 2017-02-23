@@ -1,0 +1,22 @@
+var AWSData = function (appName, Role, financial_identifier, owner_email, application_asset_insight_id){
+    this.appName = appName;
+    this.Role = Role;
+    this.financial_identifier = financial_identifier;
+    this.owner_email = owner_email;
+    this.application_asset_insight_id = application_asset_insight_id;
+
+    this.toJson = function (){
+        return ("{" +
+            "\"appName\":\"" + this.appName + "\"," +
+            "\"Role\":\"" + this.Role + "\"," +
+            "\"financial_identifier\":\"" + this.financial_identifier + "\"," +
+            "\"owner_email\":" + this.owner_email + "," +
+            "\"application_asset_insight_id\":" + this.application_asset_insight_id +
+        "}");
+    };
+};
+
+AWSData.fromJson = function (json){
+    var obj = JSON.parse (json);
+    return new AWSData(obj.appName, obj.Role, obj.financial_identifier, obj.owner_email, obj.application_asset_insight_id);
+};
