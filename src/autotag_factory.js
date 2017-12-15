@@ -11,6 +11,7 @@ import AutotagInternetGatewayWorker from './workers/autotag_internet_gateway_wor
 import AutotagRDSWorker from './workers/autotag_rds_worker.js';
 import AutotagEMRWorker from './workers/autotag_emr_worker.js';
 import AutotagDataPipelineWorker from './workers/autotag_data_pipeline_worker.js';
+import AutotagSecurityGroupWorker from './workers/autotag_security_group_worker.js';
 import CONFIG from './cloud_trail_event_config';
 
 let AutotagFactory = {
@@ -70,6 +71,10 @@ let AutotagFactory = {
 
       case CONFIG.DATA_PIPELINE.name:
         return new AutotagDataPipelineWorker(event, s3Region);
+        break;
+
+      case CONFIG.SECURITY_GROUP.name:
+        return new AutotagSecurityGroupWorker(event, s3Region);
         break;
 
       // Default: worker that does nothing

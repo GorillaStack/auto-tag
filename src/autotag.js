@@ -12,7 +12,8 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailListener.INTERNET_GATEWAY.name,
     AwsCloudTrailListener.RDS.name,
     AwsCloudTrailListener.EMR.name,
-    AwsCloudTrailListener.DATA_PIPELINE.name
+    AwsCloudTrailListener.DATA_PIPELINE.name,
+    AwsCloudTrailListener.SECURITY_GROUP.name
   ];
 
   let listener = new AwsCloudTrailListener(cloudtrailEvent, context, enabledListeners);
