@@ -1,0 +1,204 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Auto Tag (Open Source by GorillaStack)",
+  "Parameters" : {
+
+    "CodeS3Bucket" : {
+      "Description" : "The name of the code bucket in S3",
+      "Type" : "String",
+      "Default" : "gorillastack-autotag-releases-ap-northeast-1"
+    },
+
+    "CodeS3Path" : {
+      "Description" : "The path of the code zip file in the code bucket in S3",
+      "Type" : "String",
+      "Default" : "autotag-0.3.0.zip"
+    },
+
+    "CloudTrailBucketName" : {
+      "Description" : "The name you want to give the bucket for your CloudTrail logs",
+      "Type" : "String",
+      "Default": "my-cloudtrail-bucket"
+    }
+  },
+
+  "Resources": {
+
+    "AutoTagLambdaFunction" : {
+      "Type" : "AWS::Lambda::Function",
+      "Properties" : {
+        "Code" : {
+          "S3Bucket": { "Ref" : "CodeS3Bucket" },
+          "S3Key": { "Ref" : "CodeS3Path" }
+        },
+        "Description" : "Auto Tag (Open Source by GorillaStack)",
+        "FunctionName" : "AutoTag",
+        "Handler" : "autotag_event.handler",
+        "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
+        "Runtime" : "nodejs4.3",
+        "Timeout" : 60
+      }
+    },
+
+    "AutoTagExecutionRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [ "lambda.amazonaws.com" ]
+              },
+              "Action": [ "sts:AssumeRole" ]
+            }
+          ]
+        },
+        "Path": "/gorillastack/autotag/execution/"
+      }
+    },
+
+    "AutoTagExecutionPolicy" : {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "AutoTagExecutionPolicy",
+        "Roles": [ { "Ref": "AutoTagExecutionRole" } ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": "arn:aws:logs:*:*:*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [ "cloudformation:DescribeStackResource" ],
+              "Resource": [
+                { "Fn::Join": [ "", [ "arn:aws:cloudformation:", { "Ref" : "AWS::Region" }, ":", { "Ref" : "AWS::AccountId" }, ":stack/autotag/*" ] ] }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sts:*"
+              ],
+              "Resource": [
+                { "Fn::GetAtt" : [ "AutoTagMasterRole", "Arn" ] }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    "AutoTagMasterRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] }
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/gorillastack/autotag/master/"
+      }
+    },
+
+    "AutoTagMasterPolicy" : {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "AutoTagMasterPolicy",
+        "Roles": [ { "Ref": "AutoTagMasterRole" } ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "autoscaling:CreateOrUpdateTags",
+                "autoscaling:DescribeAutoScalingGroups",
+                "datapipeline:AddTags",
+                "ec2:CreateTags",
+                "ec2:DescribeInstances",
+                "elasticloadbalancing:AddTags",
+                "elasticmapreduce:AddTags",
+                "rds:AddTagsToResource"
+              ],
+              "Resource": [ "*" ]
+            }
+          ]
+        }
+      }
+    },
+
+    "TriggerLambdaPermission": {
+      "Type" : "AWS::Lambda::Permission",
+      "DependsOn" : "AutoTagLambdaFunction",
+      "Properties" : {
+        "Action" : "lambda:InvokeFunction",
+        "FunctionName" : { "Fn::GetAtt" : [ "AutoTagLambdaFunction", "Arn" ] },
+        "Principal" : "events.amazonaws.com",
+        "SourceArn": { "Fn::GetAtt" : [ "EC2EventRule", "Arn" ] }
+      }
+    },
+
+    "EC2EventRule" : {
+      "Type" : "AWS::Events::Rule",
+      "Properties" : {
+        "Description" : "Auto-tag resources with Lambda from CloudTrail events",
+        "EventPattern" : {
+          "detail-type" : [
+            "AWS API Call via CloudTrail"
+          ],
+          "detail"      : {
+            "eventSource" : [
+              "autoscaling.amazonaws.com",
+              "ec2.amazonaws.com",
+              "elasticloadbalancing.amazonaws.com",
+              "elasticmapreduce.amazonaws.com",
+              "rds.amazonaws.com",
+              "s3.amazonaws.com"
+            ],
+            "eventName"   : [
+              "CreateAutoScalingGroup",
+              "CreateBucket",
+              "CreateDBInstance",
+              "CreateInternetGateway",
+              "CreateLoadBalancer",
+              "CreatePipeline",
+              "CreateSecurityGroup",
+              "CreateSubnet",
+              "CreateVolume",
+              "CreateVpc",
+              "RunInstances",
+              "RunJobFlow",
+
+              "CreateImage",
+              "CreateSnapshot"
+            ]
+          }
+        },
+        "Name" : "AutoTag-CloudTrail-Events",
+        "State" : "ENABLED",
+        "Targets" : [
+          {
+            "Arn" : { "Fn::GetAtt" : [ "AutoTagLambdaFunction", "Arn" ] },
+            "Id"  : "Main"
+          }
+        ]
+      }
+    }
+  }
+}

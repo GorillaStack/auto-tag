@@ -1,4 +1,4 @@
-import AutotagDefaultWorker from './autotag_default_worker';
+import AutotagDefaultWorker, {AUTOTAG_TAG_NAME_PREFIX} from './autotag_default_worker';
 import AWS from 'aws-sdk';
 import co from 'co';
 
@@ -25,7 +25,9 @@ class AutotagS3Worker extends AutotagDefaultWorker {
         credentials: credentials
       });
       let tags = yield _this.getExistingTags();
-      tags.push(_this.getAutotagPair());
+      // remove anything starting with the prefix before we add our tags to make this idempotent 
+      tags = tags.filter( (tag) => (!tag.Key.startsWith(AUTOTAG_TAG_NAME_PREFIX)) );
+      tags.push(_this.getAutotagCreatorTag());
       tags = _this.touchReservedTagKeys(tags);
       yield _this.setTags(tags);
     });
@@ -87,6 +89,8 @@ class AutotagS3Worker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise((resolve, reject) => {
       try {
+        let bucketName = _this.getBucketName();
+        _this.logTags(bucketName, tags);
         _this.s3.putBucketTagging({
           Bucket: _this.getBucketName(),
           Tagging: {
@@ -108,6 +112,7 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   getBucketName() {
     return this.event.requestParameters.bucketName;
   }
+
 };
 
 export default AutotagS3Worker;

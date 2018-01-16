@@ -35,6 +35,8 @@ class AwsCloudTrailListener {
   }
 
   handleError(err) {
+    console.log("S3 Object Event Failed:");
+    console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
     console.log(err);
     console.log(err.stack);
     this.applicationContext.fail(err);
@@ -62,9 +64,21 @@ class AwsCloudTrailListener {
         let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
         for (let j in log.Records) {
           let event = log.Records[j];
+      try {
+        if (!event.errorCode && !event.errorMessage) {
+          //console.log(event.eventName);
           let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
           yield worker.tagResource();
         }
+      } catch (e) {
+        console.log("CloudTrail Event Failed ("+event.eventName+") :");
+        console.log(JSON.stringify(event, null, 2));
+        console.log("S3 Object Event ("+event.eventName+") :");
+        console.log(JSON.stringify(_this.cloudtrailEvent, null, 2));
+        console.log(e);
+        console.log(e.stack);
+      }
+    }
       }
     });
   }
@@ -116,7 +130,7 @@ const dumpRecord = (event) => {
   console.log('Request Parameters:');
   console.log(event.requestParameters);
   console.log('Response Elements:');
-  console.log(event.requestParameters);
+  console.log(event.responseElements);
   console.log('s3:');
   console.log(event.s3);
 };

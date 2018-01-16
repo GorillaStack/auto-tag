@@ -2,11 +2,11 @@ import AutotagEC2Worker from './autotag_ec2_worker';
 import AWS from 'aws-sdk';
 import co from 'co';
 
-class AutotagEBSWorker extends AutotagEC2Worker {
+class AutotagAMIWorker extends AutotagEC2Worker {
   /* tagResource
   ** method: tagResource
   **
-  ** Autotag elastic block storage volumes that are created.
+  ** Tag the newly created AMI
   */
 
   tagResource() {
@@ -18,13 +18,13 @@ class AutotagEBSWorker extends AutotagEC2Worker {
         region: _this.event.awsRegion,
         credentials: credentials
       });
-      yield _this.tagEC2Resources([_this.getVolumeId()], false);
+      yield _this.tagEC2Resources([_this.getImageId()], false);
     });
   }
 
-  getVolumeId() {
-    return this.event.responseElements.volumeId;
+  getImageId() {
+    return this.event.responseElements.imageId;
   }
 };
 
-export default AutotagEBSWorker;
+export default AutotagAMIWorker;

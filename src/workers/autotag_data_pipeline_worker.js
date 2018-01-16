@@ -28,11 +28,12 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise((resolve, reject) => {
       try {
+    let dataPipelineId = _this.getDataPipelineId();
+    let tags = [_this.getAutotagCreatorTag()];
+    _this.logTags(dataPipelineId, tags);
         _this.dataPipeline.addTags({
-          pipelineId: _this.getDataPipelineId(),
-          tags: [
-            _this.getAutotagPair()
-          ]
+          pipelineId: dataPipelineId,
+          tags: tags
         }, (err, res) => {
           if (err) {
             reject(err);
@@ -58,6 +59,7 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
 
     return pair;
   }
+
 };
 
 export default AutotagDataPipelineWorker;

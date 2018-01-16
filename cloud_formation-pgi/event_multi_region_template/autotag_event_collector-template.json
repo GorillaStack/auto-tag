@@ -1,0 +1,116 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Auto Tag (Open Source by GorillaStack)",
+
+  "Parameters" : {
+    "MainAwsAccountNumber" : {
+      "Description" : "The account number where the main auto-tag CloudFormation stack is running",
+      "Type" : "String",
+      "Default": "123456789012"
+    },
+    "SubscriberEmail" : {
+      "Description" : "The subscriber email for debugging",
+      "Type" : "String",
+      "Default": "user@example.org"
+    }
+  },
+
+  "Resources": {
+
+    "EC2EventRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Description": "Auto-tag resources with Lambda from CloudTrail events",
+        "EventPattern": {
+          "detail-type": [
+            "AWS API Call via CloudTrail"
+          ],
+          "detail": {
+            "eventSource": [
+              "autoscaling.amazonaws.com",
+              "ec2.amazonaws.com",
+              "elasticloadbalancing.amazonaws.com",
+              "elasticmapreduce.amazonaws.com",
+              "rds.amazonaws.com",
+              "s3.amazonaws.com"
+            ],
+            "eventName": [
+              "CreateAutoScalingGroup",
+              "CreateBucket",
+              "CreateDBInstance",
+              "CreateInternetGateway",
+              "CreateLoadBalancer",
+              "CreatePipeline",
+              "CreateSecurityGroup",
+              "CreateSubnet",
+              "CreateVolume",
+              "CreateVpc",
+              "RunInstances",
+              "RunJobFlow",
+              "CreateImage",
+              "CreateSnapshot"
+            ]
+          }
+        },
+        "Name": "AutoTag-CloudTrail-Events",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Ref": "AutoTagSNSTopic"
+            },
+            "Id": "Main"
+          }
+        ]
+      }
+    },
+
+    "AutoTagSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "Subscription": [
+          {
+            "Endpoint": { "Fn::Ref": "SubscriberEmail" },
+            "Protocol": "email"
+          }
+        ],
+        "DisplayName": "AutoTag CloudTrail Events"
+      }
+    },
+
+    "AutoTagSNSTopicPolicy": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Id": "AutoTagSNSTopicPolicy",
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowCloudWatchRuleSNSPublish",
+              "Effect": "Allow",
+              "Principal": { "Service" : "events.amazonaws.com" },
+              "Action": "sns:Publish",
+              "Resource": "*"
+            }
+          ]
+        },
+        "Topics": [
+          {
+            "Ref": "AutoTagSNSTopic"
+          }
+        ]
+      }
+    },
+
+    "AutoTagSNSSubscription": {
+      "Type": "AWS::SNS::Subscription",
+      "Properties": {
+        "Endpoint": { "Fn::Sub": "arn:aws:lambda:us-west-2:${MainAwsAccountNumber}:function:AutoTag" },
+        "Protocol": "lambda",
+        "TopicArn": {
+          "Ref": "AutoTagSNSTopic"
+        }
+      }
+    }
+  }
+}

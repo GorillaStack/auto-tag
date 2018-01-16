@@ -26,13 +26,14 @@ class AutotagELBWorker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        _this.elb.addTags({
+    let loadBalancerName = _this.getLoadBalancerName();
+    let tags = [_this.getAutotagCreatorTag()]
+    _this.logTags(loadBalancerName, tags);
+    _this.elb.addTags({
           LoadBalancerNames: [
-            _this.getLoadBalancerName()
+            loadBalancerName
           ],
-          Tags: [
-            _this.getAutotagPair()
-          ]
+          Tags: tags
         }, (err, res) => {
           if (err) {
             reject(err);
@@ -49,6 +50,7 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   getLoadBalancerName() {
     return this.event.requestParameters.loadBalancerName;
   }
+
 };
 
 export default AutotagELBWorker;

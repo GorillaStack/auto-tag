@@ -19,9 +19,6 @@
     }
   },
 
-  "Mappings" : {
-  },
-
   "Resources": {
 
     "AutoTagExecutionRole" : {
@@ -100,7 +97,8 @@
                 "autoscaling:CreateOrUpdateTags",
                 "rds:AddTagsToResource",
                 "elasticmapreduce:AddTags",
-                "datapipeline:AddTags"
+                "datapipeline:AddTags",
+                "autoscaling:DescribeAutoScalingGroups"
               ],
               "Resource": [
                 "*"
@@ -135,7 +133,8 @@
                 "s3:ListBucket"
               ],
               "Resource": [
-                "*"
+                { "Fn::Join": [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" } ] ] },
+                { "Fn::Join": [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" }, "/*" ] ] }
               ]
             },
             {

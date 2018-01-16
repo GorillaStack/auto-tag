@@ -12,11 +12,15 @@ import AutotagRDSWorker from './workers/autotag_rds_worker.js';
 import AutotagEMRWorker from './workers/autotag_emr_worker.js';
 import AutotagDataPipelineWorker from './workers/autotag_data_pipeline_worker.js';
 import AutotagSecurityGroupWorker from './workers/autotag_security_group_worker.js';
+import AutotagAMIWorker from './workers/autotag_ami_worker.js';
+import AutotagSnapshotWorker from './workers/autotag_snapshot_worker.js';
+import AutotagEIPWorker from './workers/autotag_eip_worker.js';
 import CONFIG from './cloud_trail_event_config';
 
 let AutotagFactory = {
 
   createWorker: (event, enabledServices, s3Region) => {
+
     // Match Service
     let matchingService = _.findWhere(CONFIG, { targetEventName: event.eventName });
 
@@ -75,6 +79,18 @@ let AutotagFactory = {
 
       case CONFIG.SECURITY_GROUP.name:
         return new AutotagSecurityGroupWorker(event, s3Region);
+        break;
+
+      case CONFIG.AMI.name:
+        return new AutotagAMIWorker(event, s3Region);
+        break;
+
+      case CONFIG.SNAPSHOT.name:
+        return new AutotagSnapshotWorker(event, s3Region);
+        break;
+
+      case CONFIG.ELASTIC_IP.name:
+        return new AutotagEIPWorker(event, s3Region);
         break;
 
       // Default: worker that does nothing

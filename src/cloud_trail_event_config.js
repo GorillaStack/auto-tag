@@ -70,5 +70,23 @@ export default {
     targetEventName: 'CreatePipeline',
     targetEventType: null,
     targetEventSource: null
+  },
+  AMI: {
+    name: 'ami',
+    targetEventName: 'CreateImage',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  SNAPSHOT: {
+    name: 'snapshot',
+    targetEventName: 'CreateSnapshot',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  ELASTIC_IP: {
+    name: 'elasticIP',
+    targetEventName: 'AllocateAddress',
+    targetEventType: null,
+    targetEventSource: null
   }
 };

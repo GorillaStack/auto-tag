@@ -26,11 +26,12 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise((resolve, reject) => {
       try {
+        let dbArn = _this.getDbARN();
+        let tags = [_this.getAutotagCreatorTag()];
+        _this.logTags(dbArn, tags);
         _this.rds.addTagsToResource({
-          ResourceName: _this.getDbARN(),
-          Tags: [
-            _this.getAutotagPair()
-          ]
+          ResourceName: dbArn,
+          Tags: tags
         }, (err, res) => {
           if (err) {
             reject(err);
@@ -61,6 +62,7 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
     arnComponents.push(this.event.responseElements.dBInstanceIdentifier);
     return arnComponents.join(':');
   }
+
 };
 
 export default AutotagRDSWorker;

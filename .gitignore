@@ -5,3 +5,4 @@ node_modules/
 *.zip
 sample*.js
 !test_create_instances.sh
+Gemfile.lock
