@@ -27,7 +27,7 @@ class AutotagS3Worker extends AutotagDefaultWorker {
       let tags = yield _this.getExistingTags();
       // remove anything starting with the prefix before we add our tags to make this idempotent 
       tags = tags.filter( (tag) => (!tag.Key.startsWith(AUTOTAG_TAG_NAME_PREFIX)) );
-      tags.push(_this.getAutotagCreatorTag());
+      tags = tags.concat(_this.getAutotagTags());
       tags = _this.touchReservedTagKeys(tags);
       yield _this.setTags(tags);
     });

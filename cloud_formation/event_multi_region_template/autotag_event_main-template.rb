@@ -6,26 +6,19 @@ require 'cloudformation-ruby-dsl/spotprice'
 require 'cloudformation-ruby-dsl/table'
 
 aws_accounts = nil
-aws_region   = nil
 
 (0..(ARGV.length - 1)).each do |arg|
   next unless ARGV[arg] =~ /^-/
   case ARGV[arg]
-    when '-AwsAccounts'
+    when '--aws-accounts'
       aws_accounts = ARGV[arg + 1]
-    when '--region'
-      aws_region = ARGV[arg + 1]
   end
 end
 
-example = 'Example: ./autotag_event_main-template.rb expand -AwsAccounts "123456789012, 789012345678" --region us-west-2 > autotag_event_main-template.json'
+example = 'Example: ./autotag_event_main-template.rb expand --aws-accounts "123456789012, 789012345678" > autotag_event_main-template.json'
 
 if aws_accounts.nil?
-  puts 'Error: You must provide the argument "-AwsAccounts" with a comma delimited list of AWS accounts IDs that you have already deployed the collector stack to.'
-  puts example
-  exit!
-elsif aws_region.nil?
-  puts 'Error: If you don\'t provide the argument "--region" it will assume us-east-1.'
+  puts 'Error: You must provide the argument "--aws-accounts" with a comma delimited list of AWS accounts IDs that you have already deployed the collector stack to.'
   puts example
   exit!
 end
@@ -89,7 +82,7 @@ template do
         {
           Effect: 'Allow',
           Action: ['cloudformation:DescribeStackResource'],
-          Resource: [join('', 'arn:aws:cloudformation:', aws_region, ':', aws_account_id, ':stack/autotag/*')]
+          Resource: [sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/autotag/*')]
         },
         {
           Effect: 'Allow',
@@ -130,6 +123,8 @@ template do
             elasticloadbalancing:AddTags
             elasticmapreduce:AddTags
             rds:AddTagsToResource
+            s3:GetBucketTagging
+            s3:PutBucketTagging
           ],
           Resource: ['*']
         }

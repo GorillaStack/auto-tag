@@ -24,10 +24,11 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
       for (let instance of instances.Reservations[0].Instances) {
     let resourceIds = [];
     resourceIds = resourceIds.concat(_this.getEniIds(instance));
+    resourceIds = resourceIds.concat(_this.getVolumeIds(instance));
     resourceIds.push(instance.InstanceId);
-    let resourceIdsNoCreateTimeTag = _this.getVolumeIds(instance);
+    let resourceIdsNoCreateTimeTag = []; // _this.getVolumeIds(instance);
     yield _this.tagEC2Resources(resourceIds);
-    if (resourceIdsNoCreateTimeTag.count > 0) {
+    if (resourceIdsNoCreateTimeTag.length > 0) {
       yield _this.tagEC2Resources(resourceIdsNoCreateTimeTag, false);
     }
       }
@@ -41,7 +42,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
         _this.tags = _this.getEC2Tags([_this.getAutotagCreateTimeTag()]);
       } else {
         _this.tags = _this.getEC2Tags([]);
-      }	
+      }
       _this.logTags(resources, _this.tags);
       try {
         _this.ec2.createTags({

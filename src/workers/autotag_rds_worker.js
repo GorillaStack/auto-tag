@@ -27,7 +27,7 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
     return new Promise((resolve, reject) => {
       try {
         let dbArn = _this.getDbARN();
-        let tags = [_this.getAutotagCreatorTag()];
+        let tags = _this.getAutotagTags();
         _this.logTags(dbArn, tags);
         _this.rds.addTagsToResource({
           ResourceName: dbArn,
@@ -55,13 +55,18 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
   */
 
   getDbARN() {
-    let arnComponents = ['arn', 'aws', 'rds'];
-    arnComponents.push(this.event.awsRegion);
-    arnComponents.push(this.event.recipientAccountId);
-    arnComponents.push('db');
-    arnComponents.push(this.event.responseElements.dBInstanceIdentifier);
-    return arnComponents.join(':');
+    if (this.event.responseElements.dBInstanceArn) {
+      return this.event.responseElements.dBInstanceArn;
+    } else {
+      let arnComponents = ['arn', 'aws', 'rds'];
+      arnComponents.push(this.event.awsRegion);
+      arnComponents.push(this.getAccountId());
+      arnComponents.push('db');
+      arnComponents.push(this.event.responseElements.dBInstanceIdentifier);
+      return arnComponents.join(':');
+    }
   }
+
 
 };
 

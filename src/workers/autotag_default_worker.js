@@ -96,13 +96,17 @@ class AutotagDefaultWorker {
   }
 
   logTags(resources, tags) {
-    console.log("Tagging " + resources + " with " + JSON.stringify(tags));
+    console.log("\nTagging " + resources + " in account " + this.getAccountId() + " and region " + this.s3Region + " with " + JSON.stringify(tags));
+  }
+
+  getAssumeRoleArn(roleName) {
+    let accountId = this.getAccountId();
+    return ROLE_PREFIX + accountId + ROLE_SUFFIX + MASTER_ROLE_PATH + roleName;
   }
 
   // support for older CloudTrail logs
-  getAssumeRoleArn(roleName) {
-    let accountId = this.event.recipientAccountId ? this.event.recipientAccountId : this.event.userIdentity.accountId;
-    return ROLE_PREFIX + accountId + ROLE_SUFFIX + MASTER_ROLE_PATH + roleName;
+  getAccountId() {
+    return (this.event.recipientAccountId ? this.event.recipientAccountId : this.event.userIdentity.accountId);
   }
 
   getAutotagTags() {

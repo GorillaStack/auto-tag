@@ -18,7 +18,7 @@ class AutotagAMIWorker extends AutotagEC2Worker {
         region: _this.event.awsRegion,
         credentials: credentials
       });
-      yield _this.tagEC2Resources([_this.getImageId()], false);
+      yield _this.tagEC2Resources([_this.getImageId()]);
     });
   }
 

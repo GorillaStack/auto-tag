@@ -29,9 +29,9 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
     return new Promise((resolve, reject) => {
       try {
     let dataPipelineId = _this.getDataPipelineId();
-    let tags = [_this.getAutotagCreatorTag()];
+    let tags = _this.getAutotagTags();
     _this.logTags(dataPipelineId, tags);
-        _this.dataPipeline.addTags({
+    _this.dataPipeline.addTags({
           pipelineId: dataPipelineId,
           tags: tags
         }, (err, res) => {
@@ -51,13 +51,17 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
     return this.event.responseElements.pipelineId;
   }
 
-  getAutotagPair() {
-    let pair = {};
-    _.each(super.getAutotagPair(), function(val, key) {
-      pair[key.toLowerCase()] = val;
+  // datapipeline will only accept lower case key names
+  getAutotagTags() {
+    let tags = [];
+    _.each(super.getAutotagTags(), function(val) {
+      let tag = {
+        key: val.Key,
+        value: val.Value
+      };
+      tags.push(tag);
     });
-
-    return pair;
+    return tags;
   }
 
 };

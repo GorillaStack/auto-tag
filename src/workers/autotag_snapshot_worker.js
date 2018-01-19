@@ -18,7 +18,7 @@ class AutotagSnapshotWorker extends AutotagEC2Worker {
         region: _this.event.awsRegion,
         credentials: credentials
       });
-      yield _this.tagEC2Resources([_this.getSnapshotId()], false);
+      yield _this.tagEC2Resources([_this.getSnapshotId()]);
     });
   }
 

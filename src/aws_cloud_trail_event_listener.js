@@ -8,6 +8,7 @@ import AutotagFactory from './autotag_factory';
 class AwsCloudTrailEventListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
     if (cloudtrailEvent.Records) {
+      // TODO: need to look into if there will _really_ always be ONE record?!
       this.cloudtrailEvent = JSON.parse(cloudtrailEvent.Records[0]['Sns']['Message']);
     } else {
       this.cloudtrailEvent = cloudtrailEvent;
@@ -20,6 +21,9 @@ class AwsCloudTrailEventListener {
     let _this = this;
     return co(function* () {
       let event = _this.cloudtrailEvent.detail;
+      // inject this field into the event rule event to make it uniform with the S3 file event
+      // this field was the only field that was moved from the "detail" up into the top level
+      event.recipientAccountId = _this.cloudtrailEvent.account;
       if (!event.errorCode && !event.errorMessage) {
         let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.cloudtrailEvent.region);
         yield worker.tagResource();

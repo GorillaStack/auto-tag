@@ -28,6 +28,7 @@
           "detail": {
             "eventSource": [
               "autoscaling.amazonaws.com",
+              "datapipeline.amazonaws.com",
               "ec2.amazonaws.com",
               "elasticloadbalancing.amazonaws.com",
               "elasticmapreduce.amazonaws.com",
@@ -48,7 +49,8 @@
               "RunInstances",
               "RunJobFlow",
               "CreateImage",
-              "CreateSnapshot"
+              "CreateSnapshot",
+              "AllocateAddress"
             ]
           }
         },
@@ -70,7 +72,7 @@
       "Properties": {
         "Subscription": [
           {
-            "Endpoint": { "Fn::Ref": "SubscriberEmail" },
+            "Endpoint": { "Ref": "SubscriberEmail" },
             "Protocol": "email"
           }
         ],

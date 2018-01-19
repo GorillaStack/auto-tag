@@ -28,7 +28,7 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
       let autoScalingGroup = yield _this.getExistingAutoscalingGroup();
       let autoScalingInstances = _this.getAutoscalingInstances(autoScalingGroup);
       yield _this.tagAutoscalingGroup();
-      if (autoScalingInstances.count > 0) {
+      if (autoScalingInstances.length > 0) {
         yield _this.tagAutoscalingEC2Resources(autoScalingInstances);
       }
     });
@@ -38,8 +38,7 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        // Don't add the create time, it already exists
-        let tagConfig = _this.getAutoscalingTags([_this.getAutotagCreatorTag()]);
+        let tagConfig = _this.getAutoscalingTags(_this.getAutotagTags());
         _this.logTags(_this.getAutoscalingGroupName(), tagConfig);
         _this.autoscaling.createOrUpdateTags({
           Tags: tagConfig
@@ -56,10 +55,12 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
     });
   }
 
+  // tag any existing auto-scaling instances
   tagAutoscalingEC2Resources(resources) {
     let _this = this;
     return new Promise((resolve, reject) => {
-      // Don't tag the existing instances with the create time, it wouldn't be correct
+      // we only want to tag the creator here
+      // let the ec2 instance worker tag anything else
       let tags = [_this.getAutotagCreatorTag()];
       _this.logTags(resources, tags);
       try {
@@ -113,8 +114,8 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
     tagConfig.forEach (function(tag) {
       tag.ResourceId = _this.getAutoscalingGroupName();
       tag.ResourceType = 'auto-scaling-group';
-      // Don't propagate the create time of the ASG to the instances
-      tag.PropagateAtLaunch = tag['Key'] == _this.getCreateTimeTagName() ? false : true;
+      // Only propagate the creator the ASG to the instances
+      tag.PropagateAtLaunch = tag['Key'] == _this.getCreatorTagName();
     });
     return tagConfig;
   }

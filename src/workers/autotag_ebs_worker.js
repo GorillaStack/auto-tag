@@ -18,7 +18,7 @@ class AutotagEBSWorker extends AutotagEC2Worker {
         region: _this.event.awsRegion,
         credentials: credentials
       });
-      yield _this.tagEC2Resources([_this.getVolumeId()], false);
+      yield _this.tagEC2Resources([_this.getVolumeId()]);
     });
   }
 

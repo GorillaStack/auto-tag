@@ -27,7 +27,7 @@ class AutotagELBWorker extends AutotagDefaultWorker {
     return new Promise((resolve, reject) => {
       try {
     let loadBalancerName = _this.getLoadBalancerName();
-    let tags = [_this.getAutotagCreatorTag()]
+    let tags = _this.getAutotagTags();
     _this.logTags(loadBalancerName, tags);
     _this.elb.addTags({
           LoadBalancerNames: [
