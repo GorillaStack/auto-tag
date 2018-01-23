@@ -14,7 +14,6 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     let _this = this;
     return co(function* () {
       let roleName = yield _this.getRoleName();
-      //var credentials = new AWS.SharedIniFileCredentials({profile: 'development-sysops'});
       let credentials = yield _this.assumeRole(roleName);
       _this.ec2 = new AWS.EC2({
         region: _this.event.awsRegion,

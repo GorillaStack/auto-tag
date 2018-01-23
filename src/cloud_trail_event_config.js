@@ -88,5 +88,17 @@ export default {
     targetEventName: 'AllocateAddress',
     targetEventType: null,
     targetEventSource: null
+  },
+  DYNAMO_DB: {
+    name: 'dynamoDB',
+    targetEventName: 'CreateTable',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  ENI: {
+    name: 'eni',
+    targetEventName: 'CreateNetworkInterface',
+    targetEventType: null,
+    targetEventSource: null
   }
 };

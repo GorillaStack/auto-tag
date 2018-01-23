@@ -135,7 +135,15 @@ class AutotagDefaultWorker {
   }
 
   getCreatorTagValue() {
-    return this.event.userIdentity.arn;
+    // prefer the this field for Federated Users because it isn't truncated
+    if (this.event.userIdentity.type === 'FederatedUser' &&
+        this.event.userIdentity.sessionContext &&
+        this.event.userIdentity.sessionContext.sessionIssuer &&
+        this.event.userIdentity.sessionContext.sessionIssuer.arn) {
+      return this.event.userIdentity.sessionContext.sessionIssuer.arn;
+    } else {
+      return this.event.userIdentity.arn;
+    }
   }
 
   getCreateTimeTagName() {

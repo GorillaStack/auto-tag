@@ -130,11 +130,14 @@
                 "autoscaling:CreateOrUpdateTags",
                 "autoscaling:DescribeAutoScalingGroups",
                 "datapipeline:AddTags",
+                "dynamodb:TagResource",
                 "ec2:CreateTags",
                 "ec2:DescribeInstances",
                 "elasticloadbalancing:AddTags",
                 "elasticmapreduce:AddTags",
-                "rds:AddTagsToResource"
+                "rds:AddTagsToResource",
+                "s3:GetBucketTagging",
+                "s3:PutBucketTagging"
               ],
               "Resource": [ "*" ]
             }
@@ -162,31 +165,34 @@
           "detail-type" : [
             "AWS API Call via CloudTrail"
           ],
-          "detail"      : {
+          "detail" : {
             "eventSource" : [
               "autoscaling.amazonaws.com",
               "ec2.amazonaws.com",
               "elasticloadbalancing.amazonaws.com",
               "elasticmapreduce.amazonaws.com",
               "rds.amazonaws.com",
-              "s3.amazonaws.com"
+              "s3.amazonaws.com",
+              "dynamodb.amazonaws.com"
             ],
-            "eventName"   : [
+            "eventName" : [
+              "AllocateAddress",
               "CreateAutoScalingGroup",
               "CreateBucket",
               "CreateDBInstance",
+              "CreateImage",
               "CreateInternetGateway",
               "CreateLoadBalancer",
+              "CreateNetworkInterface",
               "CreatePipeline",
               "CreateSecurityGroup",
+              "CreateSnapshot",
               "CreateSubnet",
+              "CreateTable",
               "CreateVolume",
               "CreateVpc",
               "RunInstances",
-              "RunJobFlow",
-
-              "CreateImage",
-              "CreateSnapshot"
+              "RunJobFlow"
             ]
           }
         },

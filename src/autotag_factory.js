@@ -15,6 +15,8 @@ import AutotagSecurityGroupWorker from './workers/autotag_security_group_worker.
 import AutotagAMIWorker from './workers/autotag_ami_worker.js';
 import AutotagSnapshotWorker from './workers/autotag_snapshot_worker.js';
 import AutotagEIPWorker from './workers/autotag_eip_worker.js';
+import AutotagDynamoDBWorker from './workers/autotag_dynamodb_worker.js';
+import AutotagENIWorker from './workers/autotag_eni_worker.js';
 import CONFIG from './cloud_trail_event_config';
 
 let AutotagFactory = {
@@ -91,6 +93,14 @@ let AutotagFactory = {
 
       case CONFIG.ELASTIC_IP.name:
         return new AutotagEIPWorker(event, s3Region);
+        break;
+
+      case CONFIG.DYNAMO_DB.name:
+        return new AutotagDynamoDBWorker(event, s3Region);
+        break;
+
+      case CONFIG.ENI.name:
+        return new AutotagENIWorker(event, s3Region);
         break;
 
       // Default: worker that does nothing

@@ -16,7 +16,9 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailEventListener.SECURITY_GROUP.name,
     AwsCloudTrailEventListener.AMI.name,
     AwsCloudTrailEventListener.SNAPSHOT.name,
-    AwsCloudTrailEventListener.ELASTIC_IP.name
+    AwsCloudTrailEventListener.ELASTIC_IP.name,
+    AwsCloudTrailEventListener.DYNAMO_DB.name,
+    AwsCloudTrailEventListener.ENI.name
   ];
 
   let listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);

@@ -90,15 +90,17 @@
             {
               "Effect": "Allow",
               "Action": [
-                "s3:GetBucketTagging",
-                "s3:PutBucketTagging",
-                "ec2:CreateTags",
-                "elasticloadbalancing:AddTags",
                 "autoscaling:CreateOrUpdateTags",
-                "rds:AddTagsToResource",
-                "elasticmapreduce:AddTags",
+                "autoscaling:DescribeAutoScalingGroups",
                 "datapipeline:AddTags",
-                "autoscaling:DescribeAutoScalingGroups"
+                "dynamodb:TagResource",
+                "ec2:CreateTags",
+                "ec2:DescribeInstances",
+                "elasticloadbalancing:AddTags",
+                "elasticmapreduce:AddTags",
+                "rds:AddTagsToResource",
+                "s3:GetBucketTagging",
+                "s3:PutBucketTagging"
               ],
               "Resource": [
                 "*"

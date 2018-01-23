@@ -33,24 +33,27 @@
               "elasticloadbalancing.amazonaws.com",
               "elasticmapreduce.amazonaws.com",
               "rds.amazonaws.com",
-              "s3.amazonaws.com"
+              "s3.amazonaws.com",
+              "dynamodb.amazonaws.com"
             ],
             "eventName": [
+              "AllocateAddress",
               "CreateAutoScalingGroup",
               "CreateBucket",
               "CreateDBInstance",
+              "CreateImage",
               "CreateInternetGateway",
               "CreateLoadBalancer",
+              "CreateNetworkInterface",
               "CreatePipeline",
               "CreateSecurityGroup",
+              "CreateSnapshot",
               "CreateSubnet",
+              "CreateTable",
               "CreateVolume",
               "CreateVpc",
               "RunInstances",
-              "RunJobFlow",
-              "CreateImage",
-              "CreateSnapshot",
-              "AllocateAddress"
+              "RunJobFlow"
             ]
           }
         },

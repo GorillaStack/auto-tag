@@ -118,6 +118,7 @@ template do
             autoscaling:CreateOrUpdateTags
             autoscaling:DescribeAutoScalingGroups
             datapipeline:AddTags
+            dynamodb:TagResource
             ec2:CreateTags
             ec2:DescribeInstances
             elasticloadbalancing:AddTags
