@@ -117,6 +117,8 @@ template do
           Action: %w[
             autoscaling:CreateOrUpdateTags
             autoscaling:DescribeAutoScalingGroups
+            autoscaling:DescribeAutoScalingInstances
+            autoscaling:DescribeTags
             datapipeline:AddTags
             dynamodb:TagResource
             ec2:CreateTags

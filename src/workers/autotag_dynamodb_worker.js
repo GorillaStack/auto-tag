@@ -3,6 +3,7 @@ import AWS from 'aws-sdk';
 import co from 'co';
 
 class AutotagDynamoDBWorker extends AutotagDefaultWorker {
+
   /* tagResource
   ** method: tagResource
   **

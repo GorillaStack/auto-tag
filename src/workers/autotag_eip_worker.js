@@ -3,6 +3,7 @@ import AWS from 'aws-sdk';
 import co from 'co';
 
 class AutotagEIPWorker extends AutotagEC2Worker {
+
   /* tagResource
   ** method: tagResource
   **

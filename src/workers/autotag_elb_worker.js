@@ -9,6 +9,7 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   **
   ** Add tag to elastic load balancer V1 & V2
   */
+
   tagResource() {
     let _this = this;
     return co(function* () {

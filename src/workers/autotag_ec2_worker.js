@@ -10,6 +10,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   **
   ** Tag the ec2 instance
   */
+
   tagResource() {
     let _this = this;
     return co(function* () {
@@ -19,34 +20,40 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
         region: _this.event.awsRegion,
         credentials: credentials
       });
+      if (_this.isInvokedByAutoScaling()) {
+        _this.autoscaling = new AWS.AutoScaling({
+          region: _this.event.awsRegion,
+          credentials: credentials
+        });
+
+        let autoscalingInstances = yield _this.getAutoscalingInstances();
+        let autoscalingGroupName = autoscalingInstances.AutoScalingInstances[0].AutoScalingGroupName;
+        var autoscalingTags = yield _this.getAutoscalingGroupTags(autoscalingGroupName);
+      }
       let instances = yield _this.getEC2DescribeInstances();
       for (let instance of instances.Reservations[0].Instances) {
-    let resourceIds = [];
-    resourceIds = resourceIds.concat(_this.getEniIds(instance));
-    resourceIds = resourceIds.concat(_this.getVolumeIds(instance));
-    resourceIds.push(instance.InstanceId);
-    let resourceIdsNoCreateTimeTag = []; // _this.getVolumeIds(instance);
-    yield _this.tagEC2Resources(resourceIds);
-    if (resourceIdsNoCreateTimeTag.length > 0) {
-      yield _this.tagEC2Resources(resourceIdsNoCreateTimeTag, false);
-    }
+        let resourceIds = [];
+        resourceIds = resourceIds.concat(_this.getEniIds(instance));
+        resourceIds = resourceIds.concat(_this.getVolumeIds(instance));
+        resourceIds.push(instance.InstanceId);
+        if (_this.isInvokedByAutoScaling()) {
+          yield _this.tagEC2Resources(resourceIds, autoscalingTags);
+        } else {
+          yield _this.tagEC2Resources(resourceIds);
+        }
       }
     });
   }
 
-  tagEC2Resources(resources, createTimeFlag = true) {
+  tagEC2Resources(resources, autoscalingTags = []) {
     let _this = this;
     return new Promise((resolve, reject) => {
-      if (createTimeFlag) {
-        _this.tags = _this.getEC2Tags([_this.getAutotagCreateTimeTag()]);
-      } else {
-        _this.tags = _this.getEC2Tags([]);
-      }
-      _this.logTags(resources, _this.tags);
+      let tags = _this.getEC2Tags([_this.getAutotagCreateTimeTag()], autoscalingTags);
+      _this.logTags(resources, tags);
       try {
         _this.ec2.createTags({
           Resources: resources,
-          Tags: _this.tags
+          Tags: tags
         }, (err, res) => {
           if (err) {
             reject(err);
@@ -66,7 +73,52 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
       let instanceIds = _this.getInstanceIds(_this.getInstances());
       try {
         _this.ec2.describeInstances({
-        InstanceIds: instanceIds
+          InstanceIds: instanceIds
+        }, (err, res) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res);
+          }
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  getAutoscalingInstances() {
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      let instanceIds = _this.getInstanceIds(_this.getInstances());
+      try {
+        _this.autoscaling.describeAutoScalingInstances({
+          InstanceIds: instanceIds
+        }, (err, res) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(res);
+          }
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  getAutoscalingGroupTags(autoScalingGroupName) {
+    let _this = this;
+    return new Promise((resolve, reject) => {
+      try {
+        _this.autoscaling.describeTags({
+          Filters: [{
+            Name: 'auto-scaling-group',
+            Values: [autoScalingGroupName]
+          },{
+            Name: 'key',
+            Values: [_this.getCreatorTagName()]
+          }]
         }, (err, res) => {
           if (err) {
             reject(err);
@@ -100,13 +152,19 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     return this.event.userIdentity.invokedBy;
   }
 
-  getEC2Tags(tags) {
+  isInvokedByAutoScaling() {
+    return (this.getInvokedBy() === 'autoscaling.amazonaws.com');
+  }
+
+  getEC2Tags(tags, autoscalingTags = false) {
     let _this = this;
-    let invokedBy = _this.getInvokedBy();
     // instances created by auto-scaling are always invoked by the root user
-    // so we won't tag those with a creator, the auto-scaling group worker
-    // will take care of them.
-    if (invokedBy !== 'autoscaling.amazonaws.com') {
+    // so we'll check the auto-scaling group for the creator and tag with that.
+    if (_this.isInvokedByAutoScaling() && autoscalingTags) {
+      if (autoscalingTags.Tags && autoscalingTags.Tags.length > 0) {
+        tags.push(_this.getAutotagCreatorTag(autoscalingTags.Tags[0].Value));
+      }
+    } else {
       tags.push(_this.getAutotagCreatorTag());
     }
     return tags;

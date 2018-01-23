@@ -26,6 +26,7 @@ class AutotagDefaultWorker {
   **
   ** Do nothing
   */
+
   tagResource() {
     let _this = this;
     return new Promise((resolve, reject) => {
@@ -116,10 +117,10 @@ class AutotagDefaultWorker {
     ];
   }
   
-  getAutotagCreatorTag() {
+  getAutotagCreatorTag(value = this.getCreatorTagValue()) {
     return {
       Key: this.getCreatorTagName(),
-      Value: this.getCreatorTagValue()
+      Value: value
     };
   }
 

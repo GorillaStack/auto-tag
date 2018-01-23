@@ -3,6 +3,7 @@ import AWS from 'aws-sdk';
 import co from 'co';
 
 class AutotagVPCWorker extends AutotagEC2Worker {
+
   /* tagResource
   ** method: tagResource
   **

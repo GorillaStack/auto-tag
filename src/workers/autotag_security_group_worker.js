@@ -3,6 +3,7 @@ import AWS from 'aws-sdk';
 import co from 'co';
 
 class AutotagSecurityGroupWorker extends AutotagEC2Worker {
+
   /* tagResource
   ** method: tagResource
   **

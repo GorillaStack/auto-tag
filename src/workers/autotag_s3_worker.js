@@ -9,6 +9,7 @@ const TAG_NAME_PREFIXES_TO_FILTER = [
 const AUTOTAG_TAG_PREFIX = 'at_';
 
 class AutotagS3Worker extends AutotagDefaultWorker {
+
   /* tagResource
   ** method: tagResource
   **
