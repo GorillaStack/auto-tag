@@ -17,6 +17,11 @@ import AutotagSnapshotWorker from './workers/autotag_snapshot_worker.js';
 import AutotagEIPWorker from './workers/autotag_eip_worker.js';
 import AutotagDynamoDBWorker from './workers/autotag_dynamodb_worker.js';
 import AutotagENIWorker from './workers/autotag_eni_worker.js';
+import AutotagNATGatewayWorker from './workers/autotag_nat_gateway_worker.js';
+import AutotagNetworkACLWorker from './workers/autotag_network_acl_worker.js';
+import AutotagRouteTableWorker from './workers/autotag_route_table_worker.js';
+import AutotagVPCPeeringWorker from './workers/autotag_vpc_peering_worker.js';
+import AutotagVPNWorker from './workers/autotag_vpn_worker.js';
 import CONFIG from './cloud_trail_event_config';
 
 let AutotagFactory = {
@@ -101,6 +106,26 @@ let AutotagFactory = {
 
       case CONFIG.ENI.name:
         return new AutotagENIWorker(event, s3Region);
+        break;
+
+      case CONFIG.NAT_GATEWAY.name:
+        return new AutotagNATGatewayWorker(event, s3Region);
+        break;
+
+      case CONFIG.NETWORK_ACL.name:
+        return new AutotagNetworkACLWorker(event, s3Region);
+        break;
+
+      case CONFIG.ROUTE_TABLE.name:
+        return new AutotagRouteTableWorker(event, s3Region);
+        break;
+
+      case CONFIG.VPC_PEERING.name:
+        return new AutotagVPCPeeringWorker(event, s3Region);
+        break;
+
+      case CONFIG.VPN.name:
+        return new AutotagVPNWorker(event, s3Region);
         break;
 
       // Default: worker that does nothing

@@ -18,12 +18,15 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailEventListener.SNAPSHOT.name,
     AwsCloudTrailEventListener.ELASTIC_IP.name,
     AwsCloudTrailEventListener.DYNAMO_DB.name,
-    AwsCloudTrailEventListener.ENI.name
+    AwsCloudTrailEventListener.ENI.name,
+    AwsCloudTrailEventListener.NAT_GATEWAY.name,
+    AwsCloudTrailEventListener.NETWORK_ACL.name,
+    AwsCloudTrailEventListener.ROUTE_TABLE.name,
+    AwsCloudTrailEventListener.VPC_PEERING.name,
+    AwsCloudTrailEventListener.VPN.name
   ];
 
   let listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);
   return listener.execute();
 
-  // context.succeed();  // Echo back the first key value
-  // context.fail('Something went wrong');
 };

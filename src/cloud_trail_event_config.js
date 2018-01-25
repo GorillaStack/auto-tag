@@ -100,5 +100,35 @@ export default {
     targetEventName: 'CreateNetworkInterface',
     targetEventType: null,
     targetEventSource: null
+  },
+  NAT_GATEWAY: {
+    name: 'natGateway',
+    targetEventName: 'CreateNatGateway',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  NETWORK_ACL: {
+    name: 'networkACL',
+    targetEventName: 'CreateNetworkAcl',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  ROUTE_TABLE: {
+    name: 'routeTable',
+    targetEventName: 'CreateRouteTable',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  VPC_PEERING: {
+    name: 'vpcPeering',
+    targetEventName: 'CreateVpcPeeringConnection',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  VPN: {
+    name: 'vpn',
+    targetEventName: 'CreateVpnConnection',
+    targetEventType: null,
+    targetEventSource: null
   }
 };

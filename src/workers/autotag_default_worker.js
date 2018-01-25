@@ -1,7 +1,8 @@
 import * as AWS from 'aws-sdk';
 export const AUTOTAG_TAG_NAME_PREFIX = 'AutoTag_';
 const AUTOTAG_CREATOR_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'Creator';
-const AUTOTAG_CREATE_DATE_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'CreateTime';
+const AUTOTAG_CREATE_TIME_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'CreateTime';
+const AUTOTAG_INVOKED_BY_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'InvokedBy';
 const ROLE_PREFIX = 'arn:aws:iam::';
 const ROLE_SUFFIX = ':role';
 const DEFAULT_STACK_NAME = 'autotag';
@@ -113,7 +114,8 @@ class AutotagDefaultWorker {
   getAutotagTags() {
     return [
       this.getAutotagCreatorTag(),
-      this.getAutotagCreateTimeTag()
+      this.getAutotagCreateTimeTag(),
+      ...(this.getInvokedByTagValue() ? [this.getAutotagInvokedByTag()] : []),
     ];
   }
   
@@ -128,6 +130,13 @@ class AutotagDefaultWorker {
     return {
       Key: this.getCreateTimeTagName(),
       Value: this.getCreateTimeTagValue()
+    };
+  }
+
+  getAutotagInvokedByTag() {
+    return {
+      Key: this.getInvokedByTagName(),
+      Value: this.getInvokedByTagValue()
     };
   }
 
@@ -148,11 +157,19 @@ class AutotagDefaultWorker {
   }
 
   getCreateTimeTagName() {
-    return AUTOTAG_CREATE_DATE_TAG_NAME;
+    return AUTOTAG_CREATE_TIME_TAG_NAME;
   }
 
   getCreateTimeTagValue() {
     return this.event.eventTime;
+  }
+
+  getInvokedByTagName() {
+    return AUTOTAG_INVOKED_BY_TAG_NAME;
+  }
+
+  getInvokedByTagValue() {
+    return (this.event.userIdentity && this.event.userIdentity.invokedBy ? this.event.userIdentity.invokedBy : false);
   }
 
 };
