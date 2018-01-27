@@ -51,7 +51,7 @@ template do
     FunctionName: 'AutoTag',
     Handler: 'autotag_event.handler',
     Role: get_att('AutoTagExecutionRole', 'Arn'),
-    Runtime: 'nodejs4.3',
+    Runtime: 'nodejs6.10',
     Timeout: 60
   }
 
@@ -125,6 +125,10 @@ template do
             ec2:DescribeInstances
             elasticloadbalancing:AddTags
             elasticmapreduce:AddTags
+            opsworks:DescribeInstances
+            opsworks:DescribeStacks
+            opsworks:ListTags
+            opsworks:TagResource
             rds:AddTagsToResource
             s3:GetBucketTagging
             s3:PutBucketTagging

@@ -22,6 +22,7 @@ import AutotagNetworkACLWorker from './workers/autotag_network_acl_worker.js';
 import AutotagRouteTableWorker from './workers/autotag_route_table_worker.js';
 import AutotagVPCPeeringWorker from './workers/autotag_vpc_peering_worker.js';
 import AutotagVPNWorker from './workers/autotag_vpn_worker.js';
+import AutotagOpsworksWorker from './workers/autotag_opsworks_worker.js';
 import CONFIG from './cloud_trail_event_config';
 
 let AutotagFactory = {
@@ -126,6 +127,10 @@ let AutotagFactory = {
 
       case CONFIG.VPN.name:
         return new AutotagVPNWorker(event, s3Region);
+        break;
+
+      case CONFIG.OPS_WORKS.name:
+        return new AutotagOpsworksWorker(event, s3Region);
         break;
 
       // Default: worker that does nothing

@@ -130,5 +130,11 @@ export default {
     targetEventName: 'CreateVpnConnection',
     targetEventType: null,
     targetEventSource: null
+  },
+  OPS_WORKS: {
+    name: 'opsworks',
+    targetEventName: 'CreateStack',
+    targetEventType: null,
+    targetEventSource: null
   }
 };

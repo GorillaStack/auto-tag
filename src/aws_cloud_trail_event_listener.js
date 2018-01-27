@@ -25,6 +25,8 @@ class AwsCloudTrailEventListener {
       // this field was the only field that was moved from the "detail" up into the top level
       event.recipientAccountId = _this.cloudtrailEvent.account;
       if (!event.errorCode && !event.errorMessage) {
+        // TODO: make this optional
+        _this.logDebug();
         let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.cloudtrailEvent.region);
         yield worker.tagResource();
       } else {
@@ -49,6 +51,11 @@ class AwsCloudTrailEventListener {
     console.log(err);
     console.log(err.stack);
     this.applicationContext.fail(err);
+  }
+
+  logDebug() {
+    console.log("CloudTrail Event - Debug Logging:");
+    console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
   }
 
   logEventError(event) {

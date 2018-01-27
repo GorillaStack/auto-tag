@@ -119,10 +119,10 @@ class AutotagDefaultWorker {
     ];
   }
   
-  getAutotagCreatorTag(value = this.getCreatorTagValue()) {
+  getAutotagCreatorTag() {
     return {
       Key: this.getCreatorTagName(),
-      Value: value
+      Value: this.getCreatorTagValue()
     };
   }
 

@@ -23,7 +23,8 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailEventListener.NETWORK_ACL.name,
     AwsCloudTrailEventListener.ROUTE_TABLE.name,
     AwsCloudTrailEventListener.VPC_PEERING.name,
-    AwsCloudTrailEventListener.VPN.name
+    AwsCloudTrailEventListener.VPN.name,
+    AwsCloudTrailEventListener.OPS_WORKS.name
   ];
 
   let listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);

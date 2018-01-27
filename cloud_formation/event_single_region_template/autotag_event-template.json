@@ -35,7 +35,7 @@
         "FunctionName" : "AutoTag",
         "Handler" : "autotag_event.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
-        "Runtime" : "nodejs4.3",
+        "Runtime" : "nodejs6.10",
         "Timeout" : 60
       }
     },
@@ -138,6 +138,10 @@
                 "elasticloadbalancing:AddTags",
                 "elasticmapreduce:AddTags",
                 "rds:AddTagsToResource",
+                "opsworks:DescribeInstances",
+                "opsworks:DescribeStacks",
+                "opsworks:ListTags",
+                "opsworks:TagResource",
                 "s3:GetBucketTagging",
                 "s3:PutBucketTagging"
               ],
@@ -173,6 +177,7 @@
               "ec2.amazonaws.com",
               "elasticloadbalancing.amazonaws.com",
               "elasticmapreduce.amazonaws.com",
+              "opsworks.amazonaws.com",
               "rds.amazonaws.com",
               "s3.amazonaws.com",
               "dynamodb.amazonaws.com"
@@ -192,6 +197,7 @@
               "CreateRouteTable",
               "CreateSecurityGroup",
               "CreateSnapshot",
+              "CreateStack",
               "CreateSubnet",
               "CreateTable",
               "CreateVolume",
