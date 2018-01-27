@@ -24,7 +24,8 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailListener.ROUTE_TABLE.name,
     AwsCloudTrailListener.VPC_PEERING.name,
     AwsCloudTrailListener.VPN.name,
-    AwsCloudTrailListener.OPS_WORKS.name
+    AwsCloudTrailListener.OPS_WORKS.name,
+    AwsCloudTrailListener.OPS_WORKS_CLONE.name
     
   ];
 

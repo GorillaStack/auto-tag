@@ -136,5 +136,11 @@ export default {
     targetEventName: 'CreateStack',
     targetEventType: null,
     targetEventSource: null
+  },
+  OPS_WORKS_CLONE: {
+    name: 'opsworksClone',
+    targetEventName: 'CloneStack',
+    targetEventType: null,
+    targetEventSource: null
   }
 };

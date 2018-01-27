@@ -184,6 +184,7 @@
             ],
             "eventName" : [
               "AllocateAddress",
+              "CloneStack",
               "CreateAutoScalingGroup",
               "CreateBucket",
               "CreateDBInstance",

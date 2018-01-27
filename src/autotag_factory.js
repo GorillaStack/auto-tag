@@ -133,6 +133,10 @@ let AutotagFactory = {
         return new AutotagOpsworksWorker(event, s3Region);
         break;
 
+      case CONFIG.OPS_WORKS_CLONE.name:
+        return new AutotagOpsworksWorker(event, s3Region);
+        break;
+
       // Default: worker that does nothing
       default:
         return new AutotagDefaultWorker(event, s3Region);
