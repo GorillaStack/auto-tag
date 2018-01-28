@@ -13,12 +13,6 @@
       "Description" : "The path of the code zip file in the code bucket in S3",
       "Type" : "String",
       "Default" : "autotag-0.3.0.zip"
-    },
-
-    "CloudTrailBucketName" : {
-      "Description" : "The name you want to give the bucket for your CloudTrail logs",
-      "Type" : "String",
-      "Default": "my-cloudtrail-bucket"
     }
   },
 

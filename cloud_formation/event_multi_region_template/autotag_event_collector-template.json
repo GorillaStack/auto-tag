@@ -5,13 +5,16 @@
   "Parameters" : {
     "MainAwsAccountNumber" : {
       "Description" : "The account number where the main auto-tag CloudFormation stack is running",
+      "Type" : "String"
+    },
+    "MainAwsRegion" : {
+      "Description" : "The region where the main auto-tag CloudFormation stack is running",
       "Type" : "String",
-      "Default": "123456789012"
+      "Default": "us-west-2"
     },
     "SubscriberEmail" : {
-      "Description" : "The subscriber email for debugging",
-      "Type" : "String",
-      "Default": "user@example.org"
+      "Description" : "The subscriber email for debugging - it will only email to ask you to subscribe, but you don't have to confirm.",
+      "Type" : "String"
     }
   },
 
@@ -118,7 +121,7 @@
     "AutoTagSNSSubscription": {
       "Type": "AWS::SNS::Subscription",
       "Properties": {
-        "Endpoint": { "Fn::Sub": "arn:aws:lambda:us-west-2:${MainAwsAccountNumber}:function:AutoTag" },
+        "Endpoint": { "Fn::Sub": "arn:aws:lambda:${MainAwsRegion}:${MainAwsAccountNumber}:function:AutoTag" },
         "Protocol": "lambda",
         "TopicArn": {
           "Ref": "AutoTagSNSTopic"

@@ -56,6 +56,7 @@ template do
   }
 
   resource 'AutoTagExecutionRole', Type: 'AWS::IAM::Role', Properties: {
+    RoleName: 'AutoTagLambda',
     AssumeRolePolicyDocument: {
       Statement: [
         {
@@ -87,13 +88,14 @@ template do
         {
           Effect: 'Allow',
           Action: ['sts:*'],
-          Resource: [get_att('AutoTagMasterRole', 'Arn')]
+          Resource: ['arn:aws:iam::*:role/AutoTag']
         }
       ]
     }
   }
 
   resource 'AutoTagMasterRole', Type: 'AWS::IAM::Role', Properties: {
+    RoleName: 'AutoTag',
     AssumeRolePolicyDocument: {
       Statement: [
         {
@@ -153,7 +155,7 @@ template do
                  Action: 'lambda:InvokeFunction',
                  FunctionName: get_att('AutoTagLambdaFunction', 'Arn'),
                  Principal: 'sns.amazonaws.com',
-                 SourceArn: sub("arn:aws:sns:#{region.name}:#{account}:*AutoTagSNSTopic*")
+                 SourceArn: "arn:aws:sns:#{region.name}:#{account}:*AutoTagSNSTopic*"
                }
 
     end
