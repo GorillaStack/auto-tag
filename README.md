@@ -34,7 +34,7 @@ Fields
 * AutoTags/InvokedBy: Tag the `AutoTag_InvokedBy` on all resources (when it is provided)
 
 Defaults:
-```json
+```javascript
 DebugLogging: false,
   AutoTags: {
     CreateTime: true,
