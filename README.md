@@ -116,24 +116,18 @@ Currently Auto Tag, supports the following resource types in AWS (C=Creator, T=C
 |Data Pipeline|CreatePipeline|C, T, I|No
 |DynamoDB Table|CreateTable|C, T, I|No
 |EBS Volume|CreateVolume|C, T, I|Yes
-|EC2 AMI*|CreateImage|C, T, I|Yes
+|EC2 AMI *|CreateImage|C, T, I|Yes
 |EC2 Elastic IP|AllocateAddress|C, T, I|Yes
 |EC2 ENI|CreateNetworkInterface|C, T, I|Yes
-|EC2 Instance
-| -attached EC2 ENI
-| -attached EBS Volume|RunInstances|C, T, I|Yes
-|OpsWorks Stack Instances
-| -attached EC2 ENI
-| -attached EBS Volume|RunInstances|C, T, I|Yes
-|AutoScaling Group Instances
-| -attached EC2 ENI
-| -attached EBS Volume|RunInstances|C, T, I|Yes
+|EC2 Instance w/ENI & Volume|RunInstances|C, T, I|Yes
+|OpsWorks Stack Instances w/ENI & Volume|RunInstances|C, T, I|Yes
+|AutoScaling Group Instances w/ENI & Volume|RunInstances|C, T, I|Yes
 |EC2/VPC Security Group|CreateSecurityGroup|C, T, I|Yes
-|EC2 Snapshot*|CreateSnapshot|C, T, I|Yes
+|EC2 Snapshot *|CreateSnapshot|C, T, I|Yes
 |Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|No
 |EMR Cluster|RunJobFlow|C, T, I|No
 |OpsWorks Stack|CreateStack|C (Propagated to Instances)|No
-|OpsWorks Clone Stack*|CloneStack|C (Propagated to instances)|No
+|OpsWorks Clone Stack *|CloneStack|C (Propagated to instances)|No
 |RDS Instance|CreateDBInstance|C, T, I|No
 |S3 Bucket|CreateBucket|C, T, I|No
 |NAT Gateway|CreateNatGateway||Yes
@@ -173,6 +167,11 @@ Use the following IAM policy to deny a user or role the ability to create, delet
 
 
 ## Test Suite
+
+
+
+## Retro-active tagging from S3
+
 
 
 
