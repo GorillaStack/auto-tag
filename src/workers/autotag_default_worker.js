@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+import SETTINGS from "../cloud_trail_event_settings";
 export const AUTOTAG_TAG_NAME_PREFIX = 'AutoTag_';
 const AUTOTAG_CREATOR_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'Creator';
 const AUTOTAG_CREATE_TIME_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'CreateTime';
@@ -114,8 +115,8 @@ class AutotagDefaultWorker {
   getAutotagTags() {
     return [
       this.getAutotagCreatorTag(),
-      this.getAutotagCreateTimeTag(),
-      ...(this.getInvokedByTagValue() ? [this.getAutotagInvokedByTag()] : []),
+      ...(SETTINGS.AutoTags.CreateTime ? [this.getAutotagCreateTimeTag()] : []),
+      ...(this.getInvokedByTagValue() && SETTINGS.AutoTags.InvokedBy ? [this.getAutotagInvokedByTag()] : []),
     ];
   }
   
@@ -145,7 +146,8 @@ class AutotagDefaultWorker {
   }
 
   getCreatorTagValue() {
-    // prefer the this field for Federated Users because it isn't truncated
+    // prefer the this field for Federated Users
+    // because it is the actual aws user and isn't truncated
     if (this.event.userIdentity.type === 'FederatedUser' &&
         this.event.userIdentity.sessionContext &&
         this.event.userIdentity.sessionContext.sessionIssuer &&

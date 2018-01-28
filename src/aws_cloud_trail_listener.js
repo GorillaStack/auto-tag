@@ -42,6 +42,11 @@ class AwsCloudTrailListener {
     this.applicationContext.fail(err);
   }
 
+  logDebug() {
+    console.log("CloudTrail Event - Debug Logging:");
+    console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+  }
+
   retrieveLogFileDetails() {
     let _this = this;
     return new Promise((resolve, reject) => {
@@ -64,21 +69,22 @@ class AwsCloudTrailListener {
         let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
         for (let j in log.Records) {
           let event = log.Records[j];
-      try {
-        if (!event.errorCode && !event.errorMessage) {
-          //console.log(event.eventName);
-          let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
-          yield worker.tagResource();
+          // try/catch here so that if one record fails it will attempt
+          // to finish the rest of the records from the log file
+          try {
+            if (!event.errorCode && !event.errorMessage) {
+              let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
+              yield worker.tagResource();
+            }
+          } catch (err) {
+            console.log("CloudTrail Event Failed ("+event.eventName+") :");
+            console.log(JSON.stringify(event, null, 2));
+            console.log("S3 Object Event ("+event.eventName+") :");
+            console.log(JSON.stringify(_this.cloudtrailEvent, null, 2));
+            console.log(err);
+            console.log(err.stack);
+          }
         }
-      } catch (e) {
-        console.log("CloudTrail Event Failed ("+event.eventName+") :");
-        console.log(JSON.stringify(event, null, 2));
-        console.log("S3 Object Event ("+event.eventName+") :");
-        console.log(JSON.stringify(_this.cloudtrailEvent, null, 2));
-        console.log(e);
-        console.log(e.stack);
-      }
-    }
       }
     });
   }

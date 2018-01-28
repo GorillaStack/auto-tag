@@ -24,6 +24,7 @@ import AutotagVPCPeeringWorker from './workers/autotag_vpc_peering_worker.js';
 import AutotagVPNWorker from './workers/autotag_vpn_worker.js';
 import AutotagOpsworksWorker from './workers/autotag_opsworks_worker.js';
 import CONFIG from './cloud_trail_event_config';
+import SETTINGS from "./cloud_trail_event_settings";
 
 let AutotagFactory = {
 
@@ -38,6 +39,8 @@ let AutotagFactory = {
       // Default: worker that does nothing
       return new AutotagDefaultWorker(event, s3Region);
     }
+
+    if (SETTINGS.DebugLogging) {this.logDebug()};
 
     // Select the relevant worker
     switch (matchingService.name) {

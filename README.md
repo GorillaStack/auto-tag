@@ -24,6 +24,24 @@ We have [created a CloudFormation template](https://raw.githubusercontent.com/Go
 
 ~~We also host each release of AutoTag in public s3 buckets in each region, such that all you have to do is install the CloudFormation template.~~
 
+##### Settings
+
+Edit the `auto_tag/src/cloud_trail_event_settings.js` to change settings for debug logging and the optional tags, "create time" and "invoked by".
+
+Fields
+* DebugLogging: Log all processed CloudTrail events
+* AutoTags/CreateTime: Tag the `AutoTag_CreateTime` on all resources
+* AutoTags/InvokedBy: Tag the `AutoTag_InvokedBy` on all resources (when it is provided)
+
+Defaults:
+```json
+DebugLogging: false,
+  AutoTags: {
+    CreateTime: true,
+    InvokedBy: true
+  }
+```
+
 ##### Through the console (S3 Object Method)
 
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
@@ -64,6 +82,7 @@ CloudFormation Collector StackSet (Warning: Extra setup is required for deployin
 CloudFormation Main Stack - Deploy this stack in a single "master" region. This stack deploys the lambda function and permissions for each region. (note: this requires an up-to-date ruby SDK to be aware of the latest regions)
 
 1. In the git files on your local machine change directory to `auto_tag/cloud_formation/event_multi_region_template`
+1. The next step requires a install of ruby and bundler
 1. Run `bundle install` to install the ruby dependencies to build the template
 1. Run the template builder specifying the AWS account numbers where you have deployed the collector stack `./autotag_event_main-template.rb expand --aws-accounts "123456789012, 789012345678" > autotag_event_main-template.json`
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
@@ -89,48 +108,71 @@ CloudFormation Master Role StackSet - This stack is required to utilize more tha
 
 ## Supported Resource Types
 
-Currently Auto Tag, supports the following resource types in AWS
+Currently Auto Tag, supports the following resource types in AWS (C=Creator, T=Create Time, I=Invoked By)
 
 |Technology|Event Name|Tags Applied|IAM Deny Tag Support
 |----------|----------|------------|----------------------
-|AutoScaling Group|CreateAutoScalingGroup|C (Propagated to Instances), T, I|Yes - Auto Scaling
-|Data Pipeline|CreatePipeline|C, T, I|No - Docs link below
-|DynamoDB Table|CreateTable|C, T, I|No - Docs link below
-|EBS Volume|CreateVolume|C, T, I|Yes - EC2
-|EC2 AMI*|CreateImage|C, T, I|Yes - EC2
-|EC2 Elastic IP|AllocateAddress|C, T, I|Yes - EC2
-|EC2 ENI|CreateNetworkInterface|C, T, I|Yes - EC2
+|AutoScaling Group|CreateAutoScalingGroup|C (Propagated to Instances), T, I|Yes
+|Data Pipeline|CreatePipeline|C, T, I|No
+|DynamoDB Table|CreateTable|C, T, I|No
+|EBS Volume|CreateVolume|C, T, I|Yes
+|EC2 AMI*|CreateImage|C, T, I|Yes
+|EC2 Elastic IP|AllocateAddress|C, T, I|Yes
+|EC2 ENI|CreateNetworkInterface|C, T, I|Yes
 |EC2 Instance
 | -attached EC2 ENI
-| -attached EBS Volume|RunInstances|C, T, I|Yes - EC2
+| -attached EBS Volume|RunInstances|C, T, I|Yes
 |OpsWorks Stack Instances
 | -attached EC2 ENI
-| -attached EBS Volume|RunInstances|C, T, I|Yes - EC2
+| -attached EBS Volume|RunInstances|C, T, I|Yes
 |AutoScaling Group Instances
 | -attached EC2 ENI
-| -attached EBS Volume|RunInstances|C, T, I|Yes - EC2
-|EC2/VPC Security Group|CreateSecurityGroup|C, T, I|Yes - EC2
-|EC2 Snapshot*|CreateSnapshot|C, T, I|Yes - EC2
-|Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|no service-specific context keys
-|EMR Cluster|RunJobFlow|C, T, I|no service-specific context keys
-|OpsWorks Stack|CreateStack|C (Propagated to Instances)|no service-specific context keys
-|OpsWorks Clone Stack*|CloneStack|C (Propagated to instances)|no service-specific context keys
-|RDS Instance|CreateDBInstance|C, T, I|Tag Key Name Not Supported
-|S3 Bucket|CreateBucket|C, T, I|No Conditions for Tags on Buckets
-|NAT Gateway|CreateNatGateway||Yes - EC2
-|VPC|CreateVpc|C, T, I|Yes - EC2
-|VPC Internet Gateway|CreateInternetGateway|C, T, I|Yes - EC2
-|VPC Network ACL|CreateNetworkAcl|C, T, I|Yes - EC2
-|VPC Peering Connection|CreateVpcPeeringConnection|C, T, I|Yes - EC2
-|VPC Route Table|CreateRouteTable|C, T, I|Yes - EC2
-|VPC Subnet|CreateSubnet|C, T, I|Yes - EC2
-|VPN Connection|CreateVpnConnection|C, T, I|Yes - EC2
-C=Creator
-T=Create Time
-I=Invoked By
+| -attached EBS Volume|RunInstances|C, T, I|Yes
+|EC2/VPC Security Group|CreateSecurityGroup|C, T, I|Yes
+|EC2 Snapshot*|CreateSnapshot|C, T, I|Yes
+|Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|No
+|EMR Cluster|RunJobFlow|C, T, I|No
+|OpsWorks Stack|CreateStack|C (Propagated to Instances)|No
+|OpsWorks Clone Stack*|CloneStack|C (Propagated to instances)|No
+|RDS Instance|CreateDBInstance|C, T, I|No
+|S3 Bucket|CreateBucket|C, T, I|No
+|NAT Gateway|CreateNatGateway||Yes
+|VPC|CreateVpc|C, T, I|Yes
+|VPC Internet Gateway|CreateInternetGateway|C, T, I|Yes
+|VPC Network ACL|CreateNetworkAcl|C, T, I|Yes
+|VPC Peering Connection|CreateVpcPeeringConnection|C, T, I|Yes
+|VPC Route Table|CreateRouteTable|C, T, I|Yes
+|VPC Subnet|CreateSubnet|C, T, I|Yes
+|VPN Connection|CreateVpnConnection|C, T, I|Yes
+
 *=not part of the test suite
 
-## Create the lambda zip package from git
+## IAM Deny Tag Support
+
+Use the following IAM policy to deny a user or role the ability to create, delete, and edit any tag starting with 'AutoTag_'. This ability is only available for resources in EC2 and AutoScaling, see the table above.
+
+```json
+{
+  "Sid": "DenyAutoTagPrefix",
+  "Effect": "Deny",
+  "Action": [
+    "ec2:CreateTags",
+    "ec2:DeleteTags"
+  ],
+  "Condition": {
+    "ForAnyValue:StringLike": {
+      "aws:TagKeys": "AutoTag_*"
+    }
+  },
+  "Resource": "*"
+}
+```
+
+## Generate the Lambda zip package
+
+
+
+## Test Suite
 
 
 
@@ -146,7 +188,7 @@ Auto tag is implemented in Javascript (ECMAScript 2015 - a.k.a. es6).
 
 When the repository was first authored, this was not supported by the lambda node version (v0.10).  [Even now with version 4.3 support](https://aws.amazon.com/blogs/compute/node-js-4-3-2-runtime-now-available-on-lambda/), we still need to transpile code to es5 for compatibility, as not all language features are available (e.g. import etc).
 
-I've upgraded the templates to use [nodejs 6.10](https://aws.amazon.com/about-aws/whats-new/2017/03/aws-lambda-supports-node-js-6-10/), but I'm not sure if we can run this code natively yet...
+I've set the templates to use [nodejs 6.10](https://aws.amazon.com/about-aws/whats-new/2017/03/aws-lambda-supports-node-js-6-10/), but I'm not sure if we can run this code natively yet... -ray
 
 ##### Support for es5
 
