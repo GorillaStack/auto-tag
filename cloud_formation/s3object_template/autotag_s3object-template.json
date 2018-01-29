@@ -52,10 +52,10 @@
         },
         "Description" : "Auto Tag (Open Source by GorillaStack)",
         "FunctionName" : "AutoTag",
-        "Handler" : "autotag.handler",
+        "Handler" : "autotag_log.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
         "Runtime" : "nodejs6.10",
-        "Timeout" : 30
+        "Timeout" : 60
       }
     },
 

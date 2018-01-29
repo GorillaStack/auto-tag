@@ -6,34 +6,34 @@ This is an open-source tagging solution for AWS.  Deploy AutoTag to lambda and s
 
 [Read a blog post about the project](http://blog.gorillastack.com/gorillastack-presents-auto-tag).
 
-### About
+## About
 
 Automatically tagging resources can greatly improve the ease of cost allocation and governance.
 
-Two options are available to process the CloudTrail events, a s3 object trigger on the CloudTrail s3 bucket, or a CloudWatch Event Rule trigger. 
+Two options are available to process the CloudTrail event stream, a S3 put object trigger on the associated CloudTrail S3 bucket, or a CloudWatch Events rule trigger. 
 
-When using s3 logs, within 5-7 minutes of creating a supported resource type, CloudTrail will write to s3 logs, which triggers our AutoTag code to tag the resource. 
+CloudTrail logs (S3 objects) are delivered in batches to the CloudTrail S3 bucket every 5 to 7 minutes after a supported resource type is created. CloudTrail will write the S3 logs which triggers our AutoTag code to tag the resource. The lambda function is executed once for each S3 object, each S3 object log contains a batch of CloudTrail Events to be processed. Every event in the log must be processed, even if it is not supported. This can be a quick solution if CloudTrail is already enabled for all region and accounts. 
 
-When using CloudWatch events, in the first few minutes of creating a supported resource type, CloudWatch event rules will directly trigger our AutoTag code to tag the resource. This method does not require CloudTrail logs to be sent to a s3 bucket.
+CloudWatch events delivers a near real-time stream of CloudTrail events as soon as a supported resource type is created. CloudWatch event rules triggers our AutoTag code to tag the resource. This method does not require CloudTrail logs to be sent to a s3 bucket. In this configuration the lambda function is executed once each time it is triggered by the CloudWatch Event Rule. The CloudWatch Event Rule has includes a pattern filter so it is only triggered by the supported events which is much more efficient. I saw about an 85% decrease in invocations of the lambda function. 
 
-There are two configurations for CloudWatch Events, a simple template is setup for a single region. In this solution CloudWatch events can trigger the lambda function directly because they are in the same region. In the multi-region and multi-account solution the CloudWatch event is delivered to a in-region SNS topics and then the SNS topic triggers the main lambda function. In this solution there is no limit to the amount of regions and accounts you can use and it only requires a single lambda function. 
+There are two separate CloudFormation templates for CloudWatch Events, the first is a simple template setup that will only function for a single region. In this solution CloudWatch events can trigger the lambda function directly because they are in the same region. The second option is a multi-region and multi-account solution, here the CloudWatch events are delivered to in-region SNS topics and then the SNS topic delivers that event to the main lambda function. There is no limit to the amount of regions and accounts you can use and only requires a single lambda function. 
 
-### Installation
+## Installation
 
 We have [created a CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/template.json) that creates all the resources required for AutoTag.
 
 ~~We also host each release of AutoTag in public s3 buckets in each region, such that all you have to do is install the CloudFormation template.~~
 
-##### Settings
+### Settings
 
-Edit the `auto_tag/src/cloud_trail_event_settings.js` to change settings for debug logging and the optional tags, "create time" and "invoked by".
+Edit the `src/cloud_trail_event_settings.js` to change settings for debug logging and the optional tags, "create time" and "invoked by".
 
-Fields
-* DebugLogging: Log all processed CloudTrail events
+__Fields__
+* DebugLogging: Log **all** CloudTrail events processed
 * AutoTags/CreateTime: Tag the `AutoTag_CreateTime` on all resources
 * AutoTags/InvokedBy: Tag the `AutoTag_InvokedBy` on all resources (when it is provided)
 
-Defaults:
+__Defaults__
 ```javascript
 DebugLogging: false,
   AutoTags: {
@@ -42,7 +42,10 @@ DebugLogging: false,
   }
 ```
 
-##### Through the console (S3 Object Method)
+### Generate the Lambda zip package
+
+### Pick a Deployment Method
+#### Deploy with Console (S3 Object Method)
 
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the blue "Create Stack" button
@@ -54,7 +57,7 @@ DebugLogging: false,
   * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
   
   
-##### Through the console (CloudWatch Events Method - Single Region)
+#### Deploy with Console (CloudWatch Events Method - Single Region)
 
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the blue "Create Stack" button
@@ -64,14 +67,14 @@ DebugLogging: false,
 * CodeS3Bucket: The name of the code bucket in S3
 * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
   
-##### Through the console (CloudWatch Events Method - Multi-Region & Multi-Account)
+#### Deploy with Console (CloudWatch Events Method - Multi-Region & Multi-Account)
 
-CloudFormation Collector StackSet (Warning: Extra setup is required for deploying StackSets) - Deploy this stack in every account and region where we want to tag resources. It deploys the CloudWatch Event Rule and the SNS Topic.
+__CloudFormation Collector StackSet__ (Warning: Extra setup is required for deploying StackSets) - Deploy this stack in every account and region where we want to tag resources. It deploys the CloudWatch Event Rule and the SNS Topic.
 1. Read about the [CloudFormation StackSet Concepts](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html)
-1. Follow the instructions in the [CloudFormation StackSet Prerequisites](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html) - even if you are only deploying this in one account you will need to setup the StackSet IAM permissions. using the two templates AWS provide is the most simple way: [AWSCloudFormationStackSetAdministrationRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml) and [AWSCloudFormationStackSetExecutionRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml)
+1. Follow the instructions in the [CloudFormation StackSet Prerequisites](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html) - even if you are only deploying this in one account you will need to setup the StackSet IAM permissions. Using the two templates AWS provide is the most simple way: [AWSCloudFormationStackSetAdministrationRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml) and [AWSCloudFormationStackSetExecutionRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml)
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the blue "Create StackSet" button
-1. Provide the account numbers to deploy to and select the regions to deploy to, then click the blue "Next" button - the resulting deployment with be a combination of both the accounts and regions
+1. Provide the account numbers and regions to deploy to, then click the blue "Next" button - the resulting deployment with be a combination of both the accounts and regions
 1. Select "Upload a template to Amazon S3", choosing the downloaded [CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/event_multi_region_template/autotag_event_collector-template.json), then click the blue "Next" button
 1. Name the stack "autotag-collector" - this can be anything
 1. In the parameter section:
@@ -79,9 +82,9 @@ CloudFormation Collector StackSet (Warning: Extra setup is required for deployin
 * MainAwsRegion: The region where the main auto-tag CloudFormation stack will be running
 * SubscriberEmail: The subscriber email for debugging - it will only email to ask you to subscribe, but you don't have to confirm.
 
-CloudFormation Main Stack - Deploy this stack in a single "master" region. This stack deploys the lambda function and permissions for each region. (note: this requires an up-to-date ruby SDK to be aware of the latest regions)
+__CloudFormation Main Stack__ - Deploy this stack in a single "master" region. This stack deploys the lambda function and permissions for each region. (note: this requires an up-to-date ruby SDK to be aware of the latest regions)
 
-1. In the git files on your local machine change directory to `auto_tag/cloud_formation/event_multi_region_template`
+1. In the git files on your local machine change directory to `cloud_formation/event_multi_region_template`
 1. The next step requires a install of ruby and bundler
 1. Run `bundle install` to install the ruby dependencies to build the template
 1. Run the template builder specifying the AWS account numbers where you have deployed the collector stack `./autotag_event_main-template.rb expand --aws-accounts "123456789012, 789012345678" > autotag_event_main-template.json`
@@ -94,13 +97,13 @@ CloudFormation Main Stack - Deploy this stack in a single "master" region. This 
 * CodeS3Bucket: The name of the code bucket in S3
 * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
 
-CloudFormation Master Role StackSet - This stack is required to utilize more than one AWS account. This stack deploys the Master IAM Role that is assumed by the main stack lambda function. This role allows the lambda function in the main stack's account and region to perform the tagging in a different account. 
+__CloudFormation Master Role StackSet__ - This stack is required to utilize more than one AWS account. This stack deploys the Master IAM Role that is assumed by the main stack lambda function. This role allows the lambda function in the main stack account to perform the tagging in a different account. 
 
 1. Update the StackSet administration role in the administrator account [AWSCloudFormationStackSetAdministrationRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml)
 1. Install the StackSet execution role in the remote account [AWSCloudFormationStackSetExecutionRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml)
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the blue "Create StackSet" button
-1. Provide the account numbers to deploy to and select a single region to deploy to (can be any region), then click the blue "Next" button - we only need the role once in each remote account
+1. Provide the account numbers and select a single region to deploy to (can be any region), then click the blue "Next" button - we only need the role once in each remote account
 1. Select "Upload a template to Amazon S3", choosing the downloaded [CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/event_multi_region_template/autotag_event_role-template.json), then click the blue "Next" button
 1. Name the stack "autotag-role" - this can be anything
 1. In the parameter section:
@@ -108,11 +111,14 @@ CloudFormation Master Role StackSet - This stack is required to utilize more tha
 
 ## Supported Resource Types
 
-Currently Auto Tag, supports the following resource types in AWS (C=Creator, T=Create Time, I=Invoked By)
+Currently Auto Tag, supports the following resource types in AWS 
+
+__Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 
 |Technology|Event Name|Tags Applied|IAM Deny Tag Support
 |----------|----------|------------|----------------------
-|AutoScaling Group|CreateAutoScalingGroup|C (Propagated to Instances), T, I|Yes
+|AutoScaling Group|CreateAutoScalingGroup|C, T, I|Yes
+|AutoScaling Group Instances w/ENI & Volume|RunInstances|C, T, I|Yes
 |Data Pipeline|CreatePipeline|C, T, I|No
 |DynamoDB Table|CreateTable|C, T, I|No
 |EBS Volume|CreateVolume|C, T, I|Yes
@@ -120,14 +126,13 @@ Currently Auto Tag, supports the following resource types in AWS (C=Creator, T=C
 |EC2 Elastic IP|AllocateAddress|C, T, I|Yes
 |EC2 ENI|CreateNetworkInterface|C, T, I|Yes
 |EC2 Instance w/ENI & Volume|RunInstances|C, T, I|Yes
-|OpsWorks Stack Instances w/ENI & Volume|RunInstances|C, T, I|Yes
-|AutoScaling Group Instances w/ENI & Volume|RunInstances|C, T, I|Yes
 |EC2/VPC Security Group|CreateSecurityGroup|C, T, I|Yes
 |EC2 Snapshot *|CreateSnapshot|C, T, I|Yes
 |Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|No
 |EMR Cluster|RunJobFlow|C, T, I|No
 |OpsWorks Stack|CreateStack|C (Propagated to Instances)|No
 |OpsWorks Clone Stack *|CloneStack|C (Propagated to instances)|No
+|OpsWorks Stack Instances w/ENI & Volume|RunInstances|C, T, I|Yes
 |RDS Instance|CreateDBInstance|C, T, I|No
 |S3 Bucket|CreateBucket|C, T, I|No
 |NAT Gateway|CreateNatGateway||Yes
@@ -139,7 +144,7 @@ Currently Auto Tag, supports the following resource types in AWS (C=Creator, T=C
 |VPC Subnet|CreateSubnet|C, T, I|Yes
 |VPN Connection|CreateVpnConnection|C, T, I|Yes
 
-*=not part of the test suite
+_*=not tested by the test suite_
 
 ## IAM Deny Tag Support
 
@@ -162,16 +167,9 @@ Use the following IAM policy to deny a user or role the ability to create, delet
 }
 ```
 
-## Generate the Lambda zip package
 
 
-
-## Test Suite
-
-
-
-## Retro-active tagging from S3
-
+## Retro-active Tagging
 
 
 
@@ -183,11 +181,21 @@ If you are interested in contributing, please get started by forking our github 
 
 ### Development guide
 
+#### General
+
 Auto tag is implemented in Javascript (ECMAScript 2015 - a.k.a. es6).
 
 When the repository was first authored, this was not supported by the lambda node version (v0.10).  [Even now with version 4.3 support](https://aws.amazon.com/blogs/compute/node-js-4-3-2-runtime-now-available-on-lambda/), we still need to transpile code to es5 for compatibility, as not all language features are available (e.g. import etc).
 
 I've set the templates to use [nodejs 6.10](https://aws.amazon.com/about-aws/whats-new/2017/03/aws-lambda-supports-node-js-6-10/), but I'm not sure if we can run this code natively yet... -ray
+
+
+##### Test Suite
+
+Use the test suite to deploy in your own environment and validate the auto-tagging for most of the supported resources. A CloudFormation stack will deploy the taggable resources, then use the audit script to validate whether the appropriate tags were applied.
+
+The user (arn) who deploys the CloudFormation script needs to be the same user who runs the `audit_test_tags.rb` script for the automated check to work. If the users aren't the same, use the `--user-arn` argument to set the expected ARN. 
+
 
 ##### Support for es5
 

@@ -6,7 +6,7 @@ import _ from 'underscore';
 import constants from './cloud_trail_event_config';
 import AutotagFactory from './autotag_factory';
 
-class AwsCloudTrailListener {
+class AwsCloudTrailLogListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
     this.cloudtrailEvent = cloudtrailEvent;
     this.applicationContext = applicationContext;
@@ -142,7 +142,7 @@ const dumpRecord = (event) => {
 };
 
 _.each(constants, function(value, key) {
-  AwsCloudTrailListener[key] = value;
+  AwsCloudTrailLogListener[key] = value;
 });
 
-export default AwsCloudTrailListener;
+export default AwsCloudTrailLogListener;
