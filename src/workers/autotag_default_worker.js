@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk';
-import SETTINGS from '../cloud_trail_event_settings';
+import SETTINGS from '../autotag_settings';
 export const AUTOTAG_TAG_NAME_PREFIX = 'AutoTag_';
 const AUTOTAG_CREATOR_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'Creator';
 const AUTOTAG_CREATE_TIME_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'CreateTime';

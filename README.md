@@ -26,7 +26,7 @@ We have [created a CloudFormation template](https://raw.githubusercontent.com/Go
 
 ### Settings
 
-Edit the `src/cloud_trail_event_settings.js` to change settings for debug logging and the optional tags, "create time" and "invoked by".
+Edit the `src/autotag_settings.js` to change settings for debug logging and the optional tags, "create time" and "invoked by".
 
 __Fields__
 * DebugLogging: Log **all** CloudTrail events processed
@@ -173,6 +173,41 @@ Use the following IAM policy to deny a user or role the ability to create, delet
 
 
 
+
+## Test Suite
+
+Use the test suite to deploy in your own environment and validate the auto-tagging for most of the supported resources. A CloudFormation stack will deploy the taggable resources, then use the audit script to validate whether the appropriate tags were applied.
+
+The user (arn) who deploys the CloudFormation script needs to be the same user who runs the `audit_test_tags.rb` script for the automated check to work. If the users aren't the same, use the `--user-arn` argument to set the expected ARN. (see [Deploy the test suite](#deploy-the-test-suite))
+
+#### Deploy the test suite
+
+The suite does deploy several resources that have a cost, the resource have been minimized but there are some requirements that are unavoidable. The following are the more major resources: DataPipeline (t2.nano), OpsWorks Instance (m3.medium), NAT Gateway, DynamoDB Table (provisioned 1 read, 1 write), EMR Cluster (2x c1.medium - TODO: this is the most expensive, need to look at this again.), RDS Instance (t2.micro), Classic ELB, Network ELB, EC2 Instance (t2.nano), AutoScaling Group Instance (t2.nano). Estimations on 1/29/2018 for us-east-1 add up to about $.35/hr at on-demand pricing. It can be deployed to a single region or all regions. For using  multiple-regions omit the `--region` argument in each script to prepare _all_ regions, then deploy the CloudFormation template as a StackSet to as many regions as necessary. (note: all regions have not been tested)
+
+1. Create a new KeyPair for import to AWS.
+   1. Execute `ssh-keygen -t rsa -C "KeyPair-Dev-20180116" -b 4096 -f “KeyPair-Dev-20180116”`
+   1. Execute `openssl rsa -in KeyPair-Dev-20180116 -text > KeyPair-Dev-20180116.pem`
+1. Change directory to `auto-tag/test_suite` and execute `bundle install` to grab the dependent gems
+1. Deploy a key pair for the test: `./deploy_key.rb --region us-east-1 --profile default --key-name KeyPair-Dev-20180116 --key-file /Projects/AutoTag/key-pair/KeyPair-Dev-20180116.pub`
+   1. Omitting the `--region` argument will add the key pair to all regions)
+1. Deploy the SSM store parameters that will be used by the CloudFormation template for the test: `./deploy_ssm_params.rb --region us-east-1 --profile default --key-name KeyPair-Dev-20180116 --cidr "192.168"`
+   1. Omitting the `--region` argument will add the test suite SSM params to all regions
+   1. The `--cidr` argument is optional
+   1. The SSM Store Parameter Names: /AutoTagTest/KeyName, /AutoTagTest/AmiImageId, /AutoTagTest/VpcCidrBlock /AutoTagTest/SubnetCidrBlocks, /AutoTagTest/VpcCidrBlockForVpcPeering
+1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
+1. Click the blue "Create Stack" button
+1. Select "Upload a template to Amazon S3", choosing the downloaded [CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/test_suite/test_suite-cloud_formation/autotag_event_test-template.json), then click the blue "Next" button
+   1. If this template needs to be edited, please edit the `autotag_event_test-template.rb` file and re-generate the template with `bundle install && ./autotag_event_test.rb expand > autotag_event_test.json`
+1. Name the stack "autotag-test" - this name is encouraged, but can be overridden in the audit script.
+
+#### Audit the test suite resources
+
+1. Change directory to `auto-tag/test_suite`
+1. Audit the tags  `./audit_test_tags.rb  --region us-east-1 --profile default --stack-name autotag-test --user-arn <aws-arn>`
+   1. Omitting the `--region` argument will audit the tags in all regions
+   1. The `--stack-name` and `--user-arn` arguments are optional
+1. When finished delete the "autotag-test" CloudFormation stack
+
 ## Contributing
 
 If you have questions, feature requests or bugs to report, please do so on [the issues section of our github repository](https://github.com/GorillaStack/auto-tag/issues).
@@ -188,13 +223,6 @@ Auto tag is implemented in Javascript (ECMAScript 2015 - a.k.a. es6).
 When the repository was first authored, this was not supported by the lambda node version (v0.10).  [Even now with version 4.3 support](https://aws.amazon.com/blogs/compute/node-js-4-3-2-runtime-now-available-on-lambda/), we still need to transpile code to es5 for compatibility, as not all language features are available (e.g. import etc).
 
 I've set the templates to use [nodejs 6.10](https://aws.amazon.com/about-aws/whats-new/2017/03/aws-lambda-supports-node-js-6-10/), but I'm not sure if we can run this code natively yet... -ray
-
-
-##### Test Suite
-
-Use the test suite to deploy in your own environment and validate the auto-tagging for most of the supported resources. A CloudFormation stack will deploy the taggable resources, then use the audit script to validate whether the appropriate tags were applied.
-
-The user (arn) who deploys the CloudFormation script needs to be the same user who runs the `audit_test_tags.rb` script for the automated check to work. If the users aren't the same, use the `--user-arn` argument to set the expected ARN. 
 
 
 ##### Support for es5

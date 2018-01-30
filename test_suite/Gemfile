@@ -1,0 +1,7 @@
+
+source 'https://rubygems.org'
+
+gem 'pastel'
+gem 'aws-sdk'
+gem 'docopt'
+gem 'tty-spinner'
