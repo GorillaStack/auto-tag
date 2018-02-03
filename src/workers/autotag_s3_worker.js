@@ -91,7 +91,7 @@ class AutotagS3Worker extends AutotagDefaultWorker {
     return new Promise((resolve, reject) => {
       try {
         let bucketName = _this.getBucketName();
-        _this.logTags(bucketName, tags);
+        _this.logTags(bucketName, tags, _this.constructor.name);
         _this.s3.putBucketTagging({
           Bucket: _this.getBucketName(),
           Tagging: {

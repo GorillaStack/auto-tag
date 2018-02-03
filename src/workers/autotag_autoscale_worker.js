@@ -28,7 +28,7 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
     return new Promise((resolve, reject) => {
       try {
         let tagConfig = _this.getAutoscalingTags(_this.getAutotagTags());
-        _this.logTags(_this.getAutoscalingGroupName(), tagConfig);
+        _this.logTags(_this.getAutoscalingGroupName(), tagConfig, _this.constructor.name);
         _this.autoscaling.createOrUpdateTags({
           Tags: tagConfig
         }, (err, res) => {

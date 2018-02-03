@@ -5,6 +5,7 @@ import co from 'co';
 import _ from 'underscore';
 import constants from './cloud_trail_event_config';
 import AutotagFactory from './autotag_factory';
+import SETTINGS from "./autotag_settings";
 
 class AwsCloudTrailLogListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
@@ -35,16 +36,20 @@ class AwsCloudTrailLogListener {
   }
 
   handleError(err) {
-    console.log("S3 Object Event Failed:");
-    console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+    if (SETTINGS.DebugLoggingOnFailure) {
+      console.log("S3 Object Event Failed:");
+      console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+    }
     console.log(err);
     console.log(err.stack);
     this.applicationContext.fail(err);
   }
 
   logDebug() {
-    console.log("CloudTrail Event - Debug Logging:");
-    console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+    if (SETTINGS.DebugLogging) {
+      console.log("CloudTrail Event - Debug Logging:");
+      console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+    }
   }
 
   retrieveLogFileDetails() {
@@ -74,6 +79,7 @@ class AwsCloudTrailLogListener {
           try {
             if (!event.errorCode && !event.errorMessage) {
               let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
+              if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebug() }
               yield worker.tagResource();
             }
           } catch (err) {

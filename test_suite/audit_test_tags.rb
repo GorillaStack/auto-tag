@@ -3,36 +3,32 @@
 require 'aws-sdk'
 require 'pp'
 require 'pastel'
-require 'ostruct'
-require 'time'
 require 'tty-spinner'
 require './audit_test_tags_include'
 
-$spinner = TTY::Spinner.new(':spinner :title', format: :bouncing_ball)
+
 pastel  = Pastel.new
 title   = pastel.bright_white.bold.underline.detach
 heading = pastel.blue.bold.detach
 $error  = pastel.red.detach
-$results_good = []
-$results_bad  = []
 
 require 'docopt'
 doc = <<DOCOPT
 Audit the tags created by the Auto Tag Test Suite
 
 Usage:
-  #{__FILE__}
-  #{__FILE__} [--details] [--region=REGION] [--profile=PROFILE]
-               [--stack-name=STACK_NAME] [--user-arn=USER_ARN]
+  #{__FILE__} [--region=REGION] [--profile=PROFILE]
+                [--details] [--stack=STACK_NAME]
+                [--user-arn=USER_ARN]
   #{__FILE__} -h | --help
 
 Options:
-  -h --help                Show this screen.
-  -d --details             Show details for all resources.
-  --region=REGION          The AWS Region where the stack exists, defaults to scan all regions.
-  --profile=PROFILE        The AWS credential profile.
-  --stack-name=STACK_NAME  The CloudFormation stack name.
-  --user-arn=USER_ARN      The IAM user that executed the CloudFormation template
+  -h --help                   Show this screen.
+  -d --details                Show details for all resources.
+  --region=REGION             The AWS Region where the stack exists, required if using a StackSet, defaults to scan all regions for Stacks only.
+  --profile=PROFILE           The AWS credential profile.
+  --stack=STACK_NAME          The CloudFormation stack name, defaults to "autotag-test".
+  --user-arn=USER_ARN         The IAM user that executed the CloudFormation template, defaults to the local user's arn.
 
 DOCOPT
 
@@ -43,44 +39,52 @@ rescue Docopt::Exit => e
 end
 
 
-aws_region  = $args['--region']     ? $args['--region']     : nil
-aws_profile = $args['--profile']    ? $args['--profile']    : 'default'
-stack_name  = $args['--stack-name'] ? $args['--stack-name'] : 'AutoTagTest'
-credentials = Aws::SharedCredentials.new(profile_name: aws_profile)
+aws_region      = $args['--region']    ? $args['--region']    : nil
+aws_profile     = $args['--profile']   ? $args['--profile']   : 'default'
+stack_name      = $args['--stack']     ? $args['--stack']     : 'autotag-test'
+credentials     = Aws::SharedCredentials.new(profile_name: aws_profile)
+
 
 # all regions that exist according to the SDK
 Aws.partition('aws').regions.each do |region|
-  next unless region.name == aws_region unless aws_region.nil?
+  region_name = region.name
+  next unless region_name == aws_region unless aws_region.nil?
+  $spinner = TTY::Spinner.new(':spinner :title', format: :bouncing_ball)
+  $results_bad, $results_good = [], []
 
-  region_description = region.description.sub(/.*\((.*)\)/, '\1')
-  puts "**** #{title.call("#{region.name} (#{region_description})")} ****" if $args['--details']
+  aws_regions = Aws.partition('aws').regions
+  region_description = aws_regions.select { |r| r.name == region_name }
+  region_description = region_description.first.description.sub!(/.*\((.*)\)/, '\1')
 
-  cfn = Aws::CloudFormation::Client.new(region: region.name, credentials: credentials)
-  iam = Aws::IAM::Client.new(region: region.name, credentials: credentials)
+  puts "**** #{title.call("#{region_name} (#{region_description})")} ****" if $args['--details']
+
+  cfn = Aws::CloudFormation::Client.new(region: region_name, credentials: credentials)
+  iam = Aws::IAM::Client.new(region: region_name, credentials: credentials)
 
   begin
     describe_stack_resources = Tags.describe_stack_resources(cfn, stack_name)
   rescue Aws::CloudFormation::Errors::ValidationError
-    puts "Stack #{stack_name} in #{region.name} not found..."
+    puts "Stack #{stack_name} in #{region_name} not found..."
     next
   end
-  describe_stacks = Tags.describe_stacks(cfn, stack_name)
-  stack_resources = describe_stack_resources.stack_resources.select do |resource|
+
+  describe_stacks    = Tags.describe_stacks(cfn, stack_name)
+  stack_resources    = describe_stack_resources.stack_resources.select do |resource|
     %w[CREATE_IN_PROGRESS
       CREATE_COMPLETE
       UPDATE_IN_PROGRESS
       UPDATE_COMPLETE].include? resource['resource_status']
   end
 
-  ec2          = Aws::EC2::Client.new(region: region.name, credentials: credentials)
-  autoscaling  = Aws::AutoScaling::Client.new(region: region.name, credentials: credentials)
-  datapipeline = Aws::DataPipeline::Client.new(region: region.name, credentials: credentials)
-  elbv1        = Aws::ElasticLoadBalancing::Client.new(region: region.name, credentials: credentials)
-  elbv2        = Aws::ElasticLoadBalancingV2::Client.new(region: region.name, credentials: credentials)
-  rds          = Aws::RDS::Client.new(region: region.name, credentials: credentials)
-  s3           = Aws::S3::Client.new(region: region.name, credentials: credentials)
-  emr          = Aws::EMR::Client.new(region: region.name, credentials: credentials)
-  dynamodb     = Aws::DynamoDB::Client.new(region: region.name, credentials: credentials)
+  ec2          = Aws::EC2::Client.new(region: region_name, credentials: credentials)
+  autoscaling  = Aws::AutoScaling::Client.new(region: region_name, credentials: credentials)
+  datapipeline = Aws::DataPipeline::Client.new(region: region_name, credentials: credentials)
+  elbv1        = Aws::ElasticLoadBalancing::Client.new(region: region_name, credentials: credentials)
+  elbv2        = Aws::ElasticLoadBalancingV2::Client.new(region: region_name, credentials: credentials)
+  rds          = Aws::RDS::Client.new(region: region_name, credentials: credentials)
+  s3           = Aws::S3::Client.new(region: region_name, credentials: credentials)
+  emr          = Aws::EMR::Client.new(region: region_name, credentials: credentials)
+  dynamodb     = Aws::DynamoDB::Client.new(region: region_name, credentials: credentials)
   opsworks     = Aws::OpsWorks::Client.new(region: 'us-east-1', credentials: credentials)
 
   skipped_resource_types = %w[
@@ -110,7 +114,7 @@ Aws.partition('aws').regions.each do |region|
 
     if $spinner.spinning?
       resources_left = stack_resources.count - (idx + 1)
-      $spinner.update(title: "Gathering tags from #{resource['logical_resource_id']}, #{resources_left} resources left...")
+      $spinner.update(title: "Gathering tags from #{resource['logical_resource_id']} in #{region_name}, #{resources_left} resources left...")
       $spinner.spin
     end
 
@@ -125,12 +129,12 @@ Aws.partition('aws').regions.each do |region|
           'AWS::EC2::NatGateway', 'AWS::EC2::NetworkAcl', 'AWS::EC2::RouteTable',
           'AWS::EC2::VPCPeeringConnection', 'AWS::EC2::VPNConnection'
 
-      Tags.process_ec2_resource(ec2, resource['physical_resource_id'], resource['resource_type'])
+      Tags.process_ec2_resource(ec2, resource['physical_resource_id'], resource['resource_type'], region_name)
 
     when 'AWS::AutoScaling::AutoScalingGroup'
       list_tags = Tags.describe_autoscaling_tags(autoscaling, resource)
       auto_tags = Tags.extract_auto_tags(list_tags)
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
       # check the instances within the auto scaling group
       if $args['--details'] and !skipped_resource_types.include? resource['resource_type']
@@ -140,44 +144,44 @@ Aws.partition('aws').regions.each do |region|
       describe_auto_scaling_groups = Tags.describe_auto_scaling_groups(autoscaling, resource)
       if describe_auto_scaling_groups.auto_scaling_groups.count > 0
         describe_auto_scaling_groups.auto_scaling_groups.first.instances.each do |instance|
-          Tags.process_ec2_resource(ec2, instance['instance_id'], 'AWS::EC2::Instance')
+          Tags.process_ec2_resource(ec2, instance['instance_id'], 'AWS::EC2::Instance', region_name)
         end
       end
 
     when 'AWS::DataPipeline::Pipeline'
       pipelines = Tags.describe_pipelines(datapipeline, resource)
       auto_tags = Tags.extract_auto_tags(pipelines.pipeline_description_list.first, resource['logical_resource_id'])
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
     when 'AWS::ElasticLoadBalancing::LoadBalancer'
       elbv1_tags = Tags.describe_elbv1_tags(elbv1, resource)
       auto_tags  = Tags.extract_auto_tags(elbv1_tags.tag_descriptions.first, resource['logical_resource_id'])
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
     when 'AWS::ElasticLoadBalancingV2::LoadBalancer'
       elbv2_tags = Tags.describe_elbv2_tags(elbv2, resource)
       auto_tags  = Tags.extract_auto_tags(elbv2_tags.tag_descriptions.first, resource['logical_resource_id'])
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
     when 'AWS::RDS::DBInstance'
       rds_tags  = Tags.list_tags_for_rds(rds, resource)
       auto_tags = Tags.extract_auto_tags(rds_tags, resource['physical_resource_id'])
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
     when 'AWS::S3::Bucket'
       bucket_tags = Tags.get_bucket_tagging(s3, resource)
       auto_tags   = Tags.extract_auto_tags(bucket_tags, resource['physical_resource_id'])
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
     when 'AWS::EMR::Cluster'
       cluster   = Tags.describe_cluster(emr, resource)
       auto_tags = Tags.extract_auto_tags(cluster.cluster, resource['physical_resource_id'])
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
     when 'AWS::DynamoDB::Table'
       table_tags = Tags.list_tags_for_dynamodb(dynamodb, resource)
       auto_tags  = Tags.extract_auto_tags(table_tags, resource['physical_resource_id'])
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
     when 'AWS::OpsWorks::Stack'
       list_tags = Tags.list_tags_for_opsworks(opsworks, resource)
@@ -185,7 +189,7 @@ Aws.partition('aws').regions.each do |region|
       list_tags = { tags: list_tags }
       tags = OpenStruct.new list_tags
       auto_tags = Tags.extract_auto_tags(tags)
-      Tags.validate_tags(auto_tags, resource['physical_resource_id'])
+      Tags.validate_tags(auto_tags, resource['physical_resource_id'], region_name)
 
       # check the instances within the ops works stack
       if $args['--details'] and !skipped_resource_types.include? resource['resource_type']
@@ -198,7 +202,7 @@ Aws.partition('aws').regions.each do |region|
           if instance['ec2_instance_id'].nil?
             puts $error.call("OpsWorks Instance #{instance['instance_id']} is in a #{instance['status']} state..." )
           else
-            Tags.process_ec2_resource(ec2, instance['ec2_instance_id'], 'AWS::EC2::Instance')
+            Tags.process_ec2_resource(ec2, instance['ec2_instance_id'], 'AWS::EC2::Instance', region_name)
           end
         end
       end
@@ -211,7 +215,7 @@ Aws.partition('aws').regions.each do |region|
   end
 
   if $spinner.spinning?
-    $spinner.update(title: 'Gathering tags completed')
+    $spinner.update(title: "Gathering tags completed for #{region_name}")
     $spinner.success
   end
 

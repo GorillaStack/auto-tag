@@ -8,17 +8,16 @@ doc = <<DOCOPT
 Import EC2 Key Pairs from disk for the Auto Tag Test Suite
 
 Usage:
-  #{__FILE__}
-  #{__FILE__} [--details] [--profile=PROFILE] [--region=REGION] 
-               [--key-name=KEY_NAME] [--key-file=KEY_FILE]
+  #{__FILE__} --key-name=KEY_NAME --key-file=KEY_FILE
+              [--profile=PROFILE] [--region=REGION] 
   #{__FILE__} -h | --help
 
 Options:
   -h --help                Show this screen.
-  --profile=PROFILE        The AWS credential profile.
+  --profile=PROFILE        The AWS credential profile, default is 'default'.
   --region=REGION          The AWS Region to import the keys, defaults to import in all regions.
-  --key-name=KEY_NAME      The AWS Key Pair name.
-  --key-file=KEY_FILE      The AWS Key Pair file path.
+  --key-name=KEY_NAME      The AWS Key Pair name, required.
+  --key-file=KEY_FILE      The AWS Key Pair file path, required.
 
 DOCOPT
 
@@ -36,10 +35,11 @@ credentials = Aws::SharedCredentials.new(profile_name: aws_profile)
 
 # all regions that exist according to the SDK
 Aws.partition('aws').regions.each do |region|
-  if aws_region.nil?
+  if aws_region.nil? && index == 0
     puts 'Not specifying the region argument will cause a push to all regions, are you sure? (yes/no)'
-    prompt = gets
-    exit 1 unless %w[y yes].include? prompt.chomp
+    prompt = STDIN.gets.chomp
+    exit 1 unless %w[y yes].include? prompt
+    puts 'Starting deployment of Key Pairs...'
   else
     next unless region.name == aws_region
   end

@@ -1,5 +1,7 @@
-class Tags
+require 'ostruct'
+require 'time'
 
+class Tags
   ### EC2 ###
 
   def self.describe_ec2_tags(ec2, resource_ids)
@@ -11,7 +13,7 @@ class Tags
     )
   end
 
-  def self.process_ec2_resource(ec2, resource_id, resource_type)
+  def self.process_ec2_resource(ec2, resource_id, resource_type, region)
     resource_ids = [resource_id]
 
     if resource_type == 'AWS::EC2::Instance'
@@ -23,7 +25,7 @@ class Tags
     tags      = Tags.describe_ec2_tags(ec2, resource_ids)
     auto_tags = Tags.extract_auto_tags(tags)
 
-    validate_tags(auto_tags, resource_id)
+    validate_tags(auto_tags, resource_id, region)
   end
 
   def self.describe_instance(ec2, resource_id)
@@ -136,17 +138,23 @@ class Tags
     cfn.describe_stacks(stack_name: stack_name)
   end
 
+  def self.list_stack_instances(cfn, stack_set_name)
+    cfn.list_stack_instances({
+                             stack_set_name: stack_set_name,
+                             max_results: 100,
+                         })
+  end
+
   def self.extract_auto_tags(tags, resource_id = nil)
     $spinner.spin unless $args['--details']
-    auto_tag_prefix = 'AutoTag_'
     auto_tags_view  = []
-
+    auto_tag_prefix = 'AutoTag_'
     if tags.respond_to? :tags
-      auto_tags = tags.tags.select     { |tag| tag['key'].include? auto_tag_prefix }
+      auto_tags = tags.tags.select     { |tag| tag['key'].include? auto_tag_prefix or tag['key'] == 'Name' }
     elsif tags.respond_to? :tag_list # rds
-      auto_tags = tags.tag_list.select { |tag| tag['key'].include? auto_tag_prefix }
+      auto_tags = tags.tag_list.select { |tag| tag['key'].include? auto_tag_prefix or tag['key'] == 'Name' }
     elsif tags.respond_to? :tag_set # s3 bucket
-      auto_tags = tags.tag_set.select  { |tag| tag['key'].include? auto_tag_prefix }
+      auto_tags = tags.tag_set.select  { |tag| tag['key'].include? auto_tag_prefix or tag['key'] == 'Name' }
     else
       raise 'Not sure how to extract these tags...'
     end
@@ -168,36 +176,44 @@ class Tags
     auto_tags_view
   end
 
-  def self.validate_tags(auto_tags, resource_id)
+  def self.validate_tags(auto_tags, resource_id, region)
     $spinner.spin unless $args['--details']
+    auto_tag_count = auto_tags.select { |tag| tag[:key].include? 'AutoTag_' }
+    name_tag_count = auto_tags.select { |tag| tag[:key] == 'Name' }
     if $args['--details']
-      if auto_tags.count.zero?
-        puts $error.call("No AutoTags Found for #{resource_id}")
-      else
-        puts auto_tags.sort_by{ |tag| [tag[:resource], tag[:key]] }
+      if auto_tag_count.count.zero?
+        puts $error.call("No AutoTags Found for #{resource_id} in #{region}")
+      elsif name_tag_count.count.zero? && resource_id !~ /\d+\.\d+\.\d+\.\d+/
+        puts $error.call("No Name Tag Found for #{resource_id} in #{region}")
+      end
+      if auto_tag_count.count > 0 or name_tag_count > 0
+        puts auto_tags.each{ |tag| tag[:region] = region }.sort_by{ |tag| [tag[:resource], tag[:key]] }
       end
     end
 
-    if auto_tags.count.zero?
-      $results_bad << "No AutoTags Found for #{resource_id}"
-    else
-      $results_good << auto_tags.sort_by{ |tag| [tag[:resource], tag[:key]] }
+    if auto_tag_count.count.zero?
+      $results_bad << "No AutoTags Found for #{resource_id} in #{region}"
+    elsif name_tag_count.count.zero? && resource_id !~ /\d+\.\d+\.\d+\.\d+/
+      $results_bad << "No Name Tag Found for #{resource_id} in #{region}"
+    end
+    if auto_tag_count.count > 0 or name_tag_count > 0
+      $results_good << auto_tags.each{ |tag| tag[:region] = region }.sort_by{ |tag| [tag[:resource], tag[:key]] }
     end
   end
 
   def self.summary(iam, describe_stacks)
+    cgw_prefix = 'user/cgw-'
     if $args['--user-arn']
       user = $args['--user-arn']
     else
       user = iam.get_user
       # special processing for me, heh
-      if tag[:key].include? 'user/cgw-'
+      if user.user['arn'].include? cgw_prefix
         user = user.user['arn'].split('-')[0...-1].join('-')
       else
         user = user.user['arn']
       end
     end
-
 
     stack_creation_time = describe_stacks.stacks.first['creation_time']
     invoked_by_services = %w[cloudformation autoscaling opsworks]
@@ -215,7 +231,7 @@ class Tags
         #
         if tag[:key] == 'AutoTag_Creator'
           # special processing for me, heh
-          if tag[:key].include? 'user/cgw-'
+          if tag[:value].include? cgw_prefix
             creator = tag[:value].split('-')[0...-1].join('-')
           else
             creator = tag[:value]
@@ -236,6 +252,8 @@ class Tags
           end
         elsif tag[:key] == 'AutoTag_InvokedBy' and invoked_by_services.any? { |s| tag[:value].include? s }
           results_good_sum += 1
+        elsif tag[:key] == 'Name' and tag[:value].include? 'AutoTagTest'
+          results_good_sum += 1
         else
           failed_checks << tag
           results_bad_sum  += 1
@@ -246,16 +264,36 @@ class Tags
     $results_bad.each  { |result| results_bad_sum  += 1 }
 
     puts
-    puts "Results: #{good.call(results_good_sum)} Passed Checks and #{bad.call(results_bad_sum)} Failed Checks"
-
-    puts
+    puts "Test Results: #{good.call(results_good_sum)} Checks Passed and #{bad.call(results_bad_sum)} Checks Failed"
     puts "CloudFormation Stack Status: [#{describe_stacks.stacks.first['stack_status']}]"
 
-    puts $error.call("\nFailed Checks:") if failed_checks.count > 0 or $results_bad.count > 0
+    puts $error.call("Failed Checks:") if failed_checks.count > 0 or $results_bad.count > 0
     puts failed_checks if failed_checks.count > 0
     puts $results_bad  if $results_bad.count  > 0
-
+    puts
+    puts
   end
+
+
+  #                                           #
+  ########### Deploy_CloudFormation ###########
+  #                                           #
+
+
+  def self.create_stack(cfn, stack_name)
+    cfn.create_stack(
+        stack_name: stack_name,
+        template_body: IO.read('./test_suite-cloud_formation/autotag_event_test-template.json'),
+        disable_rollback: false,
+        capabilities: ['CAPABILITY_IAM'],
+        # timeout_in_minutes: 120
+    )
+  end
+
+  def self.delete_stack(cfn, stack_name)
+    cfn.delete_stack(stack_name: stack_name)
+  end
+
 end
 
 

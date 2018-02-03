@@ -32,14 +32,38 @@ template do
   value Description: 'Auto Tag (Open Source by GorillaStack)'
 
   parameter 'CodeS3Bucket',
-            Description: 'The name of the code bucket in S3',
+            Description: 'The name of the code bucket in S3.',
             Type: 'String',
             Default: 'gorillastack-autotag-releases-ap-northeast-1'
 
   parameter 'CodeS3Path',
-            Description: 'The path of the code zip file in the code bucket in S3',
+            Description: 'The path of the code zip file in the code bucket in S3.',
             Type: 'String',
             Default: 'autotag-0.3.0.zip'
+
+  parameter 'AutoTagDebugLogging',
+            Description: 'Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.',
+            Type: 'String',
+            AllowedValues: %w(Enabled Disabled),
+            Default: 'Disabled'
+
+  parameter 'AutoTagDebugLoggingOnFailure',
+            Description: 'Enable/Disable Debug Logging when the Lambda Function has a failure.',
+            Type: 'String',
+            AllowedValues: %w(Enabled Disabled),
+            Default: 'Enabled'
+
+  parameter 'AutoTagTagsCreateTime',
+            Description: 'Enable/Disable the "CreateTime" tagging for all resources.',
+            Type: 'String',
+            AllowedValues: %w(Enabled Disabled),
+            Default: 'Enabled'
+
+  parameter 'AutoTagTagsInvokedBy',
+            Description: 'Enable/Disable the "InvokedBy" tagging for all resources.',
+            Type: 'String',
+            AllowedValues: %w(Enabled Disabled),
+            Default: 'Enabled'
 
 
   resource 'AutoTagLambdaFunction', Type: 'AWS::Lambda::Function', Properties: {
@@ -52,7 +76,28 @@ template do
     Handler: 'autotag_event.handler',
     Role: get_att('AutoTagExecutionRole', 'Arn'),
     Runtime: 'nodejs6.10',
-    Timeout: 60
+    # the ec2 instance worker will wait for up to 30 seconds for a
+    # opsworks stack or autoscaling group to be tagged with the creator
+    # in case the events come out of order
+    Timeout: 90,
+    Environment: {
+      Variables: {
+        DEBUG_LOGGING_ON_FAILURE: ref('AutoTagDebugLoggingOnFailure'),
+        DEBUG_LOGGING:            ref('AutoTagDebugLogging'),
+        CREATE_TIME:              ref('AutoTagTagsCreateTime'),
+        INVOKED_BY:               ref('AutoTagTagsInvokedBy')
+      }
+    }
+  }
+
+  resource 'AutoTagLogsMetricFilterMaxMemoryUsed', Type: 'AWS::Logs::MetricFilter', Properties: {
+      FilterPattern: '[report_name="REPORT", request_id_name="RequestId:", request_id_value, duration_name="Duration:", duration_value, duration_unit="ms", billed_duration_name_1="Billed", bill_duration_name_2="Duration:", billed_duration_value, billed_duration_unit="ms", memory_size_name_1="Memory", memory_size_name_2="Size:", memory_size_value, memory_size_unit="MB", max_memory_used_name_1="Max", max_memory_used_name_2="Memory", max_memory_used_name_3="Used:", max_memory_used_value, max_memory_used_unit="MB"]',
+      LogGroupName: join('', '/aws/lambda/', ref('AutoTagLambdaFunction')),
+      MetricTransformations: [
+          { MetricValue: '$max_memory_used_value',
+            MetricNamespace: 'PGi/AutoTag',
+            MetricName: join('-', aws_stack_name, 'AutoTag', 'MemoryUsed')
+          }]
   }
 
   resource 'AutoTagExecutionRole', Type: 'AWS::IAM::Role', Properties: {
@@ -122,6 +167,7 @@ template do
             autoscaling:DescribeAutoScalingInstances
             autoscaling:DescribeTags
             datapipeline:AddTags
+            dynamodb:ListTagsOfResource
             dynamodb:TagResource
             ec2:CreateTags
             ec2:DescribeInstances
@@ -156,7 +202,7 @@ template do
                  FunctionName: get_att('AutoTagLambdaFunction', 'Arn'),
                  Principal: 'sns.amazonaws.com',
                  SourceArn: "arn:aws:sns:#{region.name}:#{account}:*AutoTagSNSTopic*"
-               }
+      }
 
     end
 

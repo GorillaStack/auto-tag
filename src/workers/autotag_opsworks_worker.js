@@ -31,7 +31,7 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
     return new Promise((resolve, reject) => {
       try {
         let tagConfig = _this.getOpsworksTags(_this.getAutotagTags());
-        _this.logTags(opsworksStackArn, tagConfig);
+        _this.logTags(opsworksStackArn, tagConfig, _this.constructor.name);
         _this.opsworks.tagResource({
           ResourceArn: opsworksStackArn,
           Tags: tagConfig

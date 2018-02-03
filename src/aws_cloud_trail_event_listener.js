@@ -4,6 +4,7 @@ import co from 'co';
 import _ from 'underscore';
 import constants from './cloud_trail_event_config';
 import AutotagFactory from './autotag_factory';
+import SETTINGS from './autotag_settings.js';
 
 class AwsCloudTrailEventListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
@@ -26,6 +27,7 @@ class AwsCloudTrailEventListener {
       event.recipientAccountId = _this.cloudtrailEvent.account;
       if (!event.errorCode && !event.errorMessage) {
         let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.cloudtrailEvent.region);
+        if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebug() }
         yield worker.tagResource();
       } else {
         _this.logEventError(event);
@@ -44,16 +46,20 @@ class AwsCloudTrailEventListener {
   }
 
   handleError(err) {
-    console.log("CloudTrail Event - Failed:");
-    console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+    if (SETTINGS.DebugLoggingOnFailure) {
+      console.log("CloudTrail Event - Failed:");
+      console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+    }
     console.log(err);
     console.log(err.stack);
     this.applicationContext.fail(err);
   }
 
   logDebug() {
-    console.log("CloudTrail Event - Debug Logging:");
-    console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+    if (SETTINGS.DebugLogging) {
+      console.log("CloudTrail Event - Debug Logging:");
+      console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+    }
   }
 
   logEventError(event) {

@@ -37,7 +37,7 @@ class AutotagELBWorker extends AutotagDefaultWorker {
       try {
         let loadBalancerName = _this.getLoadBalancerName();
         let tags = _this.getAutotagTags();
-        _this.logTags(loadBalancerName, tags);
+        _this.logTags(loadBalancerName, tags, _this.constructor.name);
         _this.elb.addTags({
           LoadBalancerNames: [
             loadBalancerName
@@ -62,7 +62,7 @@ class AutotagELBWorker extends AutotagDefaultWorker {
       try {
         let loadBalancerARN = _this.getLoadBalancerARN();
         let tags = _this.getAutotagTags();
-        _this.logTags(loadBalancerARN, tags);
+        _this.logTags(loadBalancerARN, tags, _this.constructor.name);
         _this.elbv2.addTags({
           ResourceArns: [
             loadBalancerARN

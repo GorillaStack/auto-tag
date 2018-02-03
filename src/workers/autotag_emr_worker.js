@@ -29,7 +29,7 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
       try {
         let emrClusterId = _this.getEMRClusterId();
         let tags = _this.getAutotagTags();
-        _this.logTags(emrClusterId, tags);
+        _this.logTags(emrClusterId, tags, _this.constructor.name);
         _this.emr.addTags({
           ResourceId: emrClusterId,
           Tags: tags

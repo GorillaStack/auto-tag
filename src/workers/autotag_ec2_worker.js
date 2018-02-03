@@ -59,11 +59,16 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
       let instances = yield _this.getEC2Instances();
       for (let instance of instances.Reservations[0].Instances) {
         let resourceIds = [];
-        resourceIds = resourceIds.concat(_this.getEniIds(instance));
-        resourceIds = resourceIds.concat(_this.getVolumeIds(instance));
         resourceIds.push(instance.InstanceId);
+        resourceIds = resourceIds.concat(_this.getVolumeIds(instance));
+        resourceIds = resourceIds.concat(_this.getEniIds(instance));
         if (_this.isInvokedByAutoscaling() || _this.isInvokedByOpsworks()) {
-          yield _this.tagEC2Resources(resourceIds, parentTags);
+          if (parentTags.Tags && (Object.keys(parentTags.Tags).length > 0 || parentTags.Tags.length > 0)) {
+            yield _this.tagEC2Resources(resourceIds, parentTags);
+          } else {
+            console.log('Error: Parent Tags not found or empty!');
+            yield _this.tagEC2Resources(resourceIds);
+          }
         } else {
           yield _this.tagEC2Resources(resourceIds);
         }
@@ -71,11 +76,11 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     });
   }
 
-  tagEC2Resources(resources, autoscalingTags = []) {
+  tagEC2Resources(resources, parentTags = {Tags: []}) {
     let _this = this;
     return new Promise((resolve, reject) => {
-      let tags = _this.getEC2Tags(autoscalingTags);
-      _this.logTags(resources, tags);
+      let tags = _this.getEC2Tags(parentTags);
+      _this.logTags(resources, tags, _this.constructor.name);
       try {
         _this.ec2.createTags({
           Resources: resources,
@@ -133,15 +138,17 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     });
   }
 
-  getAutoscalingGroupTags(autoScalingGroupName) {
+  getAutoscalingGroupTags(autoScalingGroupName, retries = 9) {
     let _this = this;
+    let retryInterval = 5000;
+    let delay = (time) => (result) => new Promise(resolve => setTimeout(() => resolve(result), time));
     return new Promise((resolve, reject) => {
       try {
         _this.autoscaling.describeTags({
           Filters: [{
             Name: 'auto-scaling-group',
             Values: [autoScalingGroupName]
-          },{
+          }, {
             Name: 'key',
             Values: [_this.getCreatorTagName()]
           }]
@@ -155,7 +162,29 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
       } catch (e) {
         reject(e);
       }
+    // sometimes the event for the instances is delivered before the auto-scaling group,
+    // added some retries to wait for the creator tag to exist before giving up
+    // and tagging the instance with the root arn
+    }).then(function (res) {
+      if (_this.autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
+        console.log(_this.getCreatorTagName() + ' tag on parent AutoScaling group not found, retrying in ' + (retryInterval/1000) + ' secs...');
+        return new Promise((resolve) => resolve(res)).then(delay(retryInterval)).then(result => {return result});
+      } else {
+        return res;
+      }
+    }).then(function (res) {
+      if (_this.autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
+        return _this.getAutoscalingGroupTags(autoScalingGroupName, retries - 1);
+      } else {
+        return res
+      }
+    }, function (err) {
+      return err;
     });
+  }
+
+  autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries) {
+    return (!(res.Tags && res.Tags.find(tag => tag.Key === this.getCreatorTagName())) && retries > 0)
   }
 
   getOpsworksInstances() {
@@ -178,8 +207,10 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     });
   }
 
-  getOpsworksStackTags(opsworksStackId) {
+  getOpsworksStackTags(opsworksStackId, retries = 9) {
     let _this = this;
+    let retryInterval = 5000;
+    let delay = (time) => (result) => new Promise(resolve => setTimeout(() => resolve(result), time));
     return new Promise((resolve, reject) => {
       try {
         _this.opsworks.listTags({
@@ -194,7 +225,29 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
       } catch (e) {
         reject(e);
       }
+    // sometimes the event for the instances is delivered before the opsworks stack,
+    // added some retries to wait for the creator tag to exist before giving up
+    // and tagging the instance with the opsworks service role
+    }).then(function (res) {
+      if (_this.opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
+        console.log(_this.getCreatorTagName() + ' tag on parent OpsWorks stack not found, retrying in ' + (retryInterval/1000) + ' secs...');
+        return new Promise((resolve) => resolve(res)).then(delay(retryInterval)).then(result => {return result});
+      } else {
+        return res;
+      }
+    }).then(function (res) {
+      if (_this.opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
+        return _this.getOpsworksStackTags(opsworksStackId, retries - 1);
+      } else {
+        return res
+      }
+    }, function (err) {
+      return err;
     });
+  }
+
+  opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries) {
+    return (!(res.Tags && res.Tags[this.getCreatorTagName()]) && retries > 0)
   }
 
   getInstances() {
@@ -247,7 +300,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     if (_this.getEventName() === 'RunInstances') {
       // instances created by auto-scaling are always invoked by the root user
       // so we'll use the auto-scaling group's creator value.
-      if (_this.isInvokedByAutoscaling() && parentTags.Tags.length > 0) {
+      if (_this.isInvokedByAutoscaling() && parentTags.Tags.find(tag => tag.Key === _this.getCreatorTagName())) {
         tags.forEach(function (tag) {
           if (tag.Key === _this.getCreatorTagName()) {
             tag.Value = parentTags.Tags[0].Value;
@@ -255,7 +308,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
         });
       // instances created by OpsWorks are always invoked by the opsworks service role
       // so we'll use the OpsWorks stack's creator value
-      } else if (_this.isInvokedByOpsworks() && Object.keys(parentTags.Tags).length > 0) {
+      } else if (_this.isInvokedByOpsworks() && parentTags.Tags[_this.getCreatorTagName()]) {
         tags.forEach(function (tag) {
           if (tag.Key === _this.getCreatorTagName()) {
             tag.Value = parentTags.Tags[_this.getCreatorTagName()];

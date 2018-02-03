@@ -2,8 +2,8 @@
 
 require 'bundler/setup'
 require 'cloudformation-ruby-dsl/cfntemplate'
-require 'cloudformation-ruby-dsl/spotprice'
-require 'cloudformation-ruby-dsl/table'
+# require 'cloudformation-ruby-dsl/spotprice'
+# require 'cloudformation-ruby-dsl/table'
 
 template do
   value AWSTemplateFormatVersion: '2010-09-09'
@@ -34,6 +34,11 @@ template do
             Description: 'VPC CDIR block that is created to test VPC Peering',
             Type: 'AWS::SSM::Parameter::Value<String>',
             Default: '/AutoTagTest/VpcCidrBlockForVpcPeering'
+
+  parameter 'OpsWorksStackName',
+            Description: 'Regional OpsWorks Stack Name',
+            Type: 'AWS::SSM::Parameter::Value<String>',
+            Default: '/AutoTagTest/OpsWorksStackName'
 
 
   resource 'AutoTagTestSecurityGroup', Type: 'AWS::EC2::SecurityGroup', Properties: {
@@ -85,6 +90,7 @@ template do
   }
 
   resource 'AutoTagTestElasticIP', Type: 'AWS::EC2::EIP', Properties: {
+    # TODO: Add a Name tag here once CloudFormation supports it! Also adjust the audit script.
     Domain: 'vpc'
   }
 
@@ -319,7 +325,7 @@ template do
       DefaultInstanceProfileArn: join('', 'arn:aws:iam::', ref('AWS::AccountId'), ':instance-profile/aws-opsworks-ec2-role'),
       ServiceRoleArn: join('', 'arn:aws:iam::', ref('AWS::AccountId'), ':role/aws-opsworks-service-role'),
       DefaultOs: 'Amazon Linux 2017.09',
-      Name: 'AutoTagTestOpsworksStack'
+      Name: ref('OpsWorksStackName')
   }
 
   resource 'AutoTagTestOpsworksLayer', Type: 'AWS::OpsWorks::Layer', Properties: {

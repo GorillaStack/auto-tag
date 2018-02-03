@@ -13,6 +13,42 @@
       "Description" : "The path of the code zip file in the code bucket in S3",
       "Type" : "String",
       "Default" : "autotag-0.3.0.zip"
+    },
+    "AutoTagDebugLogging": {
+      "Description": "Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Disabled"
+    },
+    "AutoTagDebugLoggingOnFailure": {
+      "Description": "Enable/Disable Debug Logging when the Lambda Function has a failure.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
+    },
+    "AutoTagTagsCreateTime": {
+      "Description": "Enable/Disable the \"CreateTime\" tagging for all resources.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
+    },
+    "AutoTagTagsInvokedBy": {
+      "Description": "Enable/Disable the \"InvokedBy\" tagging for all resources.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
     }
   },
 
@@ -30,7 +66,23 @@
         "Handler" : "autotag_event.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
         "Runtime" : "nodejs6.10",
-        "Timeout" : 60
+        "Timeout" : 120,
+        "Environment": {
+          "Variables": {
+            "DEBUG_LOGGING_ON_FAILURE": {
+              "Ref": "AutoTagDebugLoggingOnFailure"
+            },
+            "DEBUG_LOGGING": {
+              "Ref": "AutoTagDebugLogging"
+            },
+            "CREATE_TIME": {
+              "Ref": "AutoTagTagsCreateTime"
+            },
+            "INVOKED_BY": {
+              "Ref": "AutoTagTagsInvokedBy"
+            }
+          }
+        }
       }
     },
 
@@ -126,6 +178,7 @@
                 "autoscaling:DescribeAutoScalingInstances",
                 "autoscaling:DescribeTags",
                 "datapipeline:AddTags",
+                "dynamodb:ListTagsOfResource",
                 "dynamodb:TagResource",
                 "ec2:CreateTags",
                 "ec2:DescribeInstances",

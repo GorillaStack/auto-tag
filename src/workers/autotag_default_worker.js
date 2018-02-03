@@ -45,7 +45,7 @@ class AutotagDefaultWorker {
     let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        let cloudFormation = new AWS.CloudFormation({ region: _this.region });
+        let cloudFormation = new AWS.CloudFormation({region: _this.region});
         cloudFormation.describeStackResource({
           StackName: DEFAULT_STACK_NAME,
           LogicalResourceId: MASTER_ROLE_NAME
@@ -98,8 +98,9 @@ class AutotagDefaultWorker {
     console.log('---');
   }
 
-  logTags(resources, tags) {
-    console.log("\nTagging " + resources + " in account " + this.getAccountId() + " and region " + this.s3Region + " with " + JSON.stringify(tags));
+  logTags(resources, tags, worker) {
+    console.log("\nTagging " + resources + ' with the ' + worker + ' in ' + this.getAccountId() + ' (' + this.s3Region + "):");
+    console.log(JSON.stringify(tags, null, 2));
   }
 
   getAssumeRoleArn(roleName) {

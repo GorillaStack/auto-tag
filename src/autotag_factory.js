@@ -23,12 +23,12 @@ import AutotagRouteTableWorker from './workers/autotag_route_table_worker.js';
 import AutotagVPCPeeringWorker from './workers/autotag_vpc_peering_worker.js';
 import AutotagVPNWorker from './workers/autotag_vpn_worker.js';
 import AutotagOpsworksWorker from './workers/autotag_opsworks_worker.js';
-import CONFIG from './cloud_trail_event_config';
-import SETTINGS from './autotag_settings';
+import CONFIG from './cloud_trail_event_config.js';
 
 let AutotagFactory = {
 
   createWorker: (event, enabledServices, s3Region) => {
+    let _this = this;
 
     // Match Service
     let matchingService = _.findWhere(CONFIG, { targetEventName: event.eventName });
@@ -39,8 +39,6 @@ let AutotagFactory = {
       // Default: worker that does nothing
       return new AutotagDefaultWorker(event, s3Region);
     }
-
-    if (SETTINGS.DebugLogging) {this.logDebug()};
 
     // Select the relevant worker
     switch (matchingService.name) {

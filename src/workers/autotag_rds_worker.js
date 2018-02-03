@@ -29,7 +29,7 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
       try {
         let dbArn = _this.getDbARN();
         let tags = _this.getAutotagTags();
-        _this.logTags(dbArn, tags);
+        _this.logTags(dbArn, tags, _this.constructor.name);
         _this.rds.addTagsToResource({
           ResourceName: dbArn,
           Tags: tags

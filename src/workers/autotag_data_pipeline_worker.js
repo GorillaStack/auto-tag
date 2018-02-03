@@ -30,7 +30,7 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
       try {
     let dataPipelineId = _this.getDataPipelineId();
     let tags = _this.getAutotagTags();
-    _this.logTags(dataPipelineId, tags);
+    _this.logTags(dataPipelineId, tags, _this.constructor.name);
     _this.dataPipeline.addTags({
           pipelineId: dataPipelineId,
           tags: tags

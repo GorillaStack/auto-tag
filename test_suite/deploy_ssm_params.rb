@@ -43,20 +43,25 @@ doc = <<DOCOPT
 Put the SSM parameters for the Auto Tag Test Suite
 
 Usage:
-  #{__FILE__}
-  #{__FILE__} [--details] [--profile=PROFILE] [--region=REGION] 
-               [--key-name=KEY_NAME] [--key-file=KEY_FILE]
+  #{__FILE__} --key-name=KEY_NAME [--profile=PROFILE] 
+               [--region=REGION] [--cidr=START_CIDR]
   #{__FILE__} -h | --help
 
 Options:
   -h --help                Show this screen.
-  --profile=PROFILE        The AWS credential profile.
-  --region=REGION          The AWS Region to add the SSM parameters to, defaults to add params in all regions.
-  --key-name=KEY_NAME      The AWS Key Pair name.
+  --profile=PROFILE        The AWS credential profile, default is 'default'.
+  --region=REGION          The AWS Region to add the SSM parameters to, defaults to add unique params in all regions.
+  --key-name=KEY_NAME      The AWS Key Pair name, required.
   --cidr=START_CIDR        The first two octets of a private Class B CIDR that we can use for the testing, the default is "192.168".
 
 DOCOPT
 
+
+begin
+  $args = Docopt::docopt(doc)
+rescue Docopt::Exit => e
+  puts e.message
+end
 
 aws_profile   = $args['--profile']  ? $args['--profile']  : 'default'
 aws_region    = $args['--region']   ? $args['--region']   : nil
@@ -66,15 +71,17 @@ credentials   = Aws::SharedCredentials.new(profile_name: aws_profile)
 
 # all regions that exist according to the SDK
 Aws.partition('aws').regions.each_with_index do |region, index|
-  if aws_region.nil?
+  if aws_region.nil? && index == 0
     puts 'Not specifying the region argument will cause a push to all regions, are you sure? (yes/no)'
-    prompt = gets
+    prompt = STDIN.gets.chomp
     exit 1 unless %w[y yes].include? prompt
-  else
+    puts 'Starting deployment of SSM parameters...'
+  elsif aws_region
     next unless region.name == aws_region
   end
 
   region_description = region.description.sub(/.*\((.*)\)/, '\1')
+  short_region_desc  = region.description.sub(/.*\((.*)\)/, '\1').gsub(/[\.\s]+/, '')
   cidr_index  = 100 + index
   vpc_cidr    = "#{starting_cidr}.#{cidr_index}.0/24"
   subnet_cidrs = "#{starting_cidr}.#{cidr_index}.0/26, #{starting_cidr}.#{cidr_index}.64/26, #{starting_cidr}.#{cidr_index}.128/26"
@@ -97,4 +104,5 @@ Aws.partition('aws').regions.each_with_index do |region, index|
   Params.put_param(ssm, '/AutoTagTest/VpcCidrBlock', vpc_cidr)
   Params.put_param(ssm, '/AutoTagTest/SubnetCidrBlocks', subnet_cidrs, 'StringList')
   Params.put_param(ssm, '/AutoTagTest/VpcCidrBlockForVpcPeering', peering_vpc_cidr)
+  Params.put_param(ssm, '/AutoTagTest/OpsWorksStackName', "AutoTagTestOpsWorksStack#{short_region_desc}")
 end

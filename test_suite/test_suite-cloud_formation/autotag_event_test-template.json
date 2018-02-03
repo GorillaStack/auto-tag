@@ -26,6 +26,11 @@
       "Description": "VPC CDIR block that is created to test VPC Peering",
       "Type": "AWS::SSM::Parameter::Value<String>",
       "Default": "/AutoTagTest/VpcCidrBlockForVpcPeering"
+    },
+    "OpsWorksStackName": {
+      "Description": "Regional OpsWorks Stack Name",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/AutoTagTest/OpsWorksStackName"
     }
   },
   "Resources": {
@@ -696,7 +701,7 @@
           "Ref": "AutoTagTestVPC"
         },
         "DefaultSubnetId": {
-          "Ref": "AutoTagTestSubnetNAT1"
+          "Ref": "AutoTagTestSubnetIGW"
         },
         "DefaultInstanceProfileArn": {
           "Fn::Join": [
@@ -723,7 +728,9 @@
           ]
         },
         "DefaultOs": "Amazon Linux 2017.09",
-        "Name": "AutoTagTestOpsworksStack"
+        "Name": {
+          "Ref": "OpsWorksStackName"
+        }
       }
     },
     "AutoTagTestOpsworksLayer": {
