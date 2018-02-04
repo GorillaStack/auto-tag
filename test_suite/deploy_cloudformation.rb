@@ -16,9 +16,9 @@ doc = <<DOCOPT
 Create, Destroy, and Rebuild the test resources in CloudFormation stacks for the Auto Tag Test Suite
 
 Usage:
-  #{__FILE__} --action=ACTION [--regions=REGION] [--profile=PROFILE]
+  #{File.basename __FILE__} --action=ACTION [--regions=REGION] [--profile=PROFILE]
                 [--stack=STACK_NAME]
-  #{__FILE__} -h | --help
+  #{File.basename __FILE__} -h | --help
 
 Options:
   -h --help                   Show this screen.
@@ -77,20 +77,20 @@ regions.each do |region_name|
     when 'create'
       begin
         Tags.create_stack(cfn, stack_name)
-        puts "#{region_description}: #{stack_name} stack create initiated."
+        puts "#{region_name}: #{stack_name} stack create initiated."
       rescue Aws::CloudFormation::Errors::AlreadyExistsException
-        puts "#{region_description}: #{stack_name} stack already exists, skipping..."
+        puts "#{region_name}: #{stack_name} stack already exists, skipping..."
         next
       end
     when 'delete'
       begin
         Tags.describe_stacks(cfn, stack_name)
       rescue Aws::CloudFormation::Errors::ValidationError
-        puts "#{region_description}: #{stack_name} stack does not exist, skipping..."
+        puts "#{region_name}: #{stack_name} stack does not exist, skipping..."
         next
       end
       Tags.delete_stack(cfn, stack_name)
-      puts "#{region_description}: #{stack_name} stack delete initiated."
+      puts "#{region_name}: #{stack_name} stack delete initiated."
     else
       puts 'Un-supported action!'
   end

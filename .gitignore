@@ -1,8 +1,12 @@
 lib/
+**/old/
 node_modules/
+example_events/
 *.bak
 *.sh
 *.zip
 sample*.js
 !test_create_instances.sh
-Gemfile.lock
+*.lock
+*-lock.json
+*-parameters.json

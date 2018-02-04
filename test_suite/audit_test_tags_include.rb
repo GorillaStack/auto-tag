@@ -196,7 +196,7 @@ class Tags
     elsif name_tag_count.count.zero? && resource_id !~ /\d+\.\d+\.\d+\.\d+/
       $results_bad << "No Name Tag Found for #{resource_id} in #{region}"
     end
-    if auto_tag_count.count > 0 or name_tag_count > 0
+    if auto_tag_count.count > 0 or name_tag_count.count > 0
       $results_good << auto_tags.each{ |tag| tag[:region] = region }.sort_by{ |tag| [tag[:resource], tag[:key]] }
     end
   end
