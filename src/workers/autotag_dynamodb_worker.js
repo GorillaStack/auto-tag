@@ -45,7 +45,7 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
         reject(e);
       }
     }).then(function (res) {
-      if (_this.cloudFormationDynamoDBTagsNotAppliedYet(res, tags, retries)) {
+      if (_this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
         console.log('Waiting for any tags from the resource creation to appear on the resource, retrying tagging in ' + (retryInterval/1000) + ' secs...');
         return new Promise((resolve) => resolve(res)).then(delay(retryInterval)).then(result => {
           return result
@@ -54,9 +54,9 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
         return res;
       }
     }).then(function (res) {
-      // if we tag before cloudformation has a chance to tag our tags will be lost
-      // wait and retry a few times before giving up and tagging anyways
-      if (_this.cloudFormationDynamoDBTagsNotAppliedYet(res, tags, retries)) {
+      // if we tag before cloudformation has a chance to apply its tags our tags
+      // will be lost, so wait a few times before giving up and tagging anyways
+      if (_this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
         return _this.tagDynamoDBResource(retries - 1);
       } else {
         return new Promise((resolve, reject) => {
@@ -80,12 +80,17 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
     });
   }
 
-  cloudFormationDynamoDBTagsNotAppliedYet(res, tags, retries) {
-    // let matches = _.filter(res.Tags, function(tag){
-    //   return tags.find(rTag => rTag.Key === tag.Key)
-    // });
-    // return (matches.length !== tags.length && retries > 0)
-    return (res.Tags.length === 0 && retries > 0 && this.isInvokedByCloudFormation())
+  cloudFormationDynamoDBTagsWaiter(res, tags, retries) {
+    // only apply this waiter if the resource was created
+    // otherwise it will slow down the s3 log based tagging too much
+    let createTime = new Date(this.getCreateTimeTagValue());
+    let createTimeNowDiff = (((Date.now() - createTime) / 1000) / 60);
+    return (
+      retries > 0 &&
+      res.Tags.length === 0 &&
+      createTimeNowDiff <= 4 && // minutes
+      this.isInvokedByCloudFormation()
+    )
   }
 
   isInvokedByCloudFormation() {

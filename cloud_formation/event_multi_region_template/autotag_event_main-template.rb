@@ -76,10 +76,10 @@ template do
     Handler: 'autotag_event.handler',
     Role: get_att('AutoTagExecutionRole', 'Arn'),
     Runtime: 'nodejs6.10',
-    # the ec2 instance worker will wait for up to 30 seconds for a
+    # the ec2 instance worker will wait for up to 45 seconds for a
     # opsworks stack or autoscaling group to be tagged with the creator
     # in case the events come out of order
-    Timeout: 90,
+    Timeout: 120,
     Environment: {
       Variables: {
         DEBUG_LOGGING_ON_FAILURE: ref('AutoTagDebugLoggingOnFailure'),
@@ -133,7 +133,7 @@ template do
         {
           Effect: 'Allow',
           Action: ['sts:*'],
-          Resource: ['arn:aws:iam::*:role/AutoTag']
+          Resource: ['arn:aws:iam::*:role/gorillastack/autotag/master/AutoTag']
         }
       ]
     }
@@ -201,7 +201,7 @@ template do
                  Action: 'lambda:InvokeFunction',
                  FunctionName: get_att('AutoTagLambdaFunction', 'Arn'),
                  Principal: 'sns.amazonaws.com',
-                 SourceArn: "arn:aws:sns:#{region.name}:#{account}:*AutoTagSNSTopic*"
+                 SourceArn: "arn:aws:sns:#{region.name}:#{account}:AutoTag"
       }
 
     end

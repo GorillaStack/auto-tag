@@ -32,13 +32,13 @@
             "eventSource": [
               "autoscaling.amazonaws.com",
               "datapipeline.amazonaws.com",
+              "dynamodb.amazonaws.com",
               "ec2.amazonaws.com",
               "elasticloadbalancing.amazonaws.com",
               "elasticmapreduce.amazonaws.com",
               "opsworks.amazonaws.com",
               "rds.amazonaws.com",
-              "s3.amazonaws.com",
-              "dynamodb.amazonaws.com"
+              "s3.amazonaws.com"
             ],
             "eventName": [
               "AllocateAddress",
@@ -90,7 +90,8 @@
             "Protocol": "email"
           }
         ],
-        "DisplayName": "AutoTag CloudTrail Events"
+        "DisplayName": "AutoTag CloudTrail Events",
+        "TopicName": "AutoTag"
       }
     },
 

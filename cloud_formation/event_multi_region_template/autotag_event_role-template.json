@@ -48,6 +48,7 @@
                 "autoscaling:DescribeAutoScalingInstances",
                 "autoscaling:DescribeTags",
                 "datapipeline:AddTags",
+                "dynamodb:ListTagsOfResource",
                 "dynamodb:TagResource",
                 "ec2:CreateTags",
                 "ec2:DescribeInstances",

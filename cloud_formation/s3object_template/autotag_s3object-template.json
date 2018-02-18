@@ -91,7 +91,7 @@
         "Handler" : "autotag_log.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
         "Runtime" : "nodejs6.10",
-        "Timeout" : 120,
+        "Timeout" : 300,
         "Environment": {
           "Variables": {
             "DEBUG_LOGGING_ON_FAILURE": {
@@ -114,6 +114,7 @@
     "AutoTagMasterRole" : {
       "Type": "AWS::IAM::Role",
       "Properties": {
+        "RoleName": "AutoTag",
         "AssumeRolePolicyDocument": {
           "Statement": [
             {
@@ -213,7 +214,7 @@
                 "sts:*"
               ],
               "Resource": [
-                { "Fn::GetAtt" : [ "AutoTagMasterRole", "Arn" ] }
+                "arn:aws:iam::*:role/gorillastack/autotag/master/AutoTag"
               ]
             }
           ]

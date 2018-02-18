@@ -79,8 +79,8 @@ class AwsCloudTrailLogListener {
           try {
             if (!event.errorCode && !event.errorMessage) {
               let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
-              if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebug() }
               yield worker.tagResource();
+              if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebug() }
             }
           } catch (err) {
             console.log("CloudTrail Event Failed ("+event.eventName+") :");

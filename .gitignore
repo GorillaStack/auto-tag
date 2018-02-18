@@ -2,6 +2,7 @@ lib/
 **/old/
 node_modules/
 example_events/
+stackset_templates/
 *.bak
 *.sh
 *.zip
@@ -10,3 +11,4 @@ sample*.js
 *.lock
 *-lock.json
 *-parameters.json
+cache/

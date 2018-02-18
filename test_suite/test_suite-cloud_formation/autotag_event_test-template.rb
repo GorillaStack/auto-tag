@@ -231,7 +231,6 @@ template do
     Path: '/'
   }
 
-
   resource 'AutoTagTestEMRInstanceProfile', Type: 'AWS::IAM::InstanceProfile', Properties: {
     Path: '/',
     Roles: [ref('AutoTagTestEMRRoleForEC2')]

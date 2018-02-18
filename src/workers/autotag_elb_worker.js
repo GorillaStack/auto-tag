@@ -82,7 +82,7 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   }
 
   isLoadBalancerV2() {
-    return (!!this.event.responseElements.loadBalancers && this.event.responseElements.loadBalancers[0].loadBalancerArn);
+    return (!!this.event.responseElements.loadBalancers && this.event.responseElements.loadBalancers[0] && this.event.responseElements.loadBalancers[0].loadBalancerArn);
   }
 
   getLoadBalancerARN() {
