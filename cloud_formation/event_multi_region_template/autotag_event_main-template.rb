@@ -5,26 +5,6 @@ require 'cloudformation-ruby-dsl/cfntemplate'
 require 'cloudformation-ruby-dsl/spotprice'
 require 'cloudformation-ruby-dsl/table'
 
-# aws_accounts = nil
-#
-# (0..(ARGV.length - 1)).each do |arg|
-#   next unless ARGV[arg] =~ /^-/
-#   case ARGV[arg]
-#     when '--aws-accounts'
-#       aws_accounts = ARGV[arg + 1]
-#   end
-# end
-#
-# example = 'Example: ./autotag_event_main-template.rb expand --aws-accounts "123456789012, 789012345678" > autotag_event_main-template.json'
-#
-# if aws_accounts.nil?
-#   puts 'Error: You must provide the argument "--aws-accounts" with a comma delimited list of AWS accounts IDs that you have already deployed the collector stack to.'
-#   puts example
-#   exit!
-# end
-#
-# aws_accounts = aws_accounts.split(',').map(&:strip)
-
 template do
 
   value AWSTemplateFormatVersion: '2010-09-09'
@@ -40,12 +20,6 @@ template do
             Description: 'The path of the code zip file in the code bucket in S3.',
             Type: 'String',
             Default: 'autotag-0.9.0.zip'
-
-  parameter 'CloudTrailType',
-            Description: 'The type of CloudTrail events to process.',
-            Type: 'String',
-            AllowedValues: %w(event log),
-            Default: 'event'
 
   parameter 'AutoTagDebugLogging',
             Description: 'Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.',
@@ -79,7 +53,7 @@ template do
     },
     Description: 'Auto Tag (Open Source by GorillaStack)',
     FunctionName: aws_stack_name,
-    Handler: sub('autotag_${CloudTrailType}.handler'),
+    Handler: sub('autotag_event.handler'),
     Role: get_att('AutoTagExecutionRole', 'Arn'),
     Runtime: 'nodejs6.10',
     # the ec2 instance worker will wait for up to 45 seconds for a
@@ -208,19 +182,5 @@ template do
                SourceArn: sub("arn:aws:sns:#{region.name}:${AWS::AccountId}:AutoTag")
              }
   end
-
-
-  # aws_accounts.each do |account|
-  #
-  # resource "TriggerLambdaPerm#{account}",
-  #      Type: 'AWS::Lambda::Permission',
-  #      DependsOn: 'AutoTagLambdaFunction',
-  #      Properties: {
-  #        Action: 'lambda:InvokeFunction',
-  #        FunctionName: get_att('AutoTagLambdaFunction', 'Arn'),
-  #        Principal: 'sns.amazonaws.com',
-  #        SourceArn: "arn:aws:sns:*:#{account}:AutoTag"
-  #   }
-  # end
 
 end.exec!

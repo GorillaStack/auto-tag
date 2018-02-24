@@ -25,7 +25,7 @@ Options:
   --action=ACTION             The CloudFormation action to take either create or delete, defaults to create.
   --regions=REGIONS           The AWS Regions (comma delimited) to apply changes to, defaults to us-east-1.
   --profile=PROFILE           The AWS credential profile.
-  --stack=STACK_NAME          The CloudFormation stack name, defaults to "autotag-test".
+  --stack=STACK_NAME          The CloudFormation stack name, defaults to "AutoTag-Test".
 
 DOCOPT
 
@@ -38,7 +38,7 @@ end
 
 aws_regions     = $args['--regions'] ? $args['--regions'] : 'us-east-1'
 aws_profile     = $args['--profile'] ? $args['--profile'] : 'default'
-stack_name      = $args['--stack']   ? $args['--stack']   : 'autotag-test'
+stack_name      = $args['--stack']   ? $args['--stack']   : 'AutoTag-Test'
 action          = $args['--action']  ? $args['--action']  : 'create'
 
 credentials = Aws::SharedCredentials.new(profile_name: aws_profile)

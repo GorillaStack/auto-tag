@@ -27,7 +27,7 @@ Options:
   -d --details                Show details for all resources.
   --region=REGION             The AWS Region where the stack exists, required if using a StackSet, defaults to scan all regions for Stacks only.
   --profile=PROFILE           The AWS credential profile.
-  --stack=STACK_NAME          The CloudFormation stack name, defaults to "autotag-test".
+  --stack=STACK_NAME          The CloudFormation stack name, defaults to "AutoTag-Test".
   --user-arn=USER_ARN         The IAM user that executed the CloudFormation template, defaults to the local user's arn.
 
 DOCOPT
@@ -41,7 +41,7 @@ end
 
 aws_region      = $args['--region']    ? $args['--region']    : nil
 aws_profile     = $args['--profile']   ? $args['--profile']   : 'default'
-stack_name      = $args['--stack']     ? $args['--stack']     : 'autotag-test'
+stack_name      = $args['--stack']     ? $args['--stack']     : 'AutoTag-Test'
 credentials     = Aws::SharedCredentials.new(profile_name: aws_profile)
 
 
