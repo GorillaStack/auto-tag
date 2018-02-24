@@ -14,12 +14,12 @@ class AwsCloudTrailLogListener {
     this.enabledServices = enabledServices;
     this.s3 = new AWS.S3();
     this.s3Region = '';
-    this.autotagActions = [];
   }
 
   execute() {
     let _this = this;
     return co(function* () {
+      _this.logDebugS3();
       let logFiles = yield _this.retrieveLogFileDetails();
       yield _this.collectAndPerformAutotagActionsFromLogFile(logFiles);
     })
@@ -37,18 +37,22 @@ class AwsCloudTrailLogListener {
 
   handleError(err) {
     if (SETTINGS.DebugLoggingOnFailure) {
-      console.log("S3 Object Event Failed:");
-      console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+      console.log("S3 Object Event Failed: " + JSON.stringify(this.cloudtrailEvent, null, 2));
     }
     console.log(err);
     console.log(err.stack);
     this.applicationContext.fail(err);
   }
 
-  logDebug() {
+  logDebugS3() {
     if (SETTINGS.DebugLogging) {
-      console.log("CloudTrail Event - Debug Logging:");
-      console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+      console.log("CloudTrail S3 Object - Debug: " + JSON.stringify(this.cloudtrailEvent, null, 2));
+    }
+  }
+
+  logDebugEvent(event) {
+    if (SETTINGS.DebugLogging) {
+      console.log("CloudTrail Event - Debug: " + JSON.stringify(event, null, 2));
     }
   }
 
@@ -80,13 +84,11 @@ class AwsCloudTrailLogListener {
             if (!event.errorCode && !event.errorMessage) {
               let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
               yield worker.tagResource();
-              if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebug() }
+              if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebugEvent(event) }
             }
           } catch (err) {
-            console.log("CloudTrail Event Failed ("+event.eventName+") :");
-            console.log(JSON.stringify(event, null, 2));
-            console.log("S3 Object Event ("+event.eventName+") :");
-            console.log(JSON.stringify(_this.cloudtrailEvent, null, 2));
+            console.log("CloudTrail Event Failed (" + event.eventName + "): " + JSON.stringify(event, null, 2));
+            console.log("S3 Object Event (" + event.eventName + "): " + JSON.stringify(_this.cloudtrailEvent, null, 2));
             console.log(err);
             console.log(err.stack);
           }

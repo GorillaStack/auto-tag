@@ -23,7 +23,7 @@ class AwsCloudTrailEventListener {
     return co(function* () {
       let event = _this.cloudtrailEvent.detail;
       // inject this field into the event rule event to make it uniform with the S3 file event
-      // this field was the only field that was moved from the "detail" up into the top level
+      // this field was the only field that was moved from the "detail" sub-hash up into the top level
       event.recipientAccountId = _this.cloudtrailEvent.account;
       if (!event.errorCode && !event.errorMessage) {
         let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.cloudtrailEvent.region);
@@ -47,8 +47,7 @@ class AwsCloudTrailEventListener {
 
   handleError(err) {
     if (SETTINGS.DebugLoggingOnFailure) {
-      console.log("CloudTrail Event - Failed:");
-      console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+      console.log("CloudTrail Event - Failed: " + JSON.stringify(this.cloudtrailEvent, null, 2));
     }
     console.log(err);
     console.log(err.stack);
@@ -57,8 +56,7 @@ class AwsCloudTrailEventListener {
 
   logDebug() {
     if (SETTINGS.DebugLogging) {
-      console.log("CloudTrail Event - Debug Logging:");
-      console.log(JSON.stringify(this.cloudtrailEvent, null, 2));
+      console.log("CloudTrail Event - Debug: " + JSON.stringify(this.cloudtrailEvent, null, 2));
     }
   }
 

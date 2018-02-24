@@ -6,8 +6,7 @@ const AUTOTAG_CREATE_TIME_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'CreateTime';
 const AUTOTAG_INVOKED_BY_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'InvokedBy';
 const ROLE_PREFIX = 'arn:aws:iam::';
 const ROLE_SUFFIX = ':role';
-const DEFAULT_STACK_NAME = 'autotag';
-const MASTER_ROLE_NAME = 'AutoTagMasterRole';
+// const MASTER_ROLE_NAME = 'AutoTagMasterRole';
 const MASTER_ROLE_PATH = '/gorillastack/autotag/master/';
 
 class AutotagDefaultWorker {
@@ -15,12 +14,13 @@ class AutotagDefaultWorker {
     this.event = event;
     this.s3Region = s3Region;
     this.region = process.env.AWS_REGION;
+    this.roleName = process.env.ROLE_NAME;
 
     // increase the retries for all AWS worker calls to be more resilient
-    AWS.config.update({
-      retryDelayOptions: {base: 300},
-      maxRetries: 8
-    });
+    // AWS.config.update({
+    //   retryDelayOptions: {base: 300},
+    //   maxRetries: 8
+    // });
   }
 
   /* tagResource
@@ -35,27 +35,6 @@ class AutotagDefaultWorker {
       try {
         // Do nothing
         resolve(true);
-      } catch (e) {
-        reject(e);
-      }
-    });
-  }
-
-  getRoleName() {
-    let _this = this;
-    return new Promise((resolve, reject) => {
-      try {
-        let cloudFormation = new AWS.CloudFormation({region: _this.region});
-        cloudFormation.describeStackResource({
-          StackName: DEFAULT_STACK_NAME,
-          LogicalResourceId: MASTER_ROLE_NAME
-        }, (err, data) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data.StackResourceDetail.PhysicalResourceId);
-          }
-        });
       } catch (e) {
         reject(e);
       }

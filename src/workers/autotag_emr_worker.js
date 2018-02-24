@@ -13,7 +13,7 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let roleName = yield _this.getRoleName();
+      let roleName = _this.roleName;
       let credentials = yield _this.assumeRole(roleName);
       _this.emr = new AWS.EMR({
         region: _this.event.awsRegion,

@@ -13,7 +13,7 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let roleName = yield _this.getRoleName();
+      let roleName = _this.roleName;
       let credentials = yield _this.assumeRole(roleName);
       if (_this.isLoadBalancerV2()) {
         _this.elbv2 = new AWS.ELBv2({

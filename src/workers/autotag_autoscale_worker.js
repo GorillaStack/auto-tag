@@ -13,7 +13,7 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let roleName = yield _this.getRoleName();
+      let roleName = _this.roleName;
       let credentials = yield _this.assumeRole(roleName);
       _this.autoscaling = new AWS.AutoScaling({
         region: _this.event.awsRegion,

@@ -5,19 +5,24 @@
     "MainAwsAccountNumber" : {
       "Description" : "The account number where the main auto-tag CloudFormation stack is running",
       "Type" : "String"
+    },
+    "MainStackName" : {
+      "Description" : "The name of the name of the main stack",
+      "Type" : "String",
+      "Default" : "AutoTagRetro"
     }
   },
   "Resources": {
     "AutoTagMasterRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
-        "RoleName": "AutoTag",
+        "RoleName": { "Ref": "MainStackName" },
         "AssumeRolePolicyDocument": {
           "Statement": [
             {
               "Effect": "Allow",
               "Principal": {
-                "AWS": { "Fn::Sub": "arn:aws:iam::${MainAwsAccountNumber}:role/AutoTagLambda" }
+                "AWS": { "Fn::Sub": "arn:aws:iam::${MainAwsAccountNumber}:role/gorillastack/autotag/execution/${MainStackName}Lambda" }
               },
               "Action": [
                 "sts:AssumeRole"

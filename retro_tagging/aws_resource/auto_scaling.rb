@@ -1,4 +1,4 @@
-require './aws_resource/default'
+require "#{__dir__}/default"
 
 module AwsResource
   class AutoScaling < Default
@@ -36,7 +36,7 @@ module AwsResource
     end
 
     def resource_name_exists?(**args)
-      (@request_parameters && @request_parameters['autoScalingGroupName'])
+      (args[:request_parameters] && args[:request_parameters]['autoScalingGroupName'])
     end
 
     def resource_name(**args)

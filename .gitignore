@@ -10,5 +10,9 @@ sample*.js
 !test_create_instances.sh
 *.lock
 *-lock.json
-*-parameters.json
+**/*-parameters.json
 cache/
+cloud_formation/event_multi_region_template/autotag_event_main-template.json
+pgi_deployment/
+**/old2/
+test_suite_sum/

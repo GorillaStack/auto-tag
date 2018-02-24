@@ -5,28 +5,32 @@ require 'csv'
 module AwsResource
   class Default
 
-    attr_accessor :resource, :csv, :credentials, :cloudtrail_s3_keys, :files_cached, :existing_resources, :bucket_name, :bucket_region
+    attr_accessor :resource, :csv, :credentials, :cloudtrail_s3_keys, :files_cached, :existing_resources, :bucket_name, :bucket_region, :profile, :cloudtrail_s3
 
-    def initialize(csv:, credentials:, bucket_name:)
+    def initialize(csv:, credentials:, bucket_name:, profile:)
       @csv           = csv
       @credentials   = credentials
       @bucket_name   = bucket_name
       @bucket_region = bucket_region
+      @profile       = profile
       @files_cached  = false
       @existing_resources = {}
       @cloudtrail_s3_keys = []
+      @cloudtrail_s3      = {}
     end
 
     def get_existing_resources
-      @cache_dir = './cache'
-      Dir.mkdir(@cache_dir) unless Dir.exist?(@cache_dir)
+      cache_sub_dir = (credentials.respond_to? :profile_name) ? credentials.profile_name : credentials.access_key_id
+      @cache_dir = "#{__dir__}/../cache/#{cache_sub_dir}"
+
+      FileUtils.mkdir_p(@cache_dir) unless Dir.exist?(@cache_dir)
       existing_resources_file = "#{@cache_dir}/#{friendly_service_name.gsub(/\s+/, '_',).downcase}_existing.json"
 
       if File.exists? existing_resources_file
         file_mtime_diff = Time.now - File.mtime(existing_resources_file)
       end
 
-      if !file_mtime_diff or file_mtime_diff > 7200 # 2 hours
+      if !file_mtime_diff or file_mtime_diff > 3600 # 1 hour(s)
         safe_puts "The cache file is too old, building a new cache file..."
         @files_cached = true
 
@@ -37,14 +41,7 @@ module AwsResource
           safe_puts "Collecting #{friendly_service_name} from: #{region.name}"
           client = aws_client(region: region.name, credentials: credentials)
 
-          describe = client.send(aws_client_method, **aws_client_method_args)
-
-          describe.send(aws_response_collection).each do |resource|
-            @existing_resources[resource.send_chain(aws_response_resource_name.split('.'))] = region.name
-          end
-
-          until describe.last_page?
-            describe = describe.next_page
+          client.send(aws_client_method, **aws_client_method_args).each do |describe|
             describe.send(aws_response_collection).each do |resource|
               @existing_resources[resource.send_chain(aws_response_resource_name.split('.'))] = region.name
             end
@@ -93,12 +90,11 @@ module AwsResource
       if aws_event_name.include? event_name
         if resource_name_exists?(options)
           event_resource_name = resource_name(options)
-        else
-          event_resource_name = true
         end
 
         if existing_resources.has_key? event_resource_name
-          @cloudtrail_s3_keys << s3_path.sub("s3://#{bucket_name}/", '')
+          # @cloudtrail_s3_keys << s3_path.sub("s3://#{bucket_name}/", '')
+          @cloudtrail_s3["#{event_name}_#{event_resource_name}"] = s3_path.sub("s3://#{bucket_name}/", '')
           return true
         end
       end

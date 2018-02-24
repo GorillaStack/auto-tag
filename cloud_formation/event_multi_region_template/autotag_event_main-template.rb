@@ -5,25 +5,25 @@ require 'cloudformation-ruby-dsl/cfntemplate'
 require 'cloudformation-ruby-dsl/spotprice'
 require 'cloudformation-ruby-dsl/table'
 
-aws_accounts = nil
-
-(0..(ARGV.length - 1)).each do |arg|
-  next unless ARGV[arg] =~ /^-/
-  case ARGV[arg]
-    when '--aws-accounts'
-      aws_accounts = ARGV[arg + 1]
-  end
-end
-
-example = 'Example: ./autotag_event_main-template.rb expand --aws-accounts "123456789012, 789012345678" > autotag_event_main-template.json'
-
-if aws_accounts.nil?
-  puts 'Error: You must provide the argument "--aws-accounts" with a comma delimited list of AWS accounts IDs that you have already deployed the collector stack to.'
-  puts example
-  exit!
-end
-
-aws_accounts = aws_accounts.split(',').map(&:strip)
+# aws_accounts = nil
+#
+# (0..(ARGV.length - 1)).each do |arg|
+#   next unless ARGV[arg] =~ /^-/
+#   case ARGV[arg]
+#     when '--aws-accounts'
+#       aws_accounts = ARGV[arg + 1]
+#   end
+# end
+#
+# example = 'Example: ./autotag_event_main-template.rb expand --aws-accounts "123456789012, 789012345678" > autotag_event_main-template.json'
+#
+# if aws_accounts.nil?
+#   puts 'Error: You must provide the argument "--aws-accounts" with a comma delimited list of AWS accounts IDs that you have already deployed the collector stack to.'
+#   puts example
+#   exit!
+# end
+#
+# aws_accounts = aws_accounts.split(',').map(&:strip)
 
 template do
 
@@ -39,7 +39,13 @@ template do
   parameter 'CodeS3Path',
             Description: 'The path of the code zip file in the code bucket in S3.',
             Type: 'String',
-            Default: 'autotag-0.3.0.zip'
+            Default: 'autotag-0.9.0.zip'
+
+  parameter 'CloudTrailType',
+            Description: 'The type of CloudTrail events to process.',
+            Type: 'String',
+            AllowedValues: %w(event log),
+            Default: 'event'
 
   parameter 'AutoTagDebugLogging',
             Description: 'Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.',
@@ -72,8 +78,8 @@ template do
       S3Key: ref('CodeS3Path'),
     },
     Description: 'Auto Tag (Open Source by GorillaStack)',
-    FunctionName: 'AutoTag',
-    Handler: 'autotag_event.handler',
+    FunctionName: aws_stack_name,
+    Handler: sub('autotag_${CloudTrailType}.handler'),
     Role: get_att('AutoTagExecutionRole', 'Arn'),
     Runtime: 'nodejs6.10',
     # the ec2 instance worker will wait for up to 45 seconds for a
@@ -85,23 +91,29 @@ template do
         DEBUG_LOGGING_ON_FAILURE: ref('AutoTagDebugLoggingOnFailure'),
         DEBUG_LOGGING:            ref('AutoTagDebugLogging'),
         CREATE_TIME:              ref('AutoTagTagsCreateTime'),
-        INVOKED_BY:               ref('AutoTagTagsInvokedBy')
+        INVOKED_BY:               ref('AutoTagTagsInvokedBy'),
+        ROLE_NAME:                ref('AutoTagMasterRole')
       }
     }
   }
 
-  resource 'AutoTagLogsMetricFilterMaxMemoryUsed', Type: 'AWS::Logs::MetricFilter', Properties: {
+  resource 'AutoTagLogGroup', Type: 'AWS::Logs::LogGroup', Properties: {
+      LogGroupName: sub('/aws/lambda/${AutoTagLambdaFunction}'),
+      RetentionInDays: 731
+  }
+
+  resource 'AutoTagLogsMetricFilterMaxMemoryUsed', Type: 'AWS::Logs::MetricFilter', DependsOn: %w[AutoTagLogGroup], Properties: {
       FilterPattern: '[report_name="REPORT", request_id_name="RequestId:", request_id_value, duration_name="Duration:", duration_value, duration_unit="ms", billed_duration_name_1="Billed", bill_duration_name_2="Duration:", billed_duration_value, billed_duration_unit="ms", memory_size_name_1="Memory", memory_size_name_2="Size:", memory_size_value, memory_size_unit="MB", max_memory_used_name_1="Max", max_memory_used_name_2="Memory", max_memory_used_name_3="Used:", max_memory_used_value, max_memory_used_unit="MB"]',
-      LogGroupName: join('', '/aws/lambda/', ref('AutoTagLambdaFunction')),
+      LogGroupName: sub('/aws/lambda/${AutoTagLambdaFunction}'),
       MetricTransformations: [
           { MetricValue: '$max_memory_used_value',
-            MetricNamespace: 'PGi/AutoTag',
-            MetricName: join('-', aws_stack_name, 'AutoTag', 'MemoryUsed')
+            MetricNamespace: sub('PGi/${AutoTagLambdaFunction}'),
+            MetricName: sub('${AutoTagLambdaFunction}-MemoryUsed')
           }]
   }
 
   resource 'AutoTagExecutionRole', Type: 'AWS::IAM::Role', Properties: {
-    RoleName: 'AutoTagLambda',
+    RoleName: sub('${AWS::StackName}Lambda'),
     AssumeRolePolicyDocument: {
       Statement: [
         {
@@ -115,7 +127,7 @@ template do
   }
 
   resource 'AutoTagExecutionPolicy', Type: 'AWS::IAM::Policy', Properties: {
-    PolicyName: 'AutoTagExecutionPolicy',
+    PolicyName: sub('${AWS::StackName}AutoTagExecutionPolicy'),
     Roles: [ref('AutoTagExecutionRole')],
     PolicyDocument: {
       Version: '2012-10-17',
@@ -127,20 +139,15 @@ template do
         },
         {
           Effect: 'Allow',
-          Action: ['cloudformation:DescribeStackResource'],
-          Resource: [sub('arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/autotag/*')]
-        },
-        {
-          Effect: 'Allow',
           Action: ['sts:*'],
-          Resource: ['arn:aws:iam::*:role/gorillastack/autotag/master/AutoTag']
+          Resource: [ sub('arn:aws:iam::*:role/gorillastack/autotag/master/${AWS::StackName}') ]
         }
       ]
     }
   }
 
   resource 'AutoTagMasterRole', Type: 'AWS::IAM::Role', Properties: {
-    RoleName: 'AutoTag',
+    RoleName: sub('${AWS::StackName}'),
     AssumeRolePolicyDocument: {
       Statement: [
         {
@@ -154,7 +161,7 @@ template do
   }
 
   resource 'AutoTagMasterPolicy', Type: 'AWS::IAM::Policy', Properties: {
-    PolicyName: 'AutoTagMasterPolicy',
+    PolicyName: sub('${AWS::StackName}MasterPolicy'),
     Roles: [ref('AutoTagMasterRole')],
     PolicyDocument: {
       Version: '2012-10-17',
@@ -187,25 +194,33 @@ template do
     }
   }
 
-  # all accounts provided in the args
-  aws_accounts.each do |account|
+  # all regions that exist according to the SDK
+  Aws.partition('aws').regions.each do |region|
+    region_description = region.description.sub(/.*\((.*)\)/, '\1').gsub(/[\.\s]+/, '')
 
-    # all regions that exist according to the SDK
-    Aws.partition('aws').regions.each do |region|
-      region_description = region.description.sub(/.*\((.*)\)/, '\1').gsub(/[\.\s]+/, '')
-
-      resource "TriggerLambdaPerm#{region_description}",
-               Type: 'AWS::Lambda::Permission',
-               DependsOn: 'AutoTagLambdaFunction',
-               Properties: {
-                 Action: 'lambda:InvokeFunction',
-                 FunctionName: get_att('AutoTagLambdaFunction', 'Arn'),
-                 Principal: 'sns.amazonaws.com',
-                 SourceArn: "arn:aws:sns:#{region.name}:#{account}:AutoTag"
-      }
-
-    end
-
+    resource "TriggerLambdaPermRegion#{region_description}",
+             Type: 'AWS::Lambda::Permission',
+             DependsOn: 'AutoTagLambdaFunction',
+             Properties: {
+               Action: 'lambda:InvokeFunction',
+               FunctionName: get_att('AutoTagLambdaFunction', 'Arn'),
+               Principal: 'sns.amazonaws.com',
+               SourceArn: sub("arn:aws:sns:#{region.name}:${AWS::AccountId}:AutoTag")
+             }
   end
+
+
+  # aws_accounts.each do |account|
+  #
+  # resource "TriggerLambdaPerm#{account}",
+  #      Type: 'AWS::Lambda::Permission',
+  #      DependsOn: 'AutoTagLambdaFunction',
+  #      Properties: {
+  #        Action: 'lambda:InvokeFunction',
+  #        FunctionName: get_att('AutoTagLambdaFunction', 'Arn'),
+  #        Principal: 'sns.amazonaws.com',
+  #        SourceArn: "arn:aws:sns:*:#{account}:AutoTag"
+  #   }
+  # end
 
 end.exec!

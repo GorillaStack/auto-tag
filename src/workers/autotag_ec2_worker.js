@@ -14,7 +14,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let roleName = yield _this.getRoleName();
+      let roleName = _this.roleName;
       let credentials = yield _this.assumeRole(roleName);
       let parentTags, opsworksInstances;
 

@@ -14,7 +14,7 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let roleName = yield _this.getRoleName();
+      let roleName = _this.roleName;
       let credentials = yield _this.assumeRole(roleName);
       _this.opsworks = new AWS.OpsWorks({
         region: _this.event.awsRegion,

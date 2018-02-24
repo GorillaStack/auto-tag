@@ -1,4 +1,4 @@
-require './aws_resource/default'
+require "#{__dir__}/default"
 
 module AwsResource
   class DynamoDbTable < Default
