@@ -62,9 +62,11 @@ class AwsCloudTrailListener {
         let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
         for (let j in log.Records) {
           let event = log.Records[j];
-          let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
-          yield worker.tagResource();
-        }
+	  if (!event.errorCode && !event.errorMessage) {
+	    let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
+	    yield worker.tagResource();
+	  }
+	}
       }
     });
   }
@@ -116,7 +118,7 @@ const dumpRecord = (event) => {
   console.log('Request Parameters:');
   console.log(event.requestParameters);
   console.log('Response Elements:');
-  console.log(event.requestParameters);
+  console.log(event.responseElements);
   console.log('s3:');
   console.log(event.s3);
 };
