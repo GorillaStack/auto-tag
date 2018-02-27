@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/GorillaStack/auto-tag.svg?branch=master)](https://travis-ci.org/GorillaStack/auto-tag)
 
-This is an open-source tagging solution for AWS.  Deploy AutoTag to lambda and set up CloudTrail for s3 logs, or CloudWatch Events, and have each of your resources tagged with the resource who created it. Optionally, resources can be tagged with when it was created and which AWS service invoked the request if one is provided.  It was written by [GorillaStack](http://www.gorillastack.com/).
+This is an open-source tagging solution for AWS.  Deploy AutoTag to Lambda using CloudTrail with either S3 Logs or CloudWatch Events and have each of your resources tagged with the ARN of who created it. Optionally, resources can be tagged with when it was created and which AWS service invoked the request if one is provided.  It was written by [GorillaStack](http://www.gorillastack.com/).
 
 [Read a blog post about the project](http://blog.gorillastack.com/gorillastack-presents-auto-tag).
 
@@ -13,11 +13,11 @@ Automatically tagging resources can greatly improve the ease of cost allocation 
 
 Two options are available to process the CloudTrail event stream, a S3 put object trigger on the associated CloudTrail S3 bucket, or a CloudWatch Events rule trigger. 
 
-CloudTrail logs (S3 objects) are delivered in batches to the CloudTrail S3 bucket every 5 to 7 minutes after a supported resource type is created. CloudTrail will write the S3 logs which triggers our AutoTag code to tag the resource. The lambda function is executed once for each S3 object, each S3 object log contains a batch of CloudTrail Events to be processed. Every event in the log must be processed, even if it is not supported. This can be a quick solution if CloudTrail is already enabled for all region and accounts. 
+CloudTrail logs (S3 objects) are delivered in batches to the CloudTrail S3 bucket every 5 to 7 minutes after a supported resource type is created. CloudTrail will write the S3 logs which triggers our AutoTag code to tag the resource. The lambda function is executed once for each S3 object, each S3 object log contains a batch of CloudTrail Events to be processed. Every event in the log must be processed, even if it is not supported, this is somewhat inefficient. This can be a quick solution if CloudTrail is already enabled for all regions and/or accounts in your environment. This solution will function cross-account with a supplemental role in each remote account.
 
-CloudWatch events delivers a near real-time stream of CloudTrail events as soon as a supported resource type is created. CloudWatch event rules triggers our AutoTag code to tag the resource. This method does not require CloudTrail logs to be sent to a S3 bucket. In this configuration the lambda function is executed once each time it is triggered by the CloudWatch Event Rule. The CloudWatch Event Rule includes a pattern filter so it is only triggered by the supported events which is much more efficient. I saw about an 85% decrease in invocations of the lambda function. 
+CloudWatch events delivers a near real-time stream of CloudTrail events as soon as a supported resource type is created. CloudWatch event rules triggers our AutoTag code to tag the resource. This method does not require CloudTrail logs to be sent to a S3 bucket. In this configuration the lambda function is executed once each time it is triggered by the CloudWatch Event Rule (one event at a time). The CloudWatch Event Rule includes a pattern filter so it is only triggered by the supported events which is much more efficient. I saw about an 85% decrease in invocations of the lambda function in comparison to the S3 log method. 
 
-There are two separate CloudFormation templates for CloudWatch Events, the first is a simple template setup that will only function for a single region. In this solution CloudWatch events can trigger the lambda function directly because they are in the same region. The second option is a multi-region  single account solution, here the CloudWatch events are delivered to in-region SNS topics and then the SNS topic delivers that event to the main lambda function in the main region. Any number of regions can be setup for tagging and it only needs a single lambda function per account. 
+There are two separate CloudFormation templates for CloudWatch Events, the first is a simple template setup that will only function for a single region. In this solution CloudWatch events can trigger the lambda function directly because they are in the same region. The second option is a multi-region and single account solution, here the CloudWatch events are delivered to in-region SNS topics and then the SNS topic delivers that event to the main lambda function in the main region. Any number of regions can be setup for tagging and it only requires a single lambda function per account. 
 
 
 ## Installation
@@ -47,9 +47,12 @@ zip -r9 auto-tag-0.9.0.zip -x\*.zip * -q
 ### Pick a Deployment Method
 #### Deploy with Console (S3 Object Method)
 
+__CloudFormation Main Stack__ Deploy this stack first in a single "master" region, probably in the same region as your CloudTrail S3 Bucket. This stack deploys the lambda function and permissions for the bucket.
+
+1. In the git files on your local machine change directory to `cloud_formation/s3object_template`
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the blue "Create Stack" button
-1. Select "Upload a template to Amazon S3", choosing the downloaded [CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/s3object_template/autotag_s3object-template.json), then click the blue "Next" button
+1. Select "Upload a template to Amazon S3", choosing the downloaded [CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/s3object_template/autotag_s3object_main-template.json), then click the blue "Next" button
 1. Name the stack "AutoTag" - this name can be anything
 1. In the parameter section:
   * CloudTrailBucketName: Name the S3 bucket that the template will create.  This needs to be unique for the region, so select something specific
@@ -61,6 +64,18 @@ zip -r9 auto-tag-0.9.0.zip -x\*.zip * -q
   * AutoTagTagsInvokedBy: Enable/Disable the "InvokedBy" tagging for all resources (when it is provided)
   
   
+__CloudFormation Role Stack__ Use this stack if you have a single CloudTrail S3 Bucket that receives CloudTrail logs from multiple accounts. Deploy this stack in any of your remote accounts that you would like to have auto tagging. This stack deploys a IAM role that allows the main stack's lambda function to perform tagging in the remote account. 
+
+1. In the git files on your local machine change directory to `cloud_formation/s3object_template`
+1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
+1. Click the blue "Create Stack" button
+1. Select "Upload a template to Amazon S3", choosing the downloaded [CloudFormation template](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/s3object_template/autotag_s3object_role-template.json), then click the blue "Next" button
+1. Name the stack "AutoTag-Role" - this name can be anything
+1. In the parameter section:
+  * MainStackName: The name of the name of the main stack
+  * MainAwsAccountNumber: The account number where the main auto-tag CloudFormation stack is running
+
+
 #### Deploy with Console (CloudWatch Events Method - Single Region)
 
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
@@ -79,17 +94,17 @@ zip -r9 auto-tag-0.9.0.zip -x\*.zip * -q
 #### Deploy with Console (CloudWatch Events Method - Multi-Region)
 
 
-__CloudFormation Main Stack__ Deploy this stack first in a single "master" region. This stack deploys the lambda function and permissions for each region. (note: this requires an up-to-date ruby SDK to be aware of the latest regions)
+__CloudFormation Main Stack__ Deploy this stack first in a single "master" region. This stack deploys the lambda function and permissions for each region. (Note: this requires an up-to-date ruby SDK to be aware of the latest regions)
 
 1. In the git files on your local machine change directory to `cloud_formation/event_multi_region_template`
-1. The next step requires a install of ruby and bundler
+1. The next step requires a install of ruby and ruby's bundler
 1. Run `bundle install` to install the ruby dependencies to build the template
 1. Running the ruby template builder helps to build a Lambda::InvokePermission for each region (SDK version dependent) `./autotag_event_main-template.rb expand > autotag_event_main-template.json`
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the CloudFormation drop-down button and select "Stack"
 1. Click the blue "Create Stack" button
 1. Select "Upload a template to Amazon S3", choosing the `autotag_event_main-template.json` that was created in the ruby template builder step, then click the blue "Next" button
-1. Name the stack "AutoTag" - can be anything
+1. Name the stack "AutoTag" - this can be anything
 1. In the parameter section:
 * CodeS3Bucket: The name of the code bucket in S3
 * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
@@ -114,9 +129,9 @@ __CloudFormation Collector StackSet__ After the main stack status is CREATE_COMP
 
 ## Supported Resource Types
 
-Currently Auto Tag, supports the following resource types in AWS 
+Currently Auto-Tag, supports the following AWS resource types
 
-Note: When tag-able resources are created using CloudFormation __StackSets__ the "Creator" tag is NEVER populated with the ARN of the user who executed the StackSet, instead it is tagged with the less useful CloudFormation StackSet Execution Role's "assumed-role" ARN. 
+WARNING: When tag-able resources are created using CloudFormation __StackSets__ the "Creator" tag is NEVER populated with the ARN of the user who executed the StackSet, instead it is tagged with the less useful CloudFormation StackSet Execution Role's "assumed-role" ARN. 
 
 __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 
@@ -152,9 +167,9 @@ __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 _*=not tested by the test suite_
 
 
-## IAM Deny Tag Support
+## Deny Create/Delete/Edit for AutoTags
 
-Use the following IAM policy to deny a user or role the ability to create, delete, and edit any tag starting with 'AutoTag_'. At the time of this writing the deny tag IAM condition is only available for resources in EC2 and AutoScaling, see the table above.
+Use the following IAM policy to deny a user or role the ability to create, delete, and edit any tag starting with 'AutoTag_'. At the time of this writing the deny tag IAM condition (aws:TagKeys) is only available for resources in EC2 and AutoScaling, see the table above for a status of each resource.
 
 ```json
 {
@@ -178,7 +193,9 @@ Use the following IAM policy to deny a user or role the ability to create, delet
 
 ## Retro-active Tagging
 
-Use AWS Athena to scan your history of CloudTrail logs and retro-actively tag existing AWS resources.
+#### Query CloudTrail logs using AWS Athena
+
+Use AWS Athena to scan your history of CloudTrail logs in S3 and retro-actively tag existing AWS resources. You are charged based on the amount the data that is scanned.
 
 Create Table Query
 ```sql
@@ -279,13 +296,17 @@ and eventSource in (
 and errorcode is null
 ```
 
+#### Tag Existing Resources
+
 Use the `retro_tagging/retro_tag.rb` script to scan your environment for resources and then apply tagging to any resources that exist.
+
+__TODO: add more information here__
 
 ## Test Suite
 
 Use the test suite in your own environment to deploy a minimal set of AWS resources to validate the auto-tagging functionality. A CloudFormation stack will deploy the tag-able resources, then use the audit script to validate whether the appropriate tags were applied.
 
-For the `AutoTag_Creator` tag validation to work the user (ARN) who deploys the test suite's CloudFormation template needs to be the same user who runs the `audit_test_tags.rb` script. If the user's ARNs are not the same, use the `--user-arn` argument in the audit script to set the expected ARN. (see [Deploy the test suite](#audit-the-test-suite-resources))
+For the `AutoTag_Creator` tag validation to work the user (ARN) who deploys the test suite's CloudFormation template needs to be the same user who runs the `audit_test_tags.rb` script. If the user's ARNs are not the same, use the `--user-arn` argument in the audit script to set the expected ARN. (see [Audit test suite resources](#audit-the-test-suite-resources))
 
 #### Deploy the test suite
 
@@ -304,10 +325,10 @@ The suite deploy several resources that have a cost, the resource have been mini
 1. Deploy the CloudFormation test suite stack template: `./deploy_cloudformation.rb --regions us-east-1,us-west-2,eu-west-1,ap-southeast-2 --profile default `
    1. The `--action` argument is required, allowed values are 'create' or 'delete'
    1. The `--stack` argument is optional, it defaults to 'AutoTag-Test'
-   1. The `--regions` argument will take a list of regions, it is optional and will default to 'us-east-1'
-   1. (Note) If the ruby dsl template needs to be edited issuing a "create" action against the `deploy_cloudformation.rb` script will re-generate the associated json file. This can also be done manually with `bundle install && ./autotag_event_test.rb expand > autotag_event_test.json` in the `test_suite-cloud_formation` directory
+   1. The `--regions` argument will take a list of regions, it is optional or will default to 'us-east-1'
+      1. Note: If the ruby dsl template needs to be edited issuing a "create" action against the `deploy_cloudformation.rb` script will re-generate the associated json file. This can also be done manually with `bundle install && ./autotag_event_test.rb expand > autotag_event_test.json` in the `test_suite-cloud_formation` directory
 
-#### Audit the test suite resources
+#### Audit test suite resources
 
 1. Change directory to `auto-tag/test_suite`
 1. Audit the tags  `./audit_test_tags.rb  --region us-east-1 --profile default --stack-name AutoTag-Test --user-arn <aws-arn>`

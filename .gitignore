@@ -12,6 +12,7 @@ sample*.js
 *-lock.json
 **/*-parameters.json
 cache/
+**/cache/
 cloud_formation/event_multi_region_template/autotag_event_main-template.json
 pgi_deployment/
 **/old2/

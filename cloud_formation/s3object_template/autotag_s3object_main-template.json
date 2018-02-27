@@ -57,28 +57,6 @@
 
   "Resources": {
 
-    "AutoTagExecutionRole" : {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": [
-                  "lambda.amazonaws.com"
-                ]
-              },
-              "Action": [
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Path": "/gorillastack/autotag/execution/"
-      }
-    },
-
     "AutoTagLambdaFunction" : {
       "Type" : "AWS::Lambda::Function",
       "Properties" : {
@@ -110,6 +88,75 @@
               "Ref": "AutoTagMasterRole"
             }
           }
+        }
+      }
+    },
+
+    "AutoTagExecutionRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Sub": "${AWS::StackName}Lambda"
+        },
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/gorillastack/autotag/execution/"
+      }
+    },
+
+    "AutoTagExecutionPolicy" : {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "AutoTagExecutionPolicy",
+        "Roles": [ { "Ref": "AutoTagExecutionRole" } ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": "arn:aws:logs:*:*:*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject",
+                "s3:ListBucket"
+              ],
+              "Resource": [
+                { "Fn::Join": [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" } ] ] },
+                { "Fn::Join": [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" }, "/*" ] ] }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sts:*"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:aws:iam::*:role/gorillastack/autotag/master/${AWS::StackName}"
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -167,48 +214,6 @@
               ],
               "Resource": [
                 "*"
-              ]
-            }
-          ]
-        }
-      }
-    },
-
-    "AutoTagExecutionPolicy" : {
-      "Type": "AWS::IAM::Policy",
-      "Properties": {
-        "PolicyName": "AutoTagExecutionPolicy",
-        "Roles": [ { "Ref": "AutoTagExecutionRole" } ],
-        "PolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-              ],
-              "Resource": "arn:aws:logs:*:*:*"
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
-                "s3:GetObject",
-                "s3:ListBucket"
-              ],
-              "Resource": [
-                { "Fn::Join": [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" } ] ] },
-                { "Fn::Join": [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" }, "/*" ] ] }
-              ]
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
-                "sts:*"
-              ],
-              "Resource": [
-                "arn:aws:iam::*:role/gorillastack/autotag/master/AutoTag"
               ]
             }
           ]
