@@ -135,7 +135,8 @@
                 "s3:ListBucket"
               ],
               "Resource": [
-                "*"
+                { "Fn::Join": [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" } ] ] },
+                { "Fn::Join": [ "", [ "arn:aws:s3:::", { "Ref" : "CloudTrailBucketName" }, "/*" ] ] }
               ]
             },
             {
