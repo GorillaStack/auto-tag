@@ -49,7 +49,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
             });
             opsworksInstances = yield _this.getOpsworksInstances();
           } else {
-            throw err;
+            throw(err);
           }
         }
         let opsworksStackId = opsworksInstances.Instances[0].StackId;
