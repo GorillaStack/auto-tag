@@ -78,11 +78,21 @@ class AwsCloudTrailLogListener {
         let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
         for (let j in log.Records) {
           let event = log.Records[j];
-	  if (!event.errorCode && !event.errorMessage) {
-	    let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
-	    yield worker.tagResource();
-	  }
-	}
+          // try/catch here so that if one record fails it will attempt
+          // to finish the rest of the records from the log file
+          try {
+            if (!event.errorCode && !event.errorMessage) {
+              let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
+              yield worker.tagResource();
+              if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebugEvent(event) }
+            }
+          } catch (err) {
+            console.log("CloudTrail Event Failed (" + event.eventName + "): " + JSON.stringify(event, null, 2));
+            console.log("S3 Object Event (" + event.eventName + "): " + JSON.stringify(_this.cloudtrailEvent, null, 2));
+            console.log(err);
+            console.log(err.stack);
+          }
+        }
       }
     });
   }
