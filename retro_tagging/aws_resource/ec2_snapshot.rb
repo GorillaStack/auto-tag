@@ -32,7 +32,7 @@ module AwsResource
     end
 
     def aws_event_name
-      %w[CreateSnapshot]
+      %w[CreateSnapshot CopySnapshot ImportSnapshot]
     end
 
     def resource_name_exists?(**args)

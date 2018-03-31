@@ -35,6 +35,8 @@
             "eventName": [
               "AllocateAddress",
               "CloneStack",
+              "CopyImage",
+              "CopySnapshot",
               "CreateAutoScalingGroup",
               "CreateBucket",
               "CreateDBInstance",
@@ -55,6 +57,9 @@
               "CreateVpc",
               "CreateVpnConnection",
               "CreateVpcPeeringConnection",
+              "ImportImage",
+              "ImportSnapshot",
+              "RegisterImage",
               "RunInstances",
               "RunJobFlow"
             ]

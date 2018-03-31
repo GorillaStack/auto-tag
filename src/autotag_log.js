@@ -1,4 +1,5 @@
 import AwsCloudTrailLogListener from './aws_cloud_trail_log_listener';
+import AwsCloudTrailEventListener from "./aws_cloud_trail_event_listener";
 
 export function handler(cloudtrailEvent, context) {
   const enabledListeners = [
@@ -14,8 +15,13 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailLogListener.EMR.name,
     AwsCloudTrailLogListener.DATA_PIPELINE.name,
     AwsCloudTrailLogListener.SECURITY_GROUP.name,
-    AwsCloudTrailLogListener.AMI.name,
-    AwsCloudTrailLogListener.SNAPSHOT.name,
+    AwsCloudTrailLogListener.AMI_CREATE.name,
+    AwsCloudTrailLogListener.AMI_COPY.name,
+    AwsCloudTrailLogListener.AMI_IMPORT.name,
+    AwsCloudTrailLogListener.AMI_REGISTER.name,
+    AwsCloudTrailLogListener.SNAPSHOT_CREATE.name,
+    AwsCloudTrailLogListener.SNAPSHOT_COPY.name,
+    AwsCloudTrailLogListener.SNAPSHOT_IMPORT.name,
     AwsCloudTrailLogListener.ELASTIC_IP.name,
     AwsCloudTrailLogListener.DYNAMO_DB.name,
     AwsCloudTrailLogListener.ENI.name,

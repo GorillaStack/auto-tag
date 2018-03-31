@@ -104,7 +104,7 @@ __CloudFormation Main Stack__ Deploy this stack first in a single "master" regio
 1. Click the CloudFormation drop-down button and select "Stack"
 1. Click the blue "Create Stack" button
 1. Select "Upload a template to Amazon S3", choosing the `autotag_event_main-template.json` that was created in the ruby template builder step, then click the blue "Next" button
-1. Name the stack "AutoTag" - this can be anything
+1. Name the stack "AutoTag" - this cannot be changed
 1. In the parameter section:
 * CodeS3Bucket: The name of the code bucket in S3
 * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
@@ -143,11 +143,16 @@ __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 |DynamoDB Table|CreateTable|C, T, I|No
 |EBS Volume|CreateVolume|C, T, I|Yes
 |EC2 AMI *|CreateImage|C, T, I|Yes
+|EC2 AMI *|CopyImage|C, T, I|Yes
+|EC2 AMI *|ImportImage|C, T, I|Yes
+|EC2 AMI *|RegisterImage|C, T, I|Yes
 |EC2 Elastic IP|AllocateAddress|C, T, I|Yes
 |EC2 ENI|CreateNetworkInterface|C, T, I|Yes
 |EC2 Instance w/ENI & Volume|RunInstances|C, T, I|Yes
 |EC2/VPC Security Group|CreateSecurityGroup|C, T, I|Yes
 |EC2 Snapshot *|CreateSnapshot|C, T, I|Yes
+|EC2 Snapshot *|CopySnapshot|C, T, I|Yes
+|EC2 Snapshot *|ImportSnapshot|C, T, I|Yes
 |Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|No
 |EMR Cluster|RunJobFlow|C, T, I|No
 |OpsWorks Stack|CreateStack|C (Propagated to Instances)|No
@@ -259,6 +264,8 @@ WHERE
 eventName in (
     'AllocateAddress',
     'CloneStack',
+    'CopyImage',
+    'CopySnapshot',
     'CreateAutoScalingGroup',
     'CreateBucket',
     'CreateDBInstance',
@@ -279,6 +286,9 @@ eventName in (
     'CreateVpc',
     'CreateVpnConnection',
     'CreateVpcPeeringConnection',
+    'ImportImage',
+    'ImportSnapshot',
+    'RegisterImage',
     'RunInstances',
     'RunJobFlow'
 )

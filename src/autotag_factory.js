@@ -90,11 +90,31 @@ let AutotagFactory = {
         return new AutotagSecurityGroupWorker(event, s3Region);
         break;
 
-      case CONFIG.AMI.name:
+      case CONFIG.AMI_CREATE.name:
         return new AutotagAMIWorker(event, s3Region);
         break;
 
-      case CONFIG.SNAPSHOT.name:
+      case CONFIG.AMI_COPY.name:
+        return new AutotagAMIWorker(event, s3Region);
+        break;
+
+      case CONFIG.AMI_IMPORT.name:
+        return new AutotagAMIWorker(event, s3Region);
+        break;
+
+      case CONFIG.AMI_REGISTER.name:
+        return new AutotagAMIWorker(event, s3Region);
+        break;
+
+      case CONFIG.SNAPSHOT_CREATE.name:
+        return new AutotagSnapshotWorker(event, s3Region);
+        break;
+
+      case CONFIG.SNAPSHOT_COPY.name:
+        return new AutotagSnapshotWorker(event, s3Region);
+        break;
+
+      case CONFIG.SNAPSHOT_IMPORT.name:
         return new AutotagSnapshotWorker(event, s3Region);
         break;
 

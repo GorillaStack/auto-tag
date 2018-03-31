@@ -71,15 +71,45 @@ export default {
     targetEventType: null,
     targetEventSource: null
   },
-  AMI: {
+  AMI_CREATE: {
     name: 'ami',
     targetEventName: 'CreateImage',
     targetEventType: null,
     targetEventSource: null
   },
-  SNAPSHOT: {
+  AMI_COPY: {
+    name: 'ami',
+    targetEventName: 'CopyImage',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  AMI_IMPORT: {
+    name: 'ami',
+    targetEventName: 'ImportImage',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  AMI_REGISTER: {
+    name: 'ami',
+    targetEventName: 'RegisterImage',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  SNAPSHOT_CREATE: {
     name: 'snapshot',
     targetEventName: 'CreateSnapshot',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  SNAPSHOT_COPY: {
+    name: 'snapshot',
+    targetEventName: 'CopySnapshot',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  SNAPSHOT_IMPORT: {
+    name: 'snapshot',
+    targetEventName: 'ImportSnapshot',
     targetEventType: null,
     targetEventSource: null
   },
@@ -138,7 +168,7 @@ export default {
     targetEventSource: null
   },
   OPS_WORKS_CLONE: {
-    name: 'opsworksClone',
+    name: 'opsworks',
     targetEventName: 'CloneStack',
     targetEventType: null,
     targetEventSource: null
