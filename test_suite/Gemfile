@@ -1,9 +1,0 @@
-
-source 'https://rubygems.org'
-
-gem 'pastel'
-gem 'aws-sdk'
-gem 'docopt'
-gem 'tty-spinner'
-gem 'cloudformation-ruby-dsl'
-gem 'terminal-table'

@@ -302,40 +302,6 @@ Use the `retro_tagging/retro_tag.rb` script to scan your environment for resourc
 
 __TODO: add more information here__
 
-## Test Suite
-
-Use the test suite in your own environment to deploy a minimal set of AWS resources to validate the auto-tagging functionality. A CloudFormation stack will deploy the tag-able resources, then use the audit script to validate whether the appropriate tags were applied.
-
-For the `AutoTag_Creator` tag validation to work the user (ARN) who deploys the test suite's CloudFormation template needs to be the same user who runs the `audit_test_tags.rb` script. If the user's ARNs are not the same, use the `--user-arn` argument in the audit script to set the expected ARN. (see [Audit test suite resources](#audit-the-test-suite-resources))
-
-#### Deploy the test suite
-
-The suite deploy several resources that have a cost, the resource have been minimized but there are some requirements that are unavoidable. The following are the more major resources: DataPipeline (t2.nano), OpsWorks Instance (m3.medium), NAT Gateway, EMR Cluster (2x c1.medium - TODO: this is the most expensive, need to look at this again.), RDS Instance (t2.micro), Classic ELB, Network ELB, EC2 Instance (t2.nano), AutoScaling Group Instance (t2.nano). Estimations from 1/29/2018 for us-east-1 add up to about $0.39/hr at on-demand pricing. The suite can be deployed to a single region or multiple regions. For multiple-regions omit the `--region` argument in each script to prepare _all_ regions, then deploy the CloudFormation template as a Stack (not a StackSet!) to as many regions as necessary using the included ruby script. (Note: all regions have not been tested, does not work in us-west-1, ca-central-1, or eu-west-2 due to a lack of the DataPipeline service) (tested successfully in us-east-1, us-west-2, eu-west-1, ap-southeast-2)
-
-1. Create a new KeyPair for import to AWS.
-   1. Execute `ssh-keygen -t rsa -C "KeyPair-Dev-20180116" -b 4096 -f “KeyPair-Dev-20180116”`
-   1. Execute `openssl rsa -in KeyPair-Dev-20180116 -text > KeyPair-Dev-20180116.pem`
-1. Change directory to `auto-tag/test_suite` and execute `bundle install` to grab the dependent gems
-1. Deploy a key pair for the test: `./deploy_key.rb --region us-east-1 --profile default --key-name KeyPair-Dev-20180116 --key-file /Projects/AutoTag/key-pair/KeyPair-Dev-20180116.pub`
-   1. Omitting the `--region` argument will add the key pair to all regions
-1. Deploy the SSM store parameters that will be used by the CloudFormation template for the test: `./deploy_ssm_params.rb --region us-east-1 --profile default --key-name KeyPair-Dev-20180116 --cidr "192.168"`
-   1. Omitting the `--region` argument will add the test suite SSM params to all regions
-   1. The `--cidr` argument is optional
-   1. The SSM Store Parameter Names: /AutoTagTest/KeyName, /AutoTagTest/AmiImageId, /AutoTagTest/VpcCidrBlock /AutoTagTest/SubnetCidrBlocks, /AutoTagTest/VpcCidrBlockForVpcPeering
-1. Deploy the CloudFormation test suite stack template: `./deploy_cloudformation.rb --regions us-east-1,us-west-2,eu-west-1,ap-southeast-2 --profile default `
-   1. The `--action` argument is required, allowed values are 'create' or 'delete'
-   1. The `--stack` argument is optional, it defaults to 'AutoTag-Test'
-   1. The `--regions` argument will take a list of regions, it is optional or will default to 'us-east-1'
-      1. Note: If the ruby dsl template needs to be edited issuing a "create" action against the `deploy_cloudformation.rb` script will re-generate the associated json file. This can also be done manually with `bundle install && ./autotag_event_test.rb expand > autotag_event_test.json` in the `test_suite-cloud_formation` directory
-
-#### Audit test suite resources
-
-1. Change directory to `auto-tag/test_suite`
-1. Audit the tags  `./audit_test_tags.rb  --region us-east-1 --profile default --stack-name AutoTag-Test --user-arn <aws-arn>`
-   1. Omitting the `--region` argument will scan all regions for CloudFormation stand and audit the tags in any matching stacks
-   1. The `--stack-name` and `--user-arn` arguments are optional
-1. When finished, delete the "AutoTag-Test" CloudFormation stack
-
 
 ## Contributing
 
