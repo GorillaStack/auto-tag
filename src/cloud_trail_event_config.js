@@ -70,5 +70,107 @@ export default {
     targetEventName: 'CreatePipeline',
     targetEventType: null,
     targetEventSource: null
+  },
+  AMI_CREATE: {
+    name: 'ami',
+    targetEventName: 'CreateImage',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  AMI_COPY: {
+    name: 'ami',
+    targetEventName: 'CopyImage',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  AMI_IMPORT: {
+    name: 'ami',
+    targetEventName: 'ImportImage',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  AMI_REGISTER: {
+    name: 'ami',
+    targetEventName: 'RegisterImage',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  SNAPSHOT_CREATE: {
+    name: 'snapshot',
+    targetEventName: 'CreateSnapshot',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  SNAPSHOT_COPY: {
+    name: 'snapshot',
+    targetEventName: 'CopySnapshot',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  SNAPSHOT_IMPORT: {
+    name: 'snapshot',
+    targetEventName: 'ImportSnapshot',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  ELASTIC_IP: {
+    name: 'elasticIP',
+    targetEventName: 'AllocateAddress',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  DYNAMO_DB: {
+    name: 'dynamoDB',
+    targetEventName: 'CreateTable',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  ENI: {
+    name: 'eni',
+    targetEventName: 'CreateNetworkInterface',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  NAT_GATEWAY: {
+    name: 'natGateway',
+    targetEventName: 'CreateNatGateway',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  NETWORK_ACL: {
+    name: 'networkACL',
+    targetEventName: 'CreateNetworkAcl',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  ROUTE_TABLE: {
+    name: 'routeTable',
+    targetEventName: 'CreateRouteTable',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  VPC_PEERING: {
+    name: 'vpcPeering',
+    targetEventName: 'CreateVpcPeeringConnection',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  VPN: {
+    name: 'vpn',
+    targetEventName: 'CreateVpnConnection',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  OPS_WORKS: {
+    name: 'opsworks',
+    targetEventName: 'CreateStack',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  OPS_WORKS_CLONE: {
+    name: 'opsworks',
+    targetEventName: 'CloneStack',
+    targetEventType: null,
+    targetEventSource: null
   }
 };

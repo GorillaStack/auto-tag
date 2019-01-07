@@ -3,6 +3,7 @@ import AWS from 'aws-sdk';
 import co from 'co';
 
 class AutotagVPCWorker extends AutotagEC2Worker {
+
   /* tagResource
   ** method: tagResource
   **
@@ -12,7 +13,7 @@ class AutotagVPCWorker extends AutotagEC2Worker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let roleName = yield _this.getRoleName();
+      let roleName = _this.roleName;
       let credentials = yield _this.assumeRole(roleName);
       _this.ec2 = new AWS.EC2({
         region: _this.event.awsRegion,

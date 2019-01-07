@@ -1,0 +1,124 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Auto Tag (Open Source by GorillaStack)",
+
+  "Parameters" : {
+    "MainAwsRegion" : {
+      "Description" : "The region where the main auto-tag CloudFormation stack is running",
+      "Type" : "String",
+      "Default": "us-west-2"
+    }
+  },
+
+  "Resources": {
+
+    "EC2EventRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Description": "Auto-tag resources with Lambda from CloudTrail events",
+        "EventPattern": {
+          "detail-type": [
+            "AWS API Call via CloudTrail"
+          ],
+          "detail": {
+            "eventSource": [
+              "autoscaling.amazonaws.com",
+              "datapipeline.amazonaws.com",
+              "dynamodb.amazonaws.com",
+              "ec2.amazonaws.com",
+              "elasticloadbalancing.amazonaws.com",
+              "elasticmapreduce.amazonaws.com",
+              "opsworks.amazonaws.com",
+              "rds.amazonaws.com",
+              "s3.amazonaws.com"
+            ],
+            "eventName": [
+              "AllocateAddress",
+              "CloneStack",
+              "CopyImage",
+              "CopySnapshot",
+              "CreateAutoScalingGroup",
+              "CreateBucket",
+              "CreateDBInstance",
+              "CreateImage",
+              "CreateInternetGateway",
+              "CreateLoadBalancer",
+              "CreateNatGateway",
+              "CreateNetworkAcl",
+              "CreateNetworkInterface",
+              "CreatePipeline",
+              "CreateRouteTable",
+              "CreateSecurityGroup",
+              "CreateSnapshot",
+              "CreateStack",
+              "CreateSubnet",
+              "CreateTable",
+              "CreateVolume",
+              "CreateVpc",
+              "CreateVpnConnection",
+              "CreateVpcPeeringConnection",
+              "ImportImage",
+              "ImportSnapshot",
+              "RegisterImage",
+              "RunInstances",
+              "RunJobFlow"
+            ]
+          }
+        },
+        "Name": "AutoTag-CloudTrail-Events",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Ref": "AutoTagSNSTopic"
+            },
+            "Id": "Main"
+          }
+        ]
+      }
+    },
+
+    "AutoTagSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": "AutoTag CloudTrail Events",
+        "TopicName": "AutoTag"
+      }
+    },
+
+    "AutoTagSNSTopicPolicy": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Id": "AutoTagSNSTopicPolicy",
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AllowCloudWatchRuleSNSPublish",
+              "Effect": "Allow",
+              "Principal": { "Service" : "events.amazonaws.com" },
+              "Action": "sns:Publish",
+              "Resource": "*"
+            }
+          ]
+        },
+        "Topics": [
+          {
+            "Ref": "AutoTagSNSTopic"
+          }
+        ]
+      }
+    },
+
+    "AutoTagSNSSubscription": {
+      "Type": "AWS::SNS::Subscription",
+      "Properties": {
+        "Endpoint": { "Fn::Sub": "arn:aws:lambda:${MainAwsRegion}:${AWS::AccountId}:function:AutoTag" },
+        "Protocol": "lambda",
+        "TopicArn": {
+          "Ref": "AutoTagSNSTopic"
+        }
+      }
+    }
+  }
+}

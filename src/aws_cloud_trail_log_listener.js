@@ -5,20 +5,21 @@ import co from 'co';
 import _ from 'underscore';
 import constants from './cloud_trail_event_config';
 import AutotagFactory from './autotag_factory';
+import SETTINGS from "./autotag_settings";
 
-class AwsCloudTrailListener {
+class AwsCloudTrailLogListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
     this.cloudtrailEvent = cloudtrailEvent;
     this.applicationContext = applicationContext;
     this.enabledServices = enabledServices;
     this.s3 = new AWS.S3();
     this.s3Region = '';
-    this.autotagActions = [];
   }
 
   execute() {
     let _this = this;
     return co(function* () {
+      _this.logDebugS3();
       let logFiles = yield _this.retrieveLogFileDetails();
       yield _this.collectAndPerformAutotagActionsFromLogFile(logFiles);
     })
@@ -35,9 +36,24 @@ class AwsCloudTrailListener {
   }
 
   handleError(err) {
+    if (SETTINGS.DebugLoggingOnFailure) {
+      console.log("S3 Object Event Failed: " + JSON.stringify(this.cloudtrailEvent, null, 2));
+    }
     console.log(err);
     console.log(err.stack);
     this.applicationContext.fail(err);
+  }
+
+  logDebugS3() {
+    if (SETTINGS.DebugLogging) {
+      console.log("CloudTrail S3 Object - Debug: " + JSON.stringify(this.cloudtrailEvent, null, 2));
+    }
+  }
+
+  logDebugEvent(event) {
+    if (SETTINGS.DebugLogging) {
+      console.log("CloudTrail Event - Debug: " + JSON.stringify(event, null, 2));
+    }
   }
 
   retrieveLogFileDetails() {
@@ -62,11 +78,21 @@ class AwsCloudTrailListener {
         let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
         for (let j in log.Records) {
           let event = log.Records[j];
-	  if (!event.errorCode && !event.errorMessage) {
-	    let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
-	    yield worker.tagResource();
-	  }
-	}
+          // try/catch here so that if one record fails it will attempt
+          // to finish the rest of the records from the log file
+          try {
+            if (!event.errorCode && !event.errorMessage) {
+              let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
+              yield worker.tagResource();
+              if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebugEvent(event) }
+            }
+          } catch (err) {
+            console.log("CloudTrail Event Failed (" + event.eventName + "): " + JSON.stringify(event, null, 2));
+            console.log("S3 Object Event (" + event.eventName + "): " + JSON.stringify(_this.cloudtrailEvent, null, 2));
+            console.log(err);
+            console.log(err.stack);
+          }
+        }
       }
     });
   }
@@ -124,7 +150,7 @@ const dumpRecord = (event) => {
 };
 
 _.each(constants, function(value, key) {
-  AwsCloudTrailListener[key] = value;
+  AwsCloudTrailLogListener[key] = value;
 });
 
-export default AwsCloudTrailListener;
+export default AwsCloudTrailLogListener;

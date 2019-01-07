@@ -16,17 +16,88 @@
       "Description" : "The name you want to give the bucket for your CloudTrail logs",
       "Type" : "String",
       "Default": "my-cloudtrail-bucket"
+    },
+    "AutoTagDebugLogging": {
+      "Description": "Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Disabled"
+    },
+    "AutoTagDebugLoggingOnFailure": {
+      "Description": "Enable/Disable Debug Logging when the Lambda Function has a failure.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
+    },
+    "AutoTagTagsCreateTime": {
+      "Description": "Enable/Disable the \"CreateTime\" tagging for all resources.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
+    },
+    "AutoTagTagsInvokedBy": {
+      "Description": "Enable/Disable the \"InvokedBy\" tagging for all resources.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
     }
-  },
-
-  "Mappings" : {
   },
 
   "Resources": {
 
+    "AutoTagLambdaFunction" : {
+      "Type" : "AWS::Lambda::Function",
+      "Properties" : {
+        "Code" : {
+          "S3Bucket": { "Ref" : "CodeS3Bucket" },
+          "S3Key": { "Ref" : "CodeS3Path" }
+        },
+        "Description" : "Auto Tag (Open Source by GorillaStack)",
+        "FunctionName" : "AutoTag",
+        "Handler" : "autotag_log.handler",
+        "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
+        "Runtime" : "nodejs6.10",
+        "Timeout" : 300,
+        "Environment": {
+          "Variables": {
+            "DEBUG_LOGGING_ON_FAILURE": {
+              "Ref": "AutoTagDebugLoggingOnFailure"
+            },
+            "DEBUG_LOGGING": {
+              "Ref": "AutoTagDebugLogging"
+            },
+            "CREATE_TIME": {
+              "Ref": "AutoTagTagsCreateTime"
+            },
+            "INVOKED_BY": {
+              "Ref": "AutoTagTagsInvokedBy"
+            },
+            "ROLE_NAME": {
+              "Ref": "AutoTagMasterRole"
+            }
+          }
+        }
+      }
+    },
+
     "AutoTagExecutionRole" : {
       "Type": "AWS::IAM::Role",
       "Properties": {
+        "RoleName": {
+          "Fn::Sub": "${AWS::StackName}Lambda"
+        },
         "AssumeRolePolicyDocument": {
           "Statement": [
             {
@@ -43,71 +114,6 @@
           ]
         },
         "Path": "/gorillastack/autotag/execution/"
-      }
-    },
-
-    "AutoTagLambdaFunction" : {
-      "Type" : "AWS::Lambda::Function",
-      "Properties" : {
-        "Code" : {
-          "S3Bucket": { "Ref" : "CodeS3Bucket" },
-          "S3Key": { "Ref" : "CodeS3Path" }
-        },
-        "Description" : "Auto Tag (Open Source by GorillaStack)",
-        "FunctionName" : "AutoTag",
-        "Handler" : "autotag.handler",
-        "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
-        "Runtime" : "nodejs4.3",
-        "Timeout" : 30
-      }
-    },
-
-    "AutoTagMasterRole" : {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "AWS" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] }
-              },
-              "Action": [
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Path": "/gorillastack/autotag/master/"
-      }
-    },
-
-    "AutoTagMasterPolicy" : {
-      "Type": "AWS::IAM::Policy",
-      "Properties": {
-        "PolicyName": "AutoTagMasterPolicy",
-        "Roles": [ { "Ref": "AutoTagMasterRole" } ],
-        "PolicyDocument": {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Action": [
-                "s3:GetBucketTagging",
-                "s3:PutBucketTagging",
-                "ec2:CreateTags",
-                "elasticloadbalancing:AddTags",
-                "autoscaling:CreateOrUpdateTags",
-                "rds:AddTagsToResource",
-                "elasticmapreduce:AddTags",
-                "datapipeline:AddTags"
-              ],
-              "Resource": [
-                "*"
-              ]
-            }
-          ]
-        }
       }
     },
 
@@ -142,19 +148,72 @@
             {
               "Effect": "Allow",
               "Action": [
-                "cloudformation:DescribeStackResource"
-              ],
-              "Resource": [
-                { "Fn::Join": [ "", [ "arn:aws:cloudformation:", { "Ref" : "AWS::Region" }, ":", { "Ref" : "AWS::AccountId" }, ":stack/autotag/*" ] ] }
-              ]
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
                 "sts:*"
               ],
               "Resource": [
-                { "Fn::GetAtt" : [ "AutoTagMasterRole", "Arn" ] }
+                {
+                  "Fn::Sub": "arn:aws:iam::*:role/gorillastack/autotag/master/${AWS::StackName}"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    "AutoTagMasterRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "AutoTag",
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] }
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/gorillastack/autotag/master/"
+      }
+    },
+
+    "AutoTagMasterPolicy" : {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "AutoTagMasterPolicy",
+        "Roles": [ { "Ref": "AutoTagMasterRole" } ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "autoscaling:CreateOrUpdateTags",
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeTags",
+                "datapipeline:AddTags",
+                "dynamodb:ListTagsOfResource",
+                "dynamodb:TagResource",
+                "ec2:CreateTags",
+                "ec2:DescribeInstances",
+                "elasticloadbalancing:AddTags",
+                "elasticmapreduce:AddTags",
+                "rds:AddTagsToResource",
+                "opsworks:DescribeInstances",
+                "opsworks:DescribeStacks",
+                "opsworks:ListTags",
+                "opsworks:TagResource",
+                "s3:GetBucketTagging",
+                "s3:PutBucketTagging"
+              ],
+              "Resource": [
+                "*"
               ]
             }
           ]

@@ -21,8 +21,8 @@ _.each(cloudTrailEventConfig, function(value, key) {
 
 describe('AutoTag index file', () => {
   beforeAll(() => {
-    requireMock('../lib/aws_cloud_trail_listener', AwsCloudTrailListenerMock);
-    sut = require('../lib/autotag.js');
+    requireMock('../lib/aws_cloud_trail_log_listener', AwsCloudTrailListenerMock);
+    sut = require('../lib/autotag_log.js');
   });
 
   afterAll(() => {

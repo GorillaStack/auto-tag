@@ -1,6 +1,6 @@
-import SutClass from '../lib/aws_cloud_trail_listener';
+import SutClass from '../lib/aws_cloud_trail_log_listener';
 
-describe('AwsCloudTrailListener', () => {
+describe('AwsCloudTrailLogListener', () => {
   const applicationContext = {
     succeed: () => {},
 

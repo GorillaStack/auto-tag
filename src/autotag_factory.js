@@ -12,11 +12,24 @@ import AutotagRDSWorker from './workers/autotag_rds_worker.js';
 import AutotagEMRWorker from './workers/autotag_emr_worker.js';
 import AutotagDataPipelineWorker from './workers/autotag_data_pipeline_worker.js';
 import AutotagSecurityGroupWorker from './workers/autotag_security_group_worker.js';
-import CONFIG from './cloud_trail_event_config';
+import AutotagAMIWorker from './workers/autotag_ami_worker.js';
+import AutotagSnapshotWorker from './workers/autotag_snapshot_worker.js';
+import AutotagEIPWorker from './workers/autotag_eip_worker.js';
+import AutotagDynamoDBWorker from './workers/autotag_dynamodb_worker.js';
+import AutotagENIWorker from './workers/autotag_eni_worker.js';
+import AutotagNATGatewayWorker from './workers/autotag_nat_gateway_worker.js';
+import AutotagNetworkACLWorker from './workers/autotag_network_acl_worker.js';
+import AutotagRouteTableWorker from './workers/autotag_route_table_worker.js';
+import AutotagVPCPeeringWorker from './workers/autotag_vpc_peering_worker.js';
+import AutotagVPNWorker from './workers/autotag_vpn_worker.js';
+import AutotagOpsworksWorker from './workers/autotag_opsworks_worker.js';
+import CONFIG from './cloud_trail_event_config.js';
 
 let AutotagFactory = {
 
   createWorker: (event, enabledServices, s3Region) => {
+    let _this = this;
+
     // Match Service
     let matchingService = _.findWhere(CONFIG, { targetEventName: event.eventName });
 
@@ -75,6 +88,74 @@ let AutotagFactory = {
 
       case CONFIG.SECURITY_GROUP.name:
         return new AutotagSecurityGroupWorker(event, s3Region);
+        break;
+
+      case CONFIG.AMI_CREATE.name:
+        return new AutotagAMIWorker(event, s3Region);
+        break;
+
+      case CONFIG.AMI_COPY.name:
+        return new AutotagAMIWorker(event, s3Region);
+        break;
+
+      case CONFIG.AMI_IMPORT.name:
+        return new AutotagAMIWorker(event, s3Region);
+        break;
+
+      case CONFIG.AMI_REGISTER.name:
+        return new AutotagAMIWorker(event, s3Region);
+        break;
+
+      case CONFIG.SNAPSHOT_CREATE.name:
+        return new AutotagSnapshotWorker(event, s3Region);
+        break;
+
+      case CONFIG.SNAPSHOT_COPY.name:
+        return new AutotagSnapshotWorker(event, s3Region);
+        break;
+
+      case CONFIG.SNAPSHOT_IMPORT.name:
+        return new AutotagSnapshotWorker(event, s3Region);
+        break;
+
+      case CONFIG.ELASTIC_IP.name:
+        return new AutotagEIPWorker(event, s3Region);
+        break;
+
+      case CONFIG.DYNAMO_DB.name:
+        return new AutotagDynamoDBWorker(event, s3Region);
+        break;
+
+      case CONFIG.ENI.name:
+        return new AutotagENIWorker(event, s3Region);
+        break;
+
+      case CONFIG.NAT_GATEWAY.name:
+        return new AutotagNATGatewayWorker(event, s3Region);
+        break;
+
+      case CONFIG.NETWORK_ACL.name:
+        return new AutotagNetworkACLWorker(event, s3Region);
+        break;
+
+      case CONFIG.ROUTE_TABLE.name:
+        return new AutotagRouteTableWorker(event, s3Region);
+        break;
+
+      case CONFIG.VPC_PEERING.name:
+        return new AutotagVPCPeeringWorker(event, s3Region);
+        break;
+
+      case CONFIG.VPN.name:
+        return new AutotagVPNWorker(event, s3Region);
+        break;
+
+      case CONFIG.OPS_WORKS.name:
+        return new AutotagOpsworksWorker(event, s3Region);
+        break;
+
+      case CONFIG.OPS_WORKS_CLONE.name:
+        return new AutotagOpsworksWorker(event, s3Region);
         break;
 
       // Default: worker that does nothing

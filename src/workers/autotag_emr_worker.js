@@ -3,6 +3,7 @@ import AWS from 'aws-sdk';
 import co from 'co';
 
 class AutotagEMRWorker extends AutotagDefaultWorker {
+
   /* tagResource
   ** method: tagResource
   **
@@ -12,7 +13,7 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
   tagResource() {
     let _this = this;
     return co(function* () {
-      let roleName = yield _this.getRoleName();
+      let roleName = _this.roleName;
       let credentials = yield _this.assumeRole(roleName);
       _this.emr = new AWS.EMR({
         region: _this.event.awsRegion,
@@ -26,11 +27,12 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
     let _this = this;
     return new Promise((resolve, reject) => {
       try {
+        let emrClusterId = _this.getEMRClusterId();
+        let tags = _this.getAutotagTags();
+        _this.logTags(emrClusterId, tags, _this.constructor.name);
         _this.emr.addTags({
-          ResourceId: _this.getEMRClusterId(),
-          Tags: [
-            _this.getAutotagPair()
-          ]
+          ResourceId: emrClusterId,
+          Tags: tags
         }, (err, res) => {
           if (err) {
             reject(err);
@@ -47,6 +49,7 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
   getEMRClusterId() {
     return this.event.responseElements.jobFlowId;
   }
+
 };
 
 export default AutotagEMRWorker;
