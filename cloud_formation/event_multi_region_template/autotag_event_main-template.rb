@@ -52,7 +52,7 @@ template do
       S3Key: ref('CodeS3Path'),
     },
     Description: 'Auto Tag (Open Source by GorillaStack)',
-    FunctionName: aws_stack_name,
+    FunctionName: 'AutoTag',
     Handler: sub('autotag_event.handler'),
     Role: get_att('AutoTagExecutionRole', 'Arn'),
     Runtime: 'nodejs6.10',
