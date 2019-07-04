@@ -30,7 +30,8 @@
               "elasticmapreduce.amazonaws.com",
               "opsworks.amazonaws.com",
               "rds.amazonaws.com",
-              "s3.amazonaws.com"
+              "s3.amazonaws.com",
+              "iam.amazonaws.com"
             ],
             "eventName": [
               "AllocateAddress",
@@ -61,7 +62,9 @@
               "ImportSnapshot",
               "RegisterImage",
               "RunInstances",
-              "RunJobFlow"
+              "RunJobFlow",
+              "CreateUser",
+              "CreateRole"
             ]
           }
         },

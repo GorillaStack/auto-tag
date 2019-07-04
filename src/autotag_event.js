@@ -30,7 +30,9 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailEventListener.VPC_PEERING.name,
     AwsCloudTrailEventListener.VPN.name,
     AwsCloudTrailEventListener.OPS_WORKS.name,
-    AwsCloudTrailEventListener.OPS_WORKS_CLONE.name
+    AwsCloudTrailEventListener.OPS_WORKS_CLONE.name,    
+    AwsCloudTrailEventListener.IAM_USER.name,
+    AwsCloudTrailEventListener.IAM_ROLE.name
   ];
 
   let listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);

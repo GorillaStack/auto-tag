@@ -172,5 +172,17 @@ export default {
     targetEventName: 'CloneStack',
     targetEventType: null,
     targetEventSource: null
+  },
+  IAM_USER: {
+    name: 'iam_user',
+    targetEventName: 'CreateUser',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  IAM_ROLE: {
+    name: 'iam_role',
+    targetEventName: 'CreateRole',
+    targetEventType: null,
+    targetEventSource: null
   }
 };
