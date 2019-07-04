@@ -46,7 +46,8 @@ class AutotagDefaultWorker {
     return new Promise((resolve, reject) => {
       try {
         AWS.config.region = 'us-east-1';
-        AWS.config.logger = console;
+        //Uncomment line below for additional logging
+        //AWS.config.logger = console;
         let sts = new AWS.STS();
         sts.assumeRole({
           RoleArn: _this.getAssumeRoleArn(roleName),

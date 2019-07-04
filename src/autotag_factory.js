@@ -10,6 +10,7 @@ import AutotagSubnetWorker from './workers/autotag_subnet_worker.js';
 import AutotagInternetGatewayWorker from './workers/autotag_internet_gateway_worker.js';
 import AutotagRDSWorker from './workers/autotag_rds_worker.js';
 import AutotagEMRWorker from './workers/autotag_emr_worker.js';
+import AutotagDataPipelineWorker from './workers/autotag_data_pipeline_worker.js';
 import AutotagSecurityGroupWorker from './workers/autotag_security_group_worker.js';
 import AutotagAMIWorker from './workers/autotag_ami_worker.js';
 import AutotagSnapshotWorker from './workers/autotag_snapshot_worker.js';
@@ -21,6 +22,7 @@ import AutotagNetworkACLWorker from './workers/autotag_network_acl_worker.js';
 import AutotagRouteTableWorker from './workers/autotag_route_table_worker.js';
 import AutotagVPCPeeringWorker from './workers/autotag_vpc_peering_worker.js';
 import AutotagVPNWorker from './workers/autotag_vpn_worker.js';
+import AutotagOpsworksWorker from './workers/autotag_opsworks_worker.js';
 import AutotagIAMUserWorker from './workers/autotag_iam_user_worker.js';
 import AutotagIAMRoleWorker from './workers/autotag_iam_role_worker.js';
 import CONFIG from './cloud_trail_event_config.js';
@@ -81,6 +83,10 @@ let AutotagFactory = {
       case CONFIG.EMR.name:
         return new AutotagEMRWorker(event, s3Region);
         break;
+
+      case CONFIG.DATA_PIPELINE.name:
+        return new AutotagDataPipelineWorker(event, s3Region);
+        break;        
 
       case CONFIG.SECURITY_GROUP.name:
         return new AutotagSecurityGroupWorker(event, s3Region);
@@ -144,6 +150,14 @@ let AutotagFactory = {
 
       case CONFIG.VPN.name:
         return new AutotagVPNWorker(event, s3Region);
+        break;
+
+      case CONFIG.OPS_WORKS.name:
+        return new AutotagOpsworksWorker(event, s3Region);
+        break;
+
+      case CONFIG.OPS_WORKS_CLONE.name:
+        return new AutotagOpsworksWorker(event, s3Region);
         break;
 
       case CONFIG.IAM_USER.name:

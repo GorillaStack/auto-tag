@@ -65,6 +65,12 @@ export default {
     targetEventType: null,
     targetEventSource: null
   },
+  DATA_PIPELINE: {
+    name: 'dataPipeline',
+    targetEventName: 'CreatePipeline',
+    targetEventType: null,
+    targetEventSource: null
+  },
   AMI_CREATE: {
     name: 'ami',
     targetEventName: 'CreateImage',
@@ -152,6 +158,18 @@ export default {
   VPN: {
     name: 'vpn',
     targetEventName: 'CreateVpnConnection',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  OPS_WORKS: {
+    name: 'opsworks',
+    targetEventName: 'CreateStack',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  OPS_WORKS_CLONE: {
+    name: 'opsworks',
+    targetEventName: 'CloneStack',
     targetEventType: null,
     targetEventSource: null
   },
