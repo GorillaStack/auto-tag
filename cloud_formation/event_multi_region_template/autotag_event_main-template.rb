@@ -161,6 +161,7 @@ template do
             rds:AddTagsToResource
             s3:GetBucketTagging
             s3:PutBucketTagging
+            iam:Tag*
           ],
           Resource: ['*']
         }
