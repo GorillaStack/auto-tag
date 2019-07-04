@@ -12,7 +12,7 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailEventListener.INTERNET_GATEWAY.name,
     AwsCloudTrailEventListener.RDS.name,
     AwsCloudTrailEventListener.EMR.name,
-    AwsCloudTrailEventListener.DATA_PIPELINE.name,    
+    AwsCloudTrailEventListener.DATA_PIPELINE.name,
     AwsCloudTrailEventListener.SECURITY_GROUP.name,
     AwsCloudTrailEventListener.AMI_CREATE.name,
     AwsCloudTrailEventListener.AMI_COPY.name,

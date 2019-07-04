@@ -86,7 +86,7 @@ let AutotagFactory = {
 
       case CONFIG.DATA_PIPELINE.name:
         return new AutotagDataPipelineWorker(event, s3Region);
-        break;        
+        break;
 
       case CONFIG.SECURITY_GROUP.name:
         return new AutotagSecurityGroupWorker(event, s3Region);
