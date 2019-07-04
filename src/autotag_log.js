@@ -13,7 +13,6 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailLogListener.INTERNET_GATEWAY.name,
     AwsCloudTrailLogListener.RDS.name,
     AwsCloudTrailLogListener.EMR.name,
-    AwsCloudTrailLogListener.DATA_PIPELINE.name,
     AwsCloudTrailLogListener.SECURITY_GROUP.name,
     AwsCloudTrailLogListener.AMI_CREATE.name,
     AwsCloudTrailLogListener.AMI_COPY.name,
@@ -30,9 +29,8 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailLogListener.ROUTE_TABLE.name,
     AwsCloudTrailLogListener.VPC_PEERING.name,
     AwsCloudTrailLogListener.VPN.name,
-    AwsCloudTrailLogListener.OPS_WORKS.name,
-    AwsCloudTrailLogListener.OPS_WORKS_CLONE.name
-    
+    AwsCloudTrailEventListener.IAM_USER.name,
+    AwsCloudTrailEventListener.IAM_ROLE.name
   ];
 
   let listener = new AwsCloudTrailLogListener(cloudtrailEvent, context, enabledListeners);

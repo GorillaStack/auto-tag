@@ -65,12 +65,6 @@ export default {
     targetEventType: null,
     targetEventSource: null
   },
-  DATA_PIPELINE: {
-    name: 'dataPipeline',
-    targetEventName: 'CreatePipeline',
-    targetEventType: null,
-    targetEventSource: null
-  },
   AMI_CREATE: {
     name: 'ami',
     targetEventName: 'CreateImage',
@@ -161,15 +155,15 @@ export default {
     targetEventType: null,
     targetEventSource: null
   },
-  OPS_WORKS: {
-    name: 'opsworks',
-    targetEventName: 'CreateStack',
+  IAM_USER: {
+    name: 'iam_user',
+    targetEventName: 'CreateUser',
     targetEventType: null,
     targetEventSource: null
   },
-  OPS_WORKS_CLONE: {
-    name: 'opsworks',
-    targetEventName: 'CloneStack',
+  IAM_ROLE: {
+    name: 'iam_role',
+    targetEventName: 'CreateRole',
     targetEventType: null,
     targetEventSource: null
   }
