@@ -104,7 +104,7 @@ __CloudFormation Main Stack__ Deploy this stack first in a single "master" regio
 1. Click the CloudFormation drop-down button and select "Stack"
 1. Click the blue "Create Stack" button
 1. Select "Upload a template to Amazon S3", choosing the `autotag_event_main-template.json` that was created in the ruby template builder step, then click the blue "Next" button
-1. Name the stack "AutoTag" - this cannot be changed
+1. Name the stack "AutoTag" - this name can be anything
 1. In the parameter section:
 * CodeS3Bucket: The name of the code bucket in S3
 * CodeS3Path: This is the version of AutoTag that you wish to deploy.  The default value `autotag-0.3.0.zip` is the latest version
