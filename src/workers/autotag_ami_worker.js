@@ -1,6 +1,5 @@
 import AutotagEC2Worker from './autotag_ec2_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
 
 class AutotagAMIWorker extends AutotagEC2Worker {
 
@@ -10,17 +9,14 @@ class AutotagAMIWorker extends AutotagEC2Worker {
   ** Tag the newly created AMI
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.ec2 = new AWS.EC2({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagEC2Resources([_this.getImageId()]);
+  async tagResource() {
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
+    this.ec2 = new AWS.EC2({
+      region: this.event.awsRegion,
+      credentials: credentials
     });
+    await this.tagEC2Resources([this.getImageId()]);
   }
 
   getImageId() {

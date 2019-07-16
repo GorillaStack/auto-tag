@@ -35,7 +35,6 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailEventListener.IAM_ROLE.name
   ];
 
-  let listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);
+  const listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);
   return listener.execute();
-
 };

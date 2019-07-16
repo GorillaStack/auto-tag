@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import find from 'lodash/find';
 import AutotagDefaultWorker from './workers/autotag_default_worker.js';
 import AutotagEC2Worker from './workers/autotag_ec2_worker.js';
 import AutotagS3Worker from './workers/autotag_s3_worker.js';
@@ -27,17 +27,14 @@ import AutotagIAMUserWorker from './workers/autotag_iam_user_worker.js';
 import AutotagIAMRoleWorker from './workers/autotag_iam_role_worker.js';
 import CONFIG from './cloud_trail_event_config.js';
 
-let AutotagFactory = {
-
+const AutotagFactory = {
   createWorker: (event, enabledServices, s3Region) => {
-    let _this = this;
-
     // Match Service
-    let matchingService = _.findWhere(CONFIG, { targetEventName: event.eventName });
+    let matchingService = find(CONFIG, { targetEventName: event.eventName });
 
     // Check service found and service enabled
-    if (_.isUndefined(matchingService)
-      || !_.contains(enabledServices, matchingService.name)) {
+    if (typeof matchingService !== 'undefined'
+      || enabledServices.indexOf(matchingService.name) < 0) {
       // Default: worker that does nothing
       return new AutotagDefaultWorker(event, s3Region);
     }

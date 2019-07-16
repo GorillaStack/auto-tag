@@ -1,8 +1,7 @@
 import 'babel-polyfill';
 import zlib from 'zlib';
 import AWS from 'aws-sdk';
-import co from 'co';
-import _ from 'underscore';
+import each from 'lodash/each';
 import constants from './cloud_trail_event_config';
 import AutotagFactory from './autotag_factory';
 import SETTINGS from "./autotag_settings";
@@ -16,23 +15,15 @@ class AwsCloudTrailLogListener {
     this.s3Region = '';
   }
 
-  execute() {
-    let _this = this;
-    return co(function* () {
-      _this.logDebugS3();
-      let logFiles = yield _this.retrieveLogFileDetails();
-      yield _this.collectAndPerformAutotagActionsFromLogFile(logFiles);
-    })
-
-    .then(() => {
-      _this.applicationContext.succeed();
-    }, (e) => {
-      _this.handleError(e);
-    })
-
-    .catch((e) => {
-      _this.handleError(e);
-    });
+  async execute() {
+    try {
+      this.logDebugS3();
+      let logFiles = await this.retrieveLogFileDetails();
+      await this.collectAndPerformAutotagActionsFromLogFile(logFiles);
+      this.applicationContext.succeed();
+    } catch {
+      this.handleError(e);
+    }
   }
 
   handleError(err) {
@@ -71,45 +62,37 @@ class AwsCloudTrailLogListener {
     });
   }
 
-  collectAndPerformAutotagActionsFromLogFile(logFiles) {
-    let _this = this;
-    return co(function* () {
-      for (let i in logFiles) {
-        let log = yield _this.retrieveAndUnGzipLog(logFiles[i]);
-        for (let j in log.Records) {
-          let event = log.Records[j];
-          // try/catch here so that if one record fails it will attempt
-          // to finish the rest of the records from the log file
-          try {
-            if (!event.errorCode && !event.errorMessage) {
-              let worker = AutotagFactory.createWorker(event, _this.enabledServices, _this.s3Region);
-              yield worker.tagResource();
-              if (worker.constructor.name !== 'AutotagDefaultWorker') { _this.logDebugEvent(event) }
-            }
-          } catch (err) {
-            console.log("CloudTrail Event Failed (" + event.eventName + "): " + JSON.stringify(event, null, 2));
-            console.log("S3 Object Event (" + event.eventName + "): " + JSON.stringify(_this.cloudtrailEvent, null, 2));
-            console.log(err);
-            console.log(err.stack);
+  async collectAndPerformAutotagActionsFromLogFile(logFiles) {
+    for (const logFileName of logFiles) {
+      let log = await this.retrieveAndUnGzipLog(logFileName);
+      for (const event of log.Records) {
+        // try/catch here so that if one record fails it will attempt
+        // to finish the rest of the records from the log file
+        try {
+          if (!event.errorCode && !event.errorMessage) {
+            let worker = AutotagFactory.createWorker(event, this.enabledServices, this.s3Region);
+            await worker.tagResource();
+            if (worker.constructor.name !== 'AutotagDefaultWorker') { this.logDebugEvent(event) }
           }
+        } catch (err) {
+          console.log("CloudTrail Event Failed (" + event.eventName + "): " + JSON.stringify(event, null, 2));
+          console.log("S3 Object Event (" + event.eventName + "): " + JSON.stringify(this.cloudtrailEvent, null, 2));
+          console.log(err);
+          console.log(err.stack);
         }
       }
-    });
+    }
   }
 
-  retrieveAndUnGzipLog(logFile) {
-    let _this = this;
-    return co(function* () {
-      let gzippedContent = yield _this.retrieveFromS3(logFile);
-      let rawContent = yield _this.unGzipContent(gzippedContent);
-      return rawContent;
-    });
+  async retrieveAndUnGzipLog(logFile) {
+    let gzippedContent = await this.retrieveFromS3(logFile);
+    let rawContent = await this.unGzipContent(gzippedContent);
+    return rawContent;
   }
 
   retrieveFromS3(logFile) {
-    let _this = this;
     return new Promise((resolve, reject) => {
-      _this.s3.getObject(logFile, (err, res) => {
+      this.s3.getObject(logFile, (err, res) => {
         if (err) {
           reject(err);
         } else {
@@ -120,7 +103,6 @@ class AwsCloudTrailLogListener {
   }
 
   unGzipContent(zippedContent) {
-    let _this = this;
     return new Promise((resolve, reject) => {
       zlib.gunzip(zippedContent, (err, result) => {
         if (err) {
@@ -149,7 +131,7 @@ const dumpRecord = (event) => {
   console.log(event.s3);
 };
 
-_.each(constants, function(value, key) {
+each(constants, (value, key) => {
   AwsCloudTrailLogListener[key] = value;
 });
 
