@@ -23,6 +23,8 @@ import AutotagRouteTableWorker from './workers/autotag_route_table_worker.js';
 import AutotagVPCPeeringWorker from './workers/autotag_vpc_peering_worker.js';
 import AutotagVPNWorker from './workers/autotag_vpn_worker.js';
 import AutotagOpsworksWorker from './workers/autotag_opsworks_worker.js';
+import AutotagIAMUserWorker from './workers/autotag_iam_user_worker.js';
+import AutotagIAMRoleWorker from './workers/autotag_iam_role_worker.js';
 import CONFIG from './cloud_trail_event_config.js';
 
 let AutotagFactory = {
@@ -156,6 +158,14 @@ let AutotagFactory = {
 
       case CONFIG.OPS_WORKS_CLONE.name:
         return new AutotagOpsworksWorker(event, s3Region);
+        break;
+
+      case CONFIG.IAM_USER.name:
+        return new AutotagIAMUserWorker(event, s3Region);
+        break;
+
+      case CONFIG.IAM_ROLE.name:
+        return new AutotagIAMRoleWorker(event, s3Region);
         break;
 
       // Default: worker that does nothing
