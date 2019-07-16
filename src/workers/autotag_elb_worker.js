@@ -1,9 +1,7 @@
-import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-
+import AutotagDefaultWorker from './autotag_default_worker';
 
 class AutotagELBWorker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
@@ -11,36 +9,35 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   */
 
   async tagResource() {
-    let roleName = this.roleName;
-    let credentials = await this.assumeRole(roleName);
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
     if (this.isLoadBalancerV2()) {
       this.elbv2 = new AWS.ELBv2({
         region: this.event.awsRegion,
-        credentials: credentials
+        credentials
       });
       await this.tagELBV2Resource();
     } else {
       this.elb = new AWS.ELB({
         region: this.event.awsRegion,
-        credentials: credentials
+        credentials
       });
       await this.tagELBResource();
     }
   }
 
   tagELBResource() {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        let loadBalancerName = _this.getLoadBalancerName();
-        let tags = _this.getAutotagTags();
-        _this.logTags(loadBalancerName, tags, _this.constructor.name);
-        _this.elb.addTags({
+        const loadBalancerName = this.getLoadBalancerName();
+        const tags = this.getAutotagTags();
+        this.logTags(loadBalancerName, tags, this.constructor.name);
+        this.elb.addTags({
           LoadBalancerNames: [
             loadBalancerName
           ],
           Tags: tags
-        }, (err, res) => {
+        }, err => {
           if (err) {
             reject(err);
           } else {
@@ -54,18 +51,17 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   }
 
   tagELBV2Resource() {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        let loadBalancerARN = _this.getLoadBalancerARN();
-        let tags = _this.getAutotagTags();
-        _this.logTags(loadBalancerARN, tags, _this.constructor.name);
-        _this.elbv2.addTags({
+        const loadBalancerARN = this.getLoadBalancerARN();
+        const tags = this.getAutotagTags();
+        this.logTags(loadBalancerARN, tags, this.constructor.name);
+        this.elbv2.addTags({
           ResourceArns: [
             loadBalancerARN
           ],
           Tags: tags
-        }, (err, res) => {
+        }, err => {
           if (err) {
             reject(err);
           } else {
@@ -79,7 +75,9 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   }
 
   isLoadBalancerV2() {
-    return (!!this.event.responseElements.loadBalancers && this.event.responseElements.loadBalancers[0] && this.event.responseElements.loadBalancers[0].loadBalancerArn);
+    return !!this.event.responseElements.loadBalancers
+      && this.event.responseElements.loadBalancers[0]
+      && this.event.responseElements.loadBalancers[0].loadBalancerArn;
   }
 
   getLoadBalancerARN() {
@@ -89,7 +87,6 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   getLoadBalancerName() {
     return this.event.requestParameters.loadBalancerName;
   }
-
 }
 
 export default AutotagELBWorker;

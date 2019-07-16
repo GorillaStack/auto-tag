@@ -3,6 +3,7 @@ lib/
 node_modules/
 example_events/
 stackset_templates/
+.eslintcache
 *.bak
 *.sh
 *.zip

@@ -1,8 +1,7 @@
-import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
+import AutotagDefaultWorker from './autotag_default_worker';
 
 class AutotagAutoscaleWorker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
@@ -14,7 +13,7 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
     const credentials = await this.assumeRole(roleName);
     this.autoscaling = new AWS.AutoScaling({
       region: this.event.awsRegion,
-      credentials: credentials
+      credentials
     });
     await this.tagAutoscalingGroup();
   }
@@ -22,11 +21,11 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
   tagAutoscalingGroup() {
     return new Promise((resolve, reject) => {
       try {
-        let tagConfig = this.getAutoscalingTags(this.getAutotagTags());
+        const tagConfig = this.getAutoscalingTags(this.getAutotagTags());
         this.logTags(this.getAutoscalingGroupName(), tagConfig, this.constructor.name);
         this.autoscaling.createOrUpdateTags({
           Tags: tagConfig
-        }, (err, res) => {
+        }, err => {
           if (err) {
             reject(err);
           } else {
@@ -44,15 +43,12 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
   }
 
   getAutoscalingTags(tagConfig) {
-    tagConfig.forEach(tag => {
-      tag.ResourceId = _this.getAutoscalingGroupName();
-      tag.ResourceType = 'auto-scaling-group';
-      tag.PropagateAtLaunch = false;
-    });
-
-    return tagConfig;
+    return tagConfig.map(tag => Object.assign({}, tag, {
+      ResourceId: this.getAutoscalingGroupName(),
+      ResourceType: 'auto-scaling-group',
+      PropagateAtLaunch: false,
+    }));
   }
-
-};
+}
 
 export default AutotagAutoscaleWorker;

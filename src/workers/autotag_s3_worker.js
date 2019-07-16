@@ -1,6 +1,5 @@
-import AutotagDefaultWorker, {AUTOTAG_TAG_NAME_PREFIX} from './autotag_default_worker';
 import AWS from 'aws-sdk';
-
+import AutotagDefaultWorker, { AUTOTAG_TAG_NAME_PREFIX } from './autotag_default_worker';
 
 const TAG_NAME_PREFIXES_TO_FILTER = [
   'aws:'
@@ -9,7 +8,6 @@ const TAG_NAME_PREFIXES_TO_FILTER = [
 const AUTOTAG_TAG_PREFIX = 'at_';
 
 class AutotagS3Worker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
@@ -17,26 +15,25 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   */
 
   async tagResource() {
-    let roleName = this.roleName;
-    let credentials = await this.assumeRole(roleName);
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
     this.s3 = new AWS.S3({
       region: this.event.awsRegion,
-      credentials: credentials
+      credentials
     });
     let tags = await this.getExistingTags();
-    // remove anything starting with the prefix before we add our tags to make this idempotent 
-    tags = tags.filter( (tag) => (!tag.Key.startsWith(AUTOTAG_TAG_NAME_PREFIX)) );
+    // remove anything starting with the prefix before we add our tags to make this idempotent
+    tags = tags.filter(tag => (!tag.Key.startsWith(AUTOTAG_TAG_NAME_PREFIX)));
     tags = tags.concat(this.getAutotagTags());
     tags = this.touchReservedTagKeys(tags);
     await this.setTags(tags);
   }
 
   getExistingTags() {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        _this.s3.getBucketTagging({
-          Bucket: _this.getBucketName(),
+        this.s3.getBucketTagging({
+          Bucket: this.getBucketName(),
         }, (err, res) => {
           if (err) {
             if (err.code === 'NoSuchTagSet' && err.statusCode === 404) {
@@ -63,9 +60,11 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   * cases where the S3 bucket was created by CloudFormation.
   */
   touchReservedTagKeys(tags) {
-    return tags.map((tag) => {
+    return tags.map(tag => {
       if (this.tagKeyIsReserved(tag)) {
-        tag.Key = AUTOTAG_TAG_PREFIX + tag.Key;
+        return Object.assign({}, tag, {
+          Key: AUTOTAG_TAG_PREFIX + tag.Key,
+        });
       }
 
       return tag;
@@ -78,19 +77,16 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   * check if tag key is reserved
   */
   tagKeyIsReserved(tag) {
-    return TAG_NAME_PREFIXES_TO_FILTER.some((prefix) => {
-      return tag.Key.startsWith(prefix);
-    });
+    return TAG_NAME_PREFIXES_TO_FILTER.some(prefix => tag.Key.startsWith(prefix));
   }
 
   setTags(tags) {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        let bucketName = _this.getBucketName();
-        _this.logTags(bucketName, tags, _this.constructor.name);
-        _this.s3.putBucketTagging({
-          Bucket: _this.getBucketName(),
+        const bucketName = this.getBucketName();
+        this.logTags(bucketName, tags, this.constructor.name);
+        this.s3.putBucketTagging({
+          Bucket: this.getBucketName(),
           Tagging: {
             TagSet: tags
           }
@@ -110,7 +106,6 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   getBucketName() {
     return this.event.requestParameters.bucketName;
   }
-
 }
 
 export default AutotagS3Worker;

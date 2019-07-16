@@ -1,13 +1,12 @@
-import SutClass from '../lib/aws_cloud_trail_log_listener';
+import SutClass from '../src/aws_cloud_trail_log_listener';
 
 describe('AwsCloudTrailLogListener', () => {
   const applicationContext = {
     succeed: () => {},
-
     fail: () => {}
   };
 
-  let cloudtrailObject = {
+  const cloudtrailObject = {
     Records: [
       {
         s3: {
@@ -32,11 +31,11 @@ describe('AwsCloudTrailLogListener', () => {
     ]
   };
 
-  describe('retrieveLogFileDetails', function() {
-    it('should retrieve a list of objects with the bucket name and bucket fileKey', function(done) {
-      var listener = new SutClass(cloudtrailObject, applicationContext);
+  describe('retrieveLogFileDetails', () => {
+    it('should retrieve a list of objects with the bucket name and bucket fileKey', done => {
+      const listener = new SutClass(cloudtrailObject, applicationContext);
       listener.retrieveLogFileDetails().then(
-        (result) => {
+        result => {
           expect(result).toEqual([
             { Bucket: 'bucket1', Key: 'fileKey1.json.gz' },
             { Bucket: 'bucket2', Key: 'fileKey2.json.gz' }
@@ -44,7 +43,7 @@ describe('AwsCloudTrailLogListener', () => {
           done();
         },
 
-        (err) => {
+        err => {
           expect(err).toBe(undefined);
           done();
         }

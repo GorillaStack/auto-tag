@@ -1,7 +1,7 @@
 import AwsCloudTrailLogListener from './aws_cloud_trail_log_listener';
-import AwsCloudTrailEventListener from "./aws_cloud_trail_event_listener";
+import AwsCloudTrailEventListener from './aws_cloud_trail_event_listener';
 
-export function handler(cloudtrailEvent, context) {
+export const handler = (cloudtrailEvent, context) => {
   const enabledListeners = [
     AwsCloudTrailLogListener.EC2.name,
     AwsCloudTrailLogListener.S3.name,
@@ -38,5 +38,6 @@ export function handler(cloudtrailEvent, context) {
 
   const listener = new AwsCloudTrailLogListener(cloudtrailEvent, context, enabledListeners);
   return listener.execute();
-
 };
+
+export default handler;

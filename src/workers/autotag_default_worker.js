@@ -1,9 +1,10 @@
 import * as AWS from 'aws-sdk';
 import SETTINGS from '../autotag_settings';
+
 export const AUTOTAG_TAG_NAME_PREFIX = 'AutoTag_';
-const AUTOTAG_CREATOR_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'Creator';
-const AUTOTAG_CREATE_TIME_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'CreateTime';
-const AUTOTAG_INVOKED_BY_TAG_NAME = AUTOTAG_TAG_NAME_PREFIX + 'InvokedBy';
+const AUTOTAG_CREATOR_TAG_NAME = `${AUTOTAG_TAG_NAME_PREFIX}Creator`;
+const AUTOTAG_CREATE_TIME_TAG_NAME = `${AUTOTAG_TAG_NAME_PREFIX}CreateTime`;
+const AUTOTAG_INVOKED_BY_TAG_NAME = `${AUTOTAG_TAG_NAME_PREFIX}InvokedBy`;
 const ROLE_PREFIX = 'arn:aws:iam::';
 const ROLE_SUFFIX = ':role';
 // const MASTER_ROLE_NAME = 'AutoTagMasterRole';
@@ -41,22 +42,21 @@ class AutotagDefaultWorker {
   }
 
   assumeRole(roleName) {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
         AWS.config.region = 'us-east-1';
         //Uncomment line below for AWS STS logging
         //AWS.config.logger = console;
-        let sts = new AWS.STS();
+        const sts = new AWS.STS();
         sts.assumeRole({
-          RoleArn: _this.getAssumeRoleArn(roleName),
-          RoleSessionName: 'AutoTag-' + (new Date()).getTime(),
+          RoleArn: this.getAssumeRoleArn(roleName),
+          RoleSessionName: `AutoTag-${(new Date()).getTime()}`,
           DurationSeconds: 900
         }, (err, data) => {
           if (err) {
             reject(err);
           } else {
-            let credentials = {
+            const credentials = {
               accessKeyId: data.Credentials.AccessKeyId,
               secretAccessKey: data.Credentials.SecretAccessKey,
               sessionToken: data.Credentials.SessionToken
@@ -71,20 +71,20 @@ class AutotagDefaultWorker {
   }
 
   dumpEventInfo() {
-    console.log('Event Name: ' + this.event.eventName);
-    console.log('Event Type: ' + this.event.eventType);
-    console.log('Event Source: ' + this.event.eventSource);
-    console.log('AWS Region: ' + this.event.awsRegion);
+    console.log(`Event Name: ${this.event.eventName}`);
+    console.log(`Event Type: ${this.event.eventType}`);
+    console.log(`Event Source: ${this.event.eventSource}`);
+    console.log(`AWS Region: ${this.event.awsRegion}`);
     console.log('---');
   }
 
   logTags(resources, tags, worker) {
-    console.log("\nTagging " + resources + ' with the ' + worker + ' in ' + this.getAccountId() + ' (' + this.s3Region + "):");
+    console.log(`\nTagging ${resources} with the ${worker} in ${this.getAccountId()} (${this.s3Region}):`);
     console.log(JSON.stringify(tags, null, 2));
   }
 
   getAssumeRoleArn(roleName) {
-    let accountId = this.getAccountId();
+    const accountId = this.getAccountId();
     return ROLE_PREFIX + accountId + ROLE_SUFFIX + MASTER_ROLE_PATH + roleName;
   }
 
@@ -100,7 +100,7 @@ class AutotagDefaultWorker {
       ...(this.getInvokedByTagValue() && SETTINGS.AutoTags.InvokedBy ? [this.getAutotagInvokedByTag()] : []),
     ];
   }
-  
+
   getAutotagCreatorTag() {
     return {
       Key: this.getCreatorTagName(),
@@ -129,10 +129,10 @@ class AutotagDefaultWorker {
   getCreatorTagValue() {
     // prefer the this field for Federated Users
     // because it is the actual aws user and isn't truncated
-    if (this.event.userIdentity.type === 'FederatedUser' &&
-        this.event.userIdentity.sessionContext &&
-        this.event.userIdentity.sessionContext.sessionIssuer &&
-        this.event.userIdentity.sessionContext.sessionIssuer.arn) {
+    if (this.event.userIdentity.type === 'FederatedUser'
+        && this.event.userIdentity.sessionContext
+        && this.event.userIdentity.sessionContext.sessionIssuer
+        && this.event.userIdentity.sessionContext.sessionIssuer.arn) {
       return this.event.userIdentity.sessionContext.sessionIssuer.arn;
     } else {
       return this.event.userIdentity.arn;
@@ -154,7 +154,6 @@ class AutotagDefaultWorker {
   getInvokedByTagValue() {
     return (this.event.userIdentity && this.event.userIdentity.invokedBy ? this.event.userIdentity.invokedBy : false);
   }
-
-};
+}
 
 export default AutotagDefaultWorker;

@@ -1,13 +1,12 @@
-import 'babel-polyfill';
 import each from 'lodash/each';
 import constants from './cloud_trail_event_config';
 import AutotagFactory from './autotag_factory';
-import SETTINGS from './autotag_settings.js';
+import SETTINGS from './autotag_settings';
 
 class AwsCloudTrailEventListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
     if (cloudtrailEvent.Records) {
-      this.cloudtrailEvent = JSON.parse(cloudtrailEvent.Records[0]['Sns']['Message']);
+      this.cloudtrailEvent = JSON.parse(cloudtrailEvent.Records[0].Sns.Message);
     } else {
       this.cloudtrailEvent = cloudtrailEvent;
     }
@@ -37,7 +36,7 @@ class AwsCloudTrailEventListener {
 
   handleError(err) {
     if (SETTINGS.DebugLoggingOnFailure) {
-      console.log("CloudTrail Event - Failed: " + JSON.stringify(this.cloudtrailEvent, null, 2));
+      console.log(`CloudTrail Event - Failed: ${JSON.stringify(this.cloudtrailEvent, null, 2)}`);
     }
     console.log(err);
     console.log(err.stack);
@@ -46,20 +45,19 @@ class AwsCloudTrailEventListener {
 
   logDebug() {
     if (SETTINGS.DebugLogging) {
-      console.log("CloudTrail Event - Debug: " + JSON.stringify(this.cloudtrailEvent, null, 2));
+      console.log(`CloudTrail Event - Debug: ${JSON.stringify(this.cloudtrailEvent, null, 2)}`);
     }
   }
 
   logEventError(event) {
     if (event.errorCode) {
-      console.log("CloudTrail Event - Error Code: " + event.errorCode);
+      console.log(`CloudTrail Event - Error Code: ${event.errorCode}`);
     }
     if (event.errorMessage) {
-      console.log("CloudTrail Event - Error Message: " + event.errorMessage);
+      console.log(`CloudTrail Event - Error Message: ${event.errorMessage}`);
     }
   }
-
-};
+}
 
 each(constants, (value, key) => {
   AwsCloudTrailEventListener[key] = value;

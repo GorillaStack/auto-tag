@@ -1,9 +1,8 @@
-import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
+import AutotagDefaultWorker from './autotag_default_worker';
 
 
 class AutotagRDSWorker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
@@ -11,26 +10,25 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
   */
 
   async tagResource() {
-    let roleName = this.roleName;
-    let credentials = await this.assumeRole(roleName);
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
     this.rds = new AWS.RDS({
       region: this.event.awsRegion,
-      credentials: credentials
+      credentials
     });
     await this.tagRDSResource();
   }
 
   tagRDSResource() {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        let dbArn = _this.getDbARN();
-        let tags = _this.getAutotagTags();
-        _this.logTags(dbArn, tags, _this.constructor.name);
-        _this.rds.addTagsToResource({
+        const dbArn = this.getDbARN();
+        const tags = this.getAutotagTags();
+        this.logTags(dbArn, tags, this.constructor.name);
+        this.rds.addTagsToResource({
           ResourceName: dbArn,
           Tags: tags
-        }, (err, res) => {
+        }, err => {
           if (err) {
             reject(err);
           } else {
@@ -56,7 +54,7 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
     if (this.event.responseElements.dBInstanceArn) {
       return this.event.responseElements.dBInstanceArn;
     } else {
-      let arnComponents = ['arn', 'aws', 'rds'];
+      const arnComponents = ['arn', 'aws', 'rds'];
       arnComponents.push(this.event.awsRegion);
       arnComponents.push(this.getAccountId());
       arnComponents.push('db');
@@ -64,8 +62,6 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
       return arnComponents.join(':');
     }
   }
-
-
 }
 
 export default AutotagRDSWorker;

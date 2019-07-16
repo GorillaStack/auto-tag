@@ -1,0 +1,12 @@
+{
+  "extends": "../.eslintrc",
+  "rules": {
+    "import/no-extraneous-dependencies": [ 2, { "devDependencies": true } ],
+    "max-len": ["error", { "code": 150, "ignorePattern": "^import ", "ignoreRegExpLiterals": true }],
+    "no-param-reassign": [ 2, { "props": false } ],
+    "no-return-assign": "off"
+  },
+  "env": {
+    "jasmine": true
+  }
+}

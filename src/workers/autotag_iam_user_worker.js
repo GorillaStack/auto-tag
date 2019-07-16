@@ -1,10 +1,7 @@
-import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-
-import _ from 'underscore';
+import AutotagDefaultWorker from './autotag_default_worker';
 
 class AutotagIAMUserWorker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
@@ -12,26 +9,25 @@ class AutotagIAMUserWorker extends AutotagDefaultWorker {
   */
 
   async tagResource() {
-    let roleName = this.roleName;
-    let credentials = await this.assumeRole(roleName);
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
     this.iam = new AWS.IAM({
       region: this.event.awsRegion,
-      credentials: credentials
+      credentials
     });
     await this.tagIamUserResource();
   }
 
   tagIamUserResource() {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        let userName = _this.getUserName();
-        let tags = _this.getAutotagTags();
-        _this.logTags(userName, tags, _this.constructor.name);
-        _this.iam.tagUser({
+        const userName = this.getUserName();
+        const tags = this.getAutotagTags();
+        this.logTags(userName, tags, this.constructor.name);
+        this.iam.tagUser({
           UserName: userName,
           Tags: tags
-        }, (err, res) => {
+        }, err => {
           if (err) {
             reject(err);
           } else {

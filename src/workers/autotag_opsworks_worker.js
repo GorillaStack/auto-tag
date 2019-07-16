@@ -1,10 +1,7 @@
-import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-
-import _ from "underscore";
+import AutotagDefaultWorker from './autotag_default_worker';
 
 class AutotagOpsworksWorker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
@@ -12,27 +9,26 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
   */
 
   async tagResource() {
-    let roleName = this.roleName;
-    let credentials = await this.assumeRole(roleName);
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
     this.opsworks = new AWS.OpsWorks({
       region: this.event.awsRegion,
-      credentials: credentials
+      credentials
     });
-    let opsworksStacks = await this.getOpsworksStacks();
-    let opsworksStackArn = this.getOpsworksStackArn(opsworksStacks);
+    const opsworksStacks = await this.getOpsworksStacks();
+    const opsworksStackArn = this.getOpsworksStackArn(opsworksStacks);
     await this.tagOpsworksStack(opsworksStackArn);
   }
 
   tagOpsworksStack(opsworksStackArn) {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        let tagConfig = _this.getOpsworksTags(_this.getAutotagTags());
-        _this.logTags(opsworksStackArn, tagConfig, _this.constructor.name);
-        _this.opsworks.tagResource({
+        const tagConfig = this.getOpsworksTags(this.getAutotagTags());
+        this.logTags(opsworksStackArn, tagConfig, this.constructor.name);
+        this.opsworks.tagResource({
           ResourceArn: opsworksStackArn,
           Tags: tagConfig
-        }, (err, res) => {
+        }, err => {
           if (err) {
             reject(err);
           } else {
@@ -46,20 +42,19 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
   }
 
   getOpsworksStackArn(opsworksStacks) {
-    let opsworksStack = _.where(opsworksStacks.Stacks, {Name: this.event.requestParameters.name});
-    let stackCount = opsworksStack.length;
+    const opsworksStack = opsworksStacks.Stacks.find(stack => stack.Name === this.event.requestParameters.name);
+    const stackCount = opsworksStack.length;
     if (stackCount === 1) {
       return opsworksStack[0].Arn;
     } else {
-      throw('Error: Found (' + stackCount + ') OpsWorks Stacks when searching by name.');
+      throw Error(`Error: Found (${stackCount}) OpsWorks Stacks when searching by name.`);
     }
   }
 
   getOpsworksStacks() {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        _this.opsworks.describeStacks({
+        this.opsworks.describeStacks({
         }, (err, res) => {
           if (err) {
             reject(err);
@@ -74,18 +69,16 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
   }
 
   getOpsworksTags(tagConfig) {
-    let _this = this;
-    let tags = {};
-    tagConfig.forEach (function(tag) {
+    const tags = {};
+    tagConfig.forEach(tag => {
       // exclude the 'create time' and the 'invoked by' tags
       // otherwise OpsWorks will propagate it to the instances
-      if (![_this.getCreateTimeTagName(), _this.getInvokedByTagName()].includes(tag.Key)) {
+      if (![this.getCreateTimeTagName(), this.getInvokedByTagName()].includes(tag.Key)) {
         tags[tag.Key] = tag.Value;
       }
     });
     return tags;
   }
-
 }
 
 export default AutotagOpsworksWorker;

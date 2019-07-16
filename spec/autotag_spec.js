@@ -1,11 +1,11 @@
 import requireMock from 'mock-require';
-import cloudTrailEventConfig from '../lib/cloud_trail_event_config';
-import _ from 'underscore';
+import each from 'lodash/each';
+import cloudTrailEventConfig from '../src/cloud_trail_event_config';
 
 let sut = null;
 let constructorFlag = false;
 let executeFlag = false;
-let AwsCloudTrailListenerMock = class {
+const AwsCloudTrailListenerMock = class {
   constructor() {
     constructorFlag = true;
   }
@@ -15,25 +15,19 @@ let AwsCloudTrailListenerMock = class {
   }
 };
 
-_.each(cloudTrailEventConfig, function(value, key) {
+each(cloudTrailEventConfig, (value, key) => {
   AwsCloudTrailListenerMock[key] = value;
 });
 
 describe('AutoTag index file', () => {
   beforeAll(() => {
-    requireMock('../lib/aws_cloud_trail_log_listener', AwsCloudTrailListenerMock);
-    sut = require('../lib/autotag_log.js');
+    requireMock('../src/aws_cloud_trail_log_listener', AwsCloudTrailListenerMock);
+    sut = require('../src/autotag_log.js'); // eslint-disable-line global-require
   });
 
   afterAll(() => {
     requireMock.stopAll();
   });
-
-  const applicationContext = {
-    succeed: () => {},
-
-    fail: () => {}
-  };
 
   it('should define a function called "handler"', () => {
     expect(sut).not.toBeUndefined();
@@ -45,11 +39,11 @@ describe('AutoTag index file', () => {
       sut.handler();
     });
 
-    it('creates an "AwsCloudTrailListener" object', function() {
+    it('creates an "AwsCloudTrailListener" object', () => {
       expect(constructorFlag).toBeTruthy();
     });
 
-    it('invokes a method "execute"', function() {
+    it('invokes a method "execute"', () => {
       expect(executeFlag).toBeTruthy();
     });
   });
