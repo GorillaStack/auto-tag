@@ -1,6 +1,10 @@
 import AwsCloudTrailEventListener from './aws_cloud_trail_event_listener';
 
-export function handler(cloudtrailEvent, context) {
+if (!global._babelPolyfill) {
+  require('babel-polyfill'); // eslint-disable-line global-require
+}
+
+export const handler = async (cloudtrailEvent, context) => {
   const enabledListeners = [
     AwsCloudTrailEventListener.EC2.name,
     AwsCloudTrailEventListener.S3.name,
@@ -30,12 +34,13 @@ export function handler(cloudtrailEvent, context) {
     AwsCloudTrailEventListener.VPC_PEERING.name,
     AwsCloudTrailEventListener.VPN.name,
     AwsCloudTrailEventListener.OPS_WORKS.name,
-    AwsCloudTrailEventListener.OPS_WORKS_CLONE.name,    
+    AwsCloudTrailEventListener.OPS_WORKS_CLONE.name,
     AwsCloudTrailEventListener.IAM_USER.name,
     AwsCloudTrailEventListener.IAM_ROLE.name
   ];
 
-  let listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);
-  return listener.execute();
-
+  const listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);
+  await listener.execute();
 };
+
+export default handler;

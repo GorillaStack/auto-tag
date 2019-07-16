@@ -6,14 +6,14 @@ describe('autotag_s3_worker', () => {
   });
 
   describe('touchReservedTagKeys', () => {
-    let tagsForCFCreatedBucketBefore = [
+    const tagsForCFCreatedBucketBefore = [
       { Key: 'aws:cloudformation:logical_id', Value: 'This API is so illogical.' },
       { Key: 'aws:cloudformation:physical_id', Value: 'Sucks to be you S3 API user.' },
       { Key: 'shouldnttouch', Value: 'Should be identity function.' },
       { Key: 'asw:shouldnttouch', Value: 'Should be identity function.' }
     ];
 
-    let tagsForCFCreatedBucketAfter = [
+    const tagsForCFCreatedBucketAfter = [
       { Key: 'at_aws:cloudformation:logical_id', Value: 'This API is so illogical.' },
       { Key: 'at_aws:cloudformation:physical_id', Value: 'Sucks to be you S3 API user.' },
       { Key: 'shouldnttouch', Value: 'Should be identity function.' },

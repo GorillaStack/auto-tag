@@ -1,40 +1,33 @@
-import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
-import _ from 'underscore';
+import AutotagDefaultWorker from './autotag_default_worker';
 
 class AutotagDataPipelineWorker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
   ** Tag DataPipeline and associated resources
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.dataPipeline = new AWS.DataPipeline({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagDataPipelineResource();
+  async tagResource() {
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
+    this.dataPipeline = new AWS.DataPipeline({
+      region: this.event.awsRegion,
+      credentials
     });
+    await this.tagDataPipelineResource();
   }
 
   tagDataPipelineResource() {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-    let dataPipelineId = _this.getDataPipelineId();
-    let tags = _this.getAutotagTags();
-    _this.logTags(dataPipelineId, tags, _this.constructor.name);
-    _this.dataPipeline.addTags({
+        const dataPipelineId = this.getDataPipelineId();
+        const tags = this.getAutotagTags();
+        this.logTags(dataPipelineId, tags, this.constructor.name);
+        this.dataPipeline.addTags({
           pipelineId: dataPipelineId,
-          tags: tags
-        }, (err, res) => {
+          tags
+        }, err => {
           if (err) {
             reject(err);
           } else {
@@ -53,9 +46,9 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
 
   // datapipeline will only accept lower case key names
   getAutotagTags() {
-    let tags = [];
-    _.each(super.getAutotagTags(), function(val) {
-      let tag = {
+    const tags = [];
+    super.getAutotagTags().forEach(val => {
+      const tag = {
         key: val.Key,
         value: val.Value
       };
@@ -63,7 +56,6 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
     });
     return tags;
   }
-
-};
+}
 
 export default AutotagDataPipelineWorker;

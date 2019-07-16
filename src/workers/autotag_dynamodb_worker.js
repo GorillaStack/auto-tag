@@ -1,38 +1,31 @@
-import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
-import _ from "underscore";
+import AutotagDefaultWorker from './autotag_default_worker';
 
 class AutotagDynamoDBWorker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
   ** Tag DynamoDB table resources
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.dynamoDB = new AWS.DynamoDB({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagDynamoDBResource();
+  async tagResource() {
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
+    this.dynamoDB = new AWS.DynamoDB({
+      region: this.event.awsRegion,
+      credentials
     });
+    await this.tagDynamoDBResource();
   }
 
   tagDynamoDBResource(retries = 9) {
-    let _this = this;
-    let retryInterval = 5000;
-    let tags = _this.getAutotagTags();
-    let delay = (time) => (result) => new Promise(resolve => setTimeout(() => resolve(result), time));
-    let dynamoDBTableARN = _this.getDynamoDBTableARN();
+    const retryInterval = 5000;
+    const tags = this.getAutotagTags();
+    const delay = time => result => new Promise(resolve => setTimeout(() => resolve(result), time));
+    const dynamoDBTableARN = this.getDynamoDBTableARN();
     return new Promise((resolve, reject) => {
       try {
-        _this.dynamoDB.listTagsOfResource({
+        this.dynamoDB.listTagsOfResource({
           ResourceArn: dynamoDBTableARN
         }, (err, res) => {
           if (err) {
@@ -44,28 +37,26 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
       } catch (e) {
         reject(e);
       }
-    }).then(function (res) {
-      if (_this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
-        console.log('Waiting for any tags from the resource creation to appear on the resource, retrying tagging in ' + (retryInterval/1000) + ' secs...');
-        return new Promise((resolve) => resolve(res)).then(delay(retryInterval)).then(result => {
-          return result
-        });
+    }).then(res => {
+      if (this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
+        console.log(`Waiting for any tags from the resource creation to appear on the resource, retrying tagging in ${retryInterval / 1000} secs...`);
+        return new Promise(resolve => resolve(res)).then(delay(retryInterval)).then(result => result);
       } else {
         return res;
       }
-    }).then(function (res) {
+    }).then(res => {
       // if we tag before cloudformation has a chance to apply its tags our tags
       // will be lost, so wait a few times before giving up and tagging anyways
-      if (_this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
-        return _this.tagDynamoDBResource(retries - 1);
+      if (this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
+        return this.tagDynamoDBResource(retries - 1);
       } else {
         return new Promise((resolve, reject) => {
           try {
-            _this.logTags(dynamoDBTableARN, tags, _this.constructor.name);
-            _this.dynamoDB.tagResource({
+            this.logTags(dynamoDBTableARN, tags, this.constructor.name);
+            this.dynamoDB.tagResource({
               ResourceArn: dynamoDBTableARN,
               Tags: tags
-            }, (err, res) => {
+            }, err => {
               if (err) {
                 reject(err);
               } else {
@@ -75,7 +66,7 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
           } catch (e) {
             reject(e);
           }
-        })
+        });
       }
     });
   }
@@ -83,14 +74,14 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
   cloudFormationDynamoDBTagsWaiter(res, tags, retries) {
     // only apply this waiter if the resource was created
     // otherwise it will slow down the s3 log based tagging too much
-    let createTime = new Date(this.getCreateTimeTagValue());
-    let createTimeNowDiff = (((Date.now() - createTime) / 1000) / 60);
+    const createTime = new Date(this.getCreateTimeTagValue());
+    const createTimeNowDiff = (((Date.now() - createTime) / 1000) / 60);
     return (
-      retries > 0 &&
-      res.Tags.length === 0 &&
-      createTimeNowDiff <= 4 && // minutes
-      this.isInvokedByCloudFormation()
-    )
+      retries > 0
+      && res.Tags.length === 0
+      && createTimeNowDiff <= 4 // minutes
+      && this.isInvokedByCloudFormation()
+    );
   }
 
   isInvokedByCloudFormation() {
@@ -104,7 +95,6 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
   getDynamoDBTableARN() {
     return this.event.responseElements.tableDescription.tableArn;
   }
-
-};
+}
 
 export default AutotagDynamoDBWorker;

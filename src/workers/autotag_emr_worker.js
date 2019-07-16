@@ -1,39 +1,33 @@
-import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
+import AutotagDefaultWorker from './autotag_default_worker';
 
 class AutotagEMRWorker extends AutotagDefaultWorker {
-
   /* tagResource
   ** method: tagResource
   **
   ** Tag EMR cluster and associated resources
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.emr = new AWS.EMR({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagEMRResource();
+  async tagResource() {
+    const roleName = this.roleName;
+    const credentials = await this.assumeRole(roleName);
+    this.emr = new AWS.EMR({
+      region: this.event.awsRegion,
+      credentials
     });
+    await this.tagEMRResource();
   }
 
   tagEMRResource() {
-    let _this = this;
     return new Promise((resolve, reject) => {
       try {
-        let emrClusterId = _this.getEMRClusterId();
-        let tags = _this.getAutotagTags();
-        _this.logTags(emrClusterId, tags, _this.constructor.name);
-        _this.emr.addTags({
+        const emrClusterId = this.getEMRClusterId();
+        const tags = this.getAutotagTags();
+        this.logTags(emrClusterId, tags, this.constructor.name);
+        this.emr.addTags({
           ResourceId: emrClusterId,
           Tags: tags
-        }, (err, res) => {
+        }, err => {
           if (err) {
             reject(err);
           } else {
@@ -49,7 +43,6 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
   getEMRClusterId() {
     return this.event.responseElements.jobFlowId;
   }
-
-};
+}
 
 export default AutotagEMRWorker;

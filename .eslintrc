@@ -1,0 +1,29 @@
+{
+  "extends": "airbnb-base",
+  "parserOptions": {
+    "ecmaVersion": 2017
+  },
+  "plugins": [
+    "import"
+  ],
+  "rules": {
+    "no-await-in-loop": "off",
+    "no-return-await": "warn",
+    "arrow-parens": ["error", "as-needed"],
+    "func-names": "off",
+    "max-len": ["error", { "code": 150, "ignorePattern": "^import |^export ", "ignoreRegExpLiterals": true }],
+    "no-underscore-dangle": 0,
+    "no-useless-escape": 0,
+    "no-warning-comments": ["error", { "terms": ["todo", "fixme"], "location": "anywhere" }],
+    "no-else-return": 0,
+    "comma-dangle": "off",
+    "function-paren-newline": "off",
+    "class-methods-use-this": "off",
+    "prefer-destructuring": "off",
+    "no-restricted-syntax": "off",
+    "spaced-comment": "off",
+    "object-curly-newline": "off",
+    "no-plusplus": "off",
+    "indent": "off"
+  }
+}

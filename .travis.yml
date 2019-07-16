@@ -1,6 +1,13 @@
 language: node_js
 node_js:
-  - "5"
+  - "8"
+install:
+  # Install deps
+  - npm install
 before_script:
-  - npm install grunt-cli -g
-  - grunt run:babel-once
+  # Want to be sure that the ecmascript transpiles
+  - npm run compile
+script:
+  # Check style and then run tests
+  - npm run lint
+  - npm test
