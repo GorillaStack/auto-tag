@@ -1,6 +1,10 @@
 import AwsCloudTrailEventListener from './aws_cloud_trail_event_listener';
 
-export default function handler(cloudtrailEvent, context) {
+if (!global._babelPolyfill) {
+  require('babel-polyfill'); // eslint-disable-line global-require
+}
+
+export const handler = async (cloudtrailEvent, context) => {
   const enabledListeners = [
     AwsCloudTrailEventListener.EC2.name,
     AwsCloudTrailEventListener.S3.name,
@@ -36,5 +40,7 @@ export default function handler(cloudtrailEvent, context) {
   ];
 
   const listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);
-  return listener.execute();
-}
+  await listener.execute();
+};
+
+export default handler;

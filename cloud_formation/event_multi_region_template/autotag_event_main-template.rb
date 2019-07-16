@@ -19,7 +19,7 @@ template do
   parameter 'CodeS3Path',
             Description: 'The path of the code zip file in the code bucket in S3.',
             Type: 'String',
-            Default: 'autotag-0.9.0.zip'
+            Default: 'autotag-0.5.0.zip'
 
   parameter 'AutoTagDebugLogging',
             Description: 'Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.',

@@ -1,4 +1,5 @@
 import find from 'lodash/find';
+import values from 'lodash/values';
 import AutotagDefaultWorker from './workers/autotag_default_worker';
 import AutotagEC2Worker from './workers/autotag_ec2_worker';
 import AutotagS3Worker from './workers/autotag_s3_worker';
@@ -30,10 +31,10 @@ import CONFIG from './cloud_trail_event_config';
 const AutotagFactory = {
   createWorker: (event, enabledServices, s3Region) => {
     // Match Service
-    const matchingService = find(CONFIG, { targetEventName: event.eventName });
+    const matchingService = find(values(CONFIG), { targetEventName: event.eventName });
 
     // Check service found and service enabled
-    if (typeof matchingService !== 'undefined'
+    if (typeof matchingService === 'undefined'
       || enabledServices.indexOf(matchingService.name) < 0) {
       // Default: worker that does nothing
       return new AutotagDefaultWorker(event, s3Region);

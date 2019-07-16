@@ -1,4 +1,3 @@
-require('babel-polyfill').default;
 var autotag = require('./lib/autotag.js');
 var sampleData = require('./sample_data.js');
 

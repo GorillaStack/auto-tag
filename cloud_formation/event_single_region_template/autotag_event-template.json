@@ -12,7 +12,7 @@
     "CodeS3Path" : {
       "Description" : "The path of the code zip file in the code bucket in S3",
       "Type" : "String",
-      "Default" : "autotag-0.3.0.zip"
+      "Default" : "autotag-0.5.0.zip"
     },
     "AutoTagDebugLogging": {
       "Description": "Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.",

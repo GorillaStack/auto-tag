@@ -21,8 +21,8 @@ each(cloudTrailEventConfig, (value, key) => {
 
 describe('AutoTag index file', () => {
   beforeAll(() => {
-    requireMock('../src/aws_cloud_trail_log_listener', AwsCloudTrailListenerMock);
-    sut = require('../src/autotag_log.js'); // eslint-disable-line global-require
+    requireMock('../src/aws_cloud_trail_event_listener', AwsCloudTrailListenerMock);
+    sut = require('../src/autotag_event.js'); // eslint-disable-line global-require
   });
 
   afterAll(() => {
@@ -34,7 +34,7 @@ describe('AutoTag index file', () => {
     expect(sut.handler).not.toBeUndefined();
   });
 
-  describe('autotag.handler', () => {
+  describe('autotag_event.handler', () => {
     beforeAll(() => {
       sut.handler();
     });
