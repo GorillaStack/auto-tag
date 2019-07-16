@@ -1,6 +1,6 @@
 import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from  'co';
+
 import _ from "underscore";
 
 class AutotagOpsworksWorker extends AutotagDefaultWorker {
@@ -11,19 +11,16 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
   ** Add tag to OpsWorks stack
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.opsworks = new AWS.OpsWorks({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      let opsworksStacks = yield _this.getOpsworksStacks();
-      let opsworksStackArn = _this.getOpsworksStackArn(opsworksStacks);
-      yield _this.tagOpsworksStack(opsworksStackArn);
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    this.opsworks = new AWS.OpsWorks({
+      region: this.event.awsRegion,
+      credentials: credentials
     });
+    let opsworksStacks = await this.getOpsworksStacks();
+    let opsworksStackArn = this.getOpsworksStackArn(opsworksStacks);
+    await this.tagOpsworksStack(opsworksStackArn);
   }
 
   tagOpsworksStack(opsworksStackArn) {
@@ -89,6 +86,6 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
     return tags;
   }
 
-};
+}
 
 export default AutotagOpsworksWorker;

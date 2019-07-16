@@ -1,6 +1,6 @@
 import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
+
 
 class AutotagRDSWorker extends AutotagDefaultWorker {
 
@@ -10,17 +10,14 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
   ** Tag the newly created RDS instance
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.rds = new AWS.RDS({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagRDSResource();
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    this.rds = new AWS.RDS({
+      region: this.event.awsRegion,
+      credentials: credentials
     });
+    await this.tagRDSResource();
   }
 
   tagRDSResource() {
@@ -69,6 +66,6 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
   }
 
 
-};
+}
 
 export default AutotagRDSWorker;

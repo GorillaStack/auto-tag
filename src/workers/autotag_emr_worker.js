@@ -1,6 +1,6 @@
 import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
+
 
 class AutotagEMRWorker extends AutotagDefaultWorker {
 
@@ -10,17 +10,14 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
   ** Tag EMR cluster and associated resources
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.emr = new AWS.EMR({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagEMRResource();
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    this.emr = new AWS.EMR({
+      region: this.event.awsRegion,
+      credentials: credentials
     });
+    await this.tagEMRResource();
   }
 
   tagEMRResource() {
@@ -50,6 +47,6 @@ class AutotagEMRWorker extends AutotagDefaultWorker {
     return this.event.responseElements.jobFlowId;
   }
 
-};
+}
 
 export default AutotagEMRWorker;

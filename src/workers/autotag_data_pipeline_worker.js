@@ -1,6 +1,5 @@
 import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
 import _ from 'underscore';
 
 class AutotagDataPipelineWorker extends AutotagDefaultWorker {
@@ -11,17 +10,14 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
   ** Tag DataPipeline and associated resources
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.dataPipeline = new AWS.DataPipeline({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagDataPipelineResource();
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    this.dataPipeline = new AWS.DataPipeline({
+      region: this.event.awsRegion,
+      credentials: credentials
     });
+    await this.tagDataPipelineResource();
   }
 
   tagDataPipelineResource() {
@@ -63,7 +59,6 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
     });
     return tags;
   }
-
-};
+}
 
 export default AutotagDataPipelineWorker;

@@ -1,6 +1,6 @@
 import AutotagDefaultWorker, {AUTOTAG_TAG_NAME_PREFIX} from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
+
 
 const TAG_NAME_PREFIXES_TO_FILTER = [
   'aws:'
@@ -16,22 +16,19 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   ** Tag the S3 bucket with the relevant information
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.s3 = new AWS.S3({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      let tags = yield _this.getExistingTags();
-      // remove anything starting with the prefix before we add our tags to make this idempotent 
-      tags = tags.filter( (tag) => (!tag.Key.startsWith(AUTOTAG_TAG_NAME_PREFIX)) );
-      tags = tags.concat(_this.getAutotagTags());
-      tags = _this.touchReservedTagKeys(tags);
-      yield _this.setTags(tags);
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    this.s3 = new AWS.S3({
+      region: this.event.awsRegion,
+      credentials: credentials
     });
+    let tags = await this.getExistingTags();
+    // remove anything starting with the prefix before we add our tags to make this idempotent 
+    tags = tags.filter( (tag) => (!tag.Key.startsWith(AUTOTAG_TAG_NAME_PREFIX)) );
+    tags = tags.concat(this.getAutotagTags());
+    tags = this.touchReservedTagKeys(tags);
+    await this.setTags(tags);
   }
 
   getExistingTags() {
@@ -114,6 +111,6 @@ class AutotagS3Worker extends AutotagDefaultWorker {
     return this.event.requestParameters.bucketName;
   }
 
-};
+}
 
 export default AutotagS3Worker;

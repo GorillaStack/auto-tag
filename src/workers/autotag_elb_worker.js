@@ -1,6 +1,6 @@
 import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
+
 
 class AutotagELBWorker extends AutotagDefaultWorker {
 
@@ -10,25 +10,22 @@ class AutotagELBWorker extends AutotagDefaultWorker {
   ** Add tag to elastic load balancer V1 & V2
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      if (_this.isLoadBalancerV2()) {
-        _this.elbv2 = new AWS.ELBv2({
-          region: _this.event.awsRegion,
-          credentials: credentials
-        });
-        yield _this.tagELBV2Resource();
-      } else {
-        _this.elb = new AWS.ELB({
-          region: _this.event.awsRegion,
-          credentials: credentials
-        });
-        yield _this.tagELBResource();
-      }
-    });
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    if (this.isLoadBalancerV2()) {
+      this.elbv2 = new AWS.ELBv2({
+        region: this.event.awsRegion,
+        credentials: credentials
+      });
+      await this.tagELBV2Resource();
+    } else {
+      this.elb = new AWS.ELB({
+        region: this.event.awsRegion,
+        credentials: credentials
+      });
+      await this.tagELBResource();
+    }
   }
 
   tagELBResource() {
@@ -93,6 +90,6 @@ class AutotagELBWorker extends AutotagDefaultWorker {
     return this.event.requestParameters.loadBalancerName;
   }
 
-};
+}
 
 export default AutotagELBWorker;

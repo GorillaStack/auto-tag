@@ -1,6 +1,6 @@
 import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
+
 import _ from 'underscore';
 
 class AutotagIAMUserWorker extends AutotagDefaultWorker {
@@ -11,17 +11,14 @@ class AutotagIAMUserWorker extends AutotagDefaultWorker {
   ** Tag the newly created IAM User
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.iam = new AWS.IAM({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagIamUserResource();
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    this.iam = new AWS.IAM({
+      region: this.event.awsRegion,
+      credentials: credentials
     });
+    await this.tagIamUserResource();
   }
 
   tagIamUserResource() {
@@ -50,6 +47,6 @@ class AutotagIAMUserWorker extends AutotagDefaultWorker {
   getUserName() {
     return this.event.responseElements.user.userName;
   }
-};
+}
 
 export default AutotagIAMUserWorker;

@@ -1,7 +1,5 @@
 import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
-import _ from 'underscore';
 
 class AutotagEC2Worker extends AutotagDefaultWorker {
 
@@ -11,78 +9,74 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   ** Tag the ec2 instance
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      let parentTags, opsworksInstances;
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    let parentTags, opsworksInstances;
 
-      _this.ec2 = new AWS.EC2({
-        region: _this.event.awsRegion,
+    this.ec2 = new AWS.EC2({
+      region: this.event.awsRegion,
+      credentials: credentials
+    });
+
+    if (this.isInvokedByAutoscaling()) {
+      this.autoscaling = new AWS.AutoScaling({
+        region: this.event.awsRegion,
         credentials: credentials
       });
-      
-      if (_this.isInvokedByAutoscaling()) {
-        _this.autoscaling = new AWS.AutoScaling({
-          region: _this.event.awsRegion,
-          credentials: credentials
-        });
-        let autoscalingInstances = yield _this.getAutoscalingInstances();
-        let autoscalingGroupName = autoscalingInstances.AutoScalingInstances[0].AutoScalingGroupName;
-        parentTags = yield _this.getAutoscalingGroupTags(autoscalingGroupName);
-      }
+      const autoscalingInstances = await this.getAutoscalingInstances();
+      const autoscalingGroupName = autoscalingInstances.AutoScalingInstances[0].AutoScalingGroupName;
+      parentTags = await this.getAutoscalingGroupTags(autoscalingGroupName);
+    }
 
-      if (_this.isInvokedByOpsworks()) {
-        _this.opsworks = new AWS.OpsWorks({
-          region: _this.event.awsRegion,
-          credentials: credentials
-        });
-        try {
-          opsworksInstances = yield _this.getOpsworksInstances();
-        } catch(err) {
-          if (err.name === 'ResourceNotFoundException') {
-            // switch to the main OpsWorks region and try again
-            _this.opsworks = new AWS.OpsWorks({
-              region: 'us-east-1',
-              credentials: credentials
-            });
-            opsworksInstances = yield _this.getOpsworksInstances();
-          } else {
-            throw(err);
-          }
-        }
-        let opsworksStackId = opsworksInstances.Instances[0].StackId;
-        parentTags = yield _this.getOpsworksStackTags(opsworksStackId);
-      }
-      
-      let instances = yield _this.getEC2Instances();
-      for (let instance of instances.Reservations[0].Instances) {
-        let resourceIds = [];
-        resourceIds.push(instance.InstanceId);
-        resourceIds = resourceIds.concat(_this.getVolumeIds(instance));
-        resourceIds = resourceIds.concat(_this.getEniIds(instance));
-        if (_this.isInvokedByAutoscaling() || _this.isInvokedByOpsworks()) {
-          if (parentTags.Tags && (Object.keys(parentTags.Tags).length > 0 || parentTags.Tags.length > 0)) {
-            yield _this.tagEC2Resources(resourceIds, parentTags);
-          } else {
-            console.log('Error: Parent Tags not found or empty!');
-            yield _this.tagEC2Resources(resourceIds);
-          }
+    if (this.isInvokedByOpsworks()) {
+      this.opsworks = new AWS.OpsWorks({
+        region: this.event.awsRegion,
+        credentials: credentials
+      });
+      try {
+        opsworksInstances = await this.getOpsworksInstances();
+      } catch(err) {
+        if (err.name === 'ResourceNotFoundException') {
+          // switch to the main OpsWorks region and try again
+          this.opsworks = new AWS.OpsWorks({
+            region: 'us-east-1',
+            credentials: credentials
+          });
+          opsworksInstances = await this.getOpsworksInstances();
         } else {
-          yield _this.tagEC2Resources(resourceIds);
+          throw(err);
         }
       }
-    });
+      const opsworksStackId = opsworksInstances.Instances[0].StackId;
+      parentTags = await this.getOpsworksStackTags(opsworksStackId);
+    }
+
+    const instances = await this.getEC2Instances();
+    for (let instance of instances.Reservations[0].Instances) {
+      let resourceIds = [];
+      resourceIds.push(instance.InstanceId);
+      resourceIds = resourceIds.concat(this.getVolumeIds(instance));
+      resourceIds = resourceIds.concat(this.getEniIds(instance));
+      if (this.isInvokedByAutoscaling() || this.isInvokedByOpsworks()) {
+        if (parentTags.Tags && (Object.keys(parentTags.Tags).length > 0 || parentTags.Tags.length > 0)) {
+          await this.tagEC2Resources(resourceIds, parentTags);
+        } else {
+          console.log('Error: Parent Tags not found or empty!');
+          await this.tagEC2Resources(resourceIds);
+        }
+      } else {
+        await this.tagEC2Resources(resourceIds);
+      }
+    }
   }
 
   tagEC2Resources(resources, parentTags = {Tags: []}) {
-    let _this = this;
     return new Promise((resolve, reject) => {
-      let tags = _this.getEC2Tags(parentTags);
-      _this.logTags(resources, tags, _this.constructor.name);
+      let tags = this.getEC2Tags(parentTags);
+      this.logTags(resources, tags, this.constructor.name);
       try {
-        _this.ec2.createTags({
+        this.ec2.createTags({
           Resources: resources,
           Tags: tags
         }, (err, res) => {
@@ -99,11 +93,10 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   }
 
   getEC2Instances() {
-    let _this = this;
     return new Promise((resolve, reject) => {
-      let instanceIds = _this.getInstanceIds(_this.getInstances());
+      let instanceIds = this.getInstanceIds(this.getInstances());
       try {
-        _this.ec2.describeInstances({
+        this.ec2.describeInstances({
           InstanceIds: instanceIds
         }, (err, res) => {
           if (err) {
@@ -119,11 +112,10 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   }
 
   getAutoscalingInstances() {
-    let _this = this;
     return new Promise((resolve, reject) => {
-      let instanceIds = _this.getInstanceIds(_this.getInstances());
+      const instanceIds = this.getInstanceIds(this.getInstances());
       try {
-        _this.autoscaling.describeAutoScalingInstances({
+        this.autoscaling.describeAutoScalingInstances({
           InstanceIds: instanceIds
         }, (err, res) => {
           if (err) {
@@ -139,18 +131,17 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   }
 
   getAutoscalingGroupTags(autoScalingGroupName, retries = 9) {
-    let _this = this;
     let retryInterval = 5000;
     let delay = (time) => (result) => new Promise(resolve => setTimeout(() => resolve(result), time));
     return new Promise((resolve, reject) => {
       try {
-        _this.autoscaling.describeTags({
+        this.autoscaling.describeTags({
           Filters: [{
             Name: 'auto-scaling-group',
             Values: [autoScalingGroupName]
           }, {
             Name: 'key',
-            Values: [_this.getCreatorTagName()]
+            Values: [this.getCreatorTagName()]
           }]
         }, (err, res) => {
           if (err) {
@@ -166,15 +157,15 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     // added some retries to wait for the creator tag to exist before giving up
     // and tagging the instance with the root arn
     }).then(function (res) {
-      if (_this.autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
-        console.log(_this.getCreatorTagName() + ' tag on parent AutoScaling group not found, retrying in ' + (retryInterval/1000) + ' secs...');
+      if (this.autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
+        console.log(this.getCreatorTagName() + ' tag on parent AutoScaling group not found, retrying in ' + (retryInterval/1000) + ' secs...');
         return new Promise((resolve) => resolve(res)).then(delay(retryInterval)).then(result => {return result});
       } else {
         return res;
       }
     }).then(function (res) {
-      if (_this.autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
-        return _this.getAutoscalingGroupTags(autoScalingGroupName, retries - 1);
+      if (this.autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
+        return this.getAutoscalingGroupTags(autoScalingGroupName, retries - 1);
       } else {
         return res
       }
@@ -188,11 +179,10 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   }
 
   getOpsworksInstances() {
-    let _this = this;
     return new Promise((resolve, reject) => {
-      let instanceIds = _this.getOpsworksInstanceIds(_this.getInstances());
+      let instanceIds = this.getOpsworksInstanceIds(this.getInstances());
       try {
-        _this.opsworks.describeInstances({
+        this.opsworks.describeInstances({
           InstanceIds: instanceIds
         }, (err, res) => {
           if (err) {
@@ -208,13 +198,12 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   }
 
   getOpsworksStackTags(opsworksStackId, retries = 9) {
-    let _this = this;
     let retryInterval = 5000;
     let delay = (time) => (result) => new Promise(resolve => setTimeout(() => resolve(result), time));
     return new Promise((resolve, reject) => {
       try {
-        _this.opsworks.listTags({
-          ResourceArn: _this.getOpsworksStackArn(opsworksStackId)
+        this.opsworks.listTags({
+          ResourceArn: this.getOpsworksStackArn(opsworksStackId)
         }, (err, res) => {
           if (err) {
             reject(err);
@@ -228,22 +217,20 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     // sometimes the event for the instances is delivered before the opsworks stack,
     // added some retries to wait for the creator tag to exist before giving up
     // and tagging the instance with the opsworks service role
-    }).then(function (res) {
-      if (_this.opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
-        console.log(_this.getCreatorTagName() + ' tag on parent OpsWorks stack not found, retrying in ' + (retryInterval/1000) + ' secs...');
+    }).then(res => {
+      if (this.opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
+        console.log(this.getCreatorTagName() + ' tag on parent OpsWorks stack not found, retrying in ' + (retryInterval/1000) + ' secs...');
         return new Promise((resolve) => resolve(res)).then(delay(retryInterval)).then(result => {return result});
       } else {
         return res;
       }
-    }).then(function (res) {
-      if (_this.opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
-        return _this.getOpsworksStackTags(opsworksStackId, retries - 1);
+    }).then(res => {
+      if (this.opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
+        return this.getOpsworksStackTags(opsworksStackId, retries - 1);
       } else {
         return res
       }
-    }, function (err) {
-      return err;
-    });
+    }, err => err);
   }
 
   opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries) {
@@ -255,19 +242,19 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   }
 
   getInstanceIds(instances) {
-    return _.map(instances, function(instance){ return instance.instanceId; });
+    return instances.map(instance => instance.instanceId);
   }
 
   getOpsworksInstanceIds(instances) {
-    return _.map(instances, function(instance){ return instance.clientToken; });
+    return instances.map(instance => instance.clientToken);
   }
 
   getVolumeIds(instance) {
-    return _.map(instance.BlockDeviceMappings, function(blockDeviceMapping){ return blockDeviceMapping.Ebs.VolumeId; });
+    return instance.BlockDeviceMappings.map(mapping => mapping.Ebs.VolumeId);
   }
 
   getEniIds(instance) {
-    return _.map(instance.NetworkInterfaces, function(networkInterface){ return networkInterface.NetworkInterfaceId; });
+    return instance.NetworkInterfaces.map(ni => ni.NetworkInterfaceId);
   }
 
   getInvokedBy() {
@@ -295,29 +282,28 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
   }
 
   getEC2Tags(parentTags) {
-    let _this = this;
-    let tags = _this.getAutotagTags();
-    if (_this.getEventName() === 'RunInstances') {
+    let tags = this.getAutotagTags();
+    if (this.getEventName() === 'RunInstances') {
       // instances created by auto-scaling are always invoked by the root user
       // so we'll use the auto-scaling group's creator value.
-      if (_this.isInvokedByAutoscaling() && parentTags.Tags.find(tag => tag.Key === _this.getCreatorTagName())) {
+      if (this.isInvokedByAutoscaling() && parentTags.Tags.find(tag => tag.Key === this.getCreatorTagName())) {
         tags.forEach(function (tag) {
-          if (tag.Key === _this.getCreatorTagName()) {
+          if (tag.Key === this.getCreatorTagName()) {
             tag.Value = parentTags.Tags[0].Value;
           }
         });
       // instances created by OpsWorks are always invoked by the opsworks service role
       // so we'll use the OpsWorks stack's creator value
-      } else if (_this.isInvokedByOpsworks() && parentTags.Tags[_this.getCreatorTagName()]) {
+      } else if (this.isInvokedByOpsworks() && parentTags.Tags[this.getCreatorTagName()]) {
         tags.forEach(function (tag) {
-          if (tag.Key === _this.getCreatorTagName()) {
-            tag.Value = parentTags.Tags[_this.getCreatorTagName()];
+          if (tag.Key === this.getCreatorTagName()) {
+            tag.Value = parentTags.Tags[this.getCreatorTagName()];
           }
         });
       }
     }
   return tags;
   }
-};
+}
 
 export default AutotagEC2Worker;

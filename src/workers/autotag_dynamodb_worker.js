@@ -1,6 +1,5 @@
 import AutotagDefaultWorker from './autotag_default_worker';
 import AWS from 'aws-sdk';
-import co from 'co';
 import _ from "underscore";
 
 class AutotagDynamoDBWorker extends AutotagDefaultWorker {
@@ -11,28 +10,24 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
   ** Tag DynamoDB table resources
   */
 
-  tagResource() {
-    let _this = this;
-    return co(function* () {
-      let roleName = _this.roleName;
-      let credentials = yield _this.assumeRole(roleName);
-      _this.dynamoDB = new AWS.DynamoDB({
-        region: _this.event.awsRegion,
-        credentials: credentials
-      });
-      yield _this.tagDynamoDBResource();
+  async tagResource() {
+    let roleName = this.roleName;
+    let credentials = await this.assumeRole(roleName);
+    this.dynamoDB = new AWS.DynamoDB({
+      region: this.event.awsRegion,
+      credentials: credentials
     });
+    await this.tagDynamoDBResource();
   }
 
   tagDynamoDBResource(retries = 9) {
-    let _this = this;
     let retryInterval = 5000;
-    let tags = _this.getAutotagTags();
-    let delay = (time) => (result) => new Promise(resolve => setTimeout(() => resolve(result), time));
-    let dynamoDBTableARN = _this.getDynamoDBTableARN();
+    let tags = this.getAutotagTags();
+    let delay = time => result => new Promise(resolve => setTimeout(() => resolve(result), time));
+    let dynamoDBTableARN = this.getDynamoDBTableARN();
     return new Promise((resolve, reject) => {
       try {
-        _this.dynamoDB.listTagsOfResource({
+        this.dynamoDB.listTagsOfResource({
           ResourceArn: dynamoDBTableARN
         }, (err, res) => {
           if (err) {
@@ -44,28 +39,26 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
       } catch (e) {
         reject(e);
       }
-    }).then(function (res) {
-      if (_this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
+    }).then(res => {
+      if (this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
         console.log('Waiting for any tags from the resource creation to appear on the resource, retrying tagging in ' + (retryInterval/1000) + ' secs...');
-        return new Promise((resolve) => resolve(res)).then(delay(retryInterval)).then(result => {
-          return result
-        });
+        return new Promise(resolve => resolve(res)).then(delay(retryInterval)).then(result => result);
       } else {
         return res;
       }
-    }).then(function (res) {
+    }).then(res => {
       // if we tag before cloudformation has a chance to apply its tags our tags
       // will be lost, so wait a few times before giving up and tagging anyways
-      if (_this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
-        return _this.tagDynamoDBResource(retries - 1);
+      if (this.cloudFormationDynamoDBTagsWaiter(res, tags, retries)) {
+        return this.tagDynamoDBResource(retries - 1);
       } else {
         return new Promise((resolve, reject) => {
           try {
-            _this.logTags(dynamoDBTableARN, tags, _this.constructor.name);
-            _this.dynamoDB.tagResource({
+            this.logTags(dynamoDBTableARN, tags, this.constructor.name);
+            this.dynamoDB.tagResource({
               ResourceArn: dynamoDBTableARN,
               Tags: tags
-            }, (err, res) => {
+            }, err => {
               if (err) {
                 reject(err);
               } else {
@@ -105,6 +98,6 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
     return this.event.responseElements.tableDescription.tableArn;
   }
 
-};
+}
 
 export default AutotagDynamoDBWorker;
