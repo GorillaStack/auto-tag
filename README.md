@@ -6,29 +6,82 @@ This is an open-source tagging solution for AWS. Deploy AutoTag to Lambda using 
 
 [Read a blog post about the project](http://blog.gorillastack.com/gorillastack-presents-auto-tag).
 
-
 ## About
 
 Automatically tagging resources can greatly improve the ease of cost allocation and governance.
 
 CloudWatch events delivers a near real-time stream of CloudTrail events as soon as a supported resource type is created. CloudWatch event rules triggers our AutoTag code to tag the resource. In this configuration the Lambda function is executed once each time it is triggered by the CloudWatch Event Rule (one event at a time). The CloudWatch Event Rule includes a pattern filter so it is only triggered by the supported events, meaning fewer Lambda invocations and lower operational costs.
 
+## Prerequisites
+
+You will need at least 1 AWS Account, and CloudTrail should be enabled.
+
+To make it as easy as possible to deploy across multiple regions and multiple accounts, we recommend deploying the AutoTag-Collector Stack as a [CloudFormation StackSet](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/what-is-cfnstacksets.html).
+
+### Deploy Roles for StackSets via CloudFormation
+
+If you have never used StackSets before, there are some IAM roles that are required for StackSets to assume in order to deploy across regions and accounts (more information on this [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html)). Follow the instructions below to set these up.
+
+In the administrator account (the account from where you deploy your StackSets), you will need to deploy the [AWSCloudFormationStackSetAdministrationRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml). 
+
+```bash
+aws cloudformation create-stack --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml --stack-name cloudformation-stack-set-admin-role --capabilities CAPABILITY_NAMED_IAM --region $REGION
+```
+
+In each account you plan to use StackSets (or deploy AutoTag), you will need to deploy the [AWSCloudFormationStackSetExecutionRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml).
+
+```bash
+aws cloudformation create-stack --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml --stack-name cloudformation-stack-set-execution-role --parameters ParameterKey=AdministratorAccountId,ParameterValue=$ADMIN_ACCOUNT_ID --capabilities CAPABILITY_NAMED_IAM --region $REGION
+```
+
 ## Installation
 
 The friendly team at GorillaStack maintain hosted versions of the CloudFormation templates and Lambda code zip files, so deployment should be pretty straightforward.
 
-### Deploy through the AWS CLI
+The CloudFormation templates are available for use from any region.
+Because AWS Lambda requires the S3 code location to be in the same region, we only have the code zip file in some supported regions (namely, "ap-southeast-2", "ap-southeast-1", "ap-northeast-1", "ap-northeast-2", "eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3", "us-west-1", "us-west-2", "us-east-1", "us-east-2" and "ca-central-1").
+We suggest that you deploy your main stack to one of these regions, however, if you want to still deploy to one of the regions we are not hosting the zip file, please feel free to download the artifacts and place them in your own bucket.
 
-### Deploy through the AWS Console
+### Option 1: Deploy through the AWS CLI
 
-__CloudFormation Main Stack__
+__Main Stack__
+
+```bash
+export REGION=ap-southeast-2 # set this to the region you plan to deploy to
+aws cloudformation create-stack \
+  --template-url https://gorillastack-autotag-releases.s3-ap-southeast-2.amazonaws.com/templates/autotag_event_main-template.json \
+  --stack-name AutoTag \
+  --region $REGION \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --parameters ParameterKey=CodeS3Bucket,ParameterValue=gorillastack-autotag-releases-$REGION \
+      ParameterKey=CodeS3Path,ParameterValue=autotag-0.5.0.zip \
+      ParameterKey=AutoTagDebugLogging,ParameterValue=Disabled \
+      ParameterKey=AutoTagTagsCreateTime,ParameterValue=Enabled \
+      ParameterKey=AutoTagTagsInvokedBy,ParameterValue=Enabled
+```
+
+__Collector StackSet__
+
+```bash
+export REGION=ap-southeast-2 # set this to the region your ^ main stack is deployed in
+# first create the stack set
+aws cloudformation create-stack-set \
+  --template-url https://gorillastack-autotag-releases.s3-ap-southeast-2.amazonaws.com/templates/autotag_event_collector-template.json \
+  --stack-set-name AutoTag-Collector \
+  --region $REGION \
+  --capabilities CAPABILITY_IAM \
+  --parameters ParameterKey=MainAwsRegion,ParameterValue=$REGION
+# optionally list your stack sets
+aws cloudformation list-stack-sets
+# deploy the stack set across all accounts and regions you want
+aws cloudformation create-stack-instances --stack-set-name AutoTag-Collector --accounts '["account_ID_1","account_ID_2"]' --regions '["ap-southeast-2", "eu-north-1", "ap-south-1", "eu-west-3", "eu-west-2", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ca-central-1", "ap-east-1", "ap-southeast-1", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]' --operation-preferences FailureToleranceCount=0,MaxConcurrentCount=1
+```
+
+### Option 2: Deploy through the AWS Console
+
+__Main Stack__
 
 Deploy this stack first in a single "master" region. This stack is responsible for consuming events from all accounts, in all regions.
-
-1. In the git files on your local machine change directory to `cloud_formation/event_multi_region_template`
-1. The next step requires a install of ruby and ruby's bundler
-1. Run `bundle install` to install the ruby dependencies to build the template
-1. Running the ruby template builder helps to build a Lambda::InvokePermission for each region (SDK version dependent) `./autotag_event_main-template.rb expand > autotag_event_main-template.json`
 
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the CloudFormation drop-down button and select "Stack"
@@ -43,13 +96,12 @@ Deploy this stack first in a single "master" region. This stack is responsible f
 * AutoTagTagsCreateTime: Enable/Disable the "CreateTime" tagging for all resources
 * AutoTagTagsInvokedBy: Enable/Disable the "InvokedBy" tagging for all resources (when it is provided)
   
-  
-__CloudFormation Collector StackSet__
+__Collector StackSet__
 
 After the main stack status is CREATE_COMPLETE deploy the collector stack to each region where AWS resources should be tagged. This stack deploys the CloudWatch Event Rule and the SNS Topic.
 
 1. Read about the [CloudFormation StackSet Concepts](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html)
-1. Follow the instructions in the [CloudFormation StackSet Prerequisites](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html) Using the two templates AWS provide is the most simple way: [AWSCloudFormationStackSetAdministrationRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml) and [AWSCloudFormationStackSetExecutionRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml)
+1. Follow the instructions in the [CloudFormation StackSet Prerequisites](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html). To quickly deploy the requisite roles through the AWS CLI, [see the prerequisites section above](#prerequisites).
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the blue "Create StackSet" button
 1. Provide the local account number and the regions to deploy to, then click the blue "Next" button
@@ -57,7 +109,7 @@ After the main stack status is CREATE_COMPLETE deploy the collector stack to eac
 1. Name the stack "AutoTag-Collector" - this name can be anything
 1. In the parameter section:
 * MainAwsRegion: The region where the main auto-tag CloudFormation stack will be running
-
+1. Select all regions, and enter the accountIds that you want to deploy the StackSet to.
 
 ## Supported Resource Types
 
@@ -128,7 +180,6 @@ Use the following IAM policy to deny a user or role the ability to create, delet
   "Resource": "*"
 }
 ```
-
 
 ## Retro-active Tagging
 
@@ -251,4 +302,4 @@ __TODO: add more information here__
 
 If you have questions, feature requests or bugs to report, please do so on [the issues section of our github repository](https://github.com/GorillaStack/auto-tag/issues).
 
-If you are interested in contributing, please get started by forking our github repository and submit pull-requests.
+If you are interested in contributing, please get started by forking our GitHub repository and submit pull-requests.
