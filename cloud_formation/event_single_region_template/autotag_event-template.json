@@ -65,7 +65,7 @@
         "FunctionName" : "AutoTag",
         "Handler" : "autotag_event.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
-        "Runtime" : "nodejs6.10",
+        "Runtime" : "nodejs8.10",
         "Timeout" : 120,
         "Environment": {
           "Variables": {
@@ -186,7 +186,8 @@
                 "opsworks:ListTags",
                 "opsworks:TagResource",
                 "s3:GetBucketTagging",
-                "s3:PutBucketTagging"
+                "s3:PutBucketTagging",
+                "iam:Tag*"
               ],
               "Resource": [ "*" ]
             }
@@ -255,7 +256,9 @@
               "ImportSnapshot",
               "RegisterImage",
               "RunInstances",
-              "RunJobFlow"
+              "RunJobFlow",
+              "CreateUser",
+              "CreateRole"
             ]
           }
         },
