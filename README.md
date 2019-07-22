@@ -1,6 +1,8 @@
 # Auto Tag
 
-[![Build Status](https://travis-ci.org/GorillaStack/auto-tag.svg?branch=master)](https://travis-ci.org/GorillaStack/auto-tag)
+[![Build Status](https://img.shields.io/travis/GorillaStack/auto-tag/master.svg?style=for-the-badge)](https://travis-ci.org/GorillaStack/auto-tag)
+[![Software License](https://img.shields.io/github/license/gorillastack/auto-tag.svg?style=for-the-badge)](/LICENSE.md)
+[![Powered By: GorillaStack](https://img.shields.io/badge/powered%20by-GorillaStack-green.svg?style=for-the-badge)](https://www.gorillastack.com)
 
 This is an open-source tagging solution for AWS. Deploy AutoTag to Lambda using CloudTrail consumed through CloudWatch Events and have each of your resources tagged with the ARN of who created it. Optionally, resources can be tagged with when it was created and which AWS service invoked the request if one is provided.  It was written by [GorillaStack](http://www.gorillastack.com/).
 
