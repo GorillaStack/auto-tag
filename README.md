@@ -49,13 +49,15 @@ We suggest that you deploy your main stack to one of these regions, however, if 
 
 ### Option 1: Deploy through the AWS CLI
 
-__Main Stack__
+Deploy this stack set first in all desired accounts in a single "master" region. This stack is responsible for consuming events from each account it is deployed to, in all regions.
+
+__Main StackSet__
 
 ```bash
 export REGION=ap-southeast-2 # set this to the region you plan to deploy to
-aws cloudformation create-stack \
+aws cloudformation create-stack-set \
   --template-url https://gorillastack-autotag-releases.s3-ap-southeast-2.amazonaws.com/templates/autotag_event_main-template.json \
-  --stack-name AutoTag \
+  --stack-set-name AutoTag \
   --region $REGION \
   --capabilities CAPABILITY_NAMED_IAM \
   --parameters ParameterKey=CodeS3Bucket,ParameterValue=gorillastack-autotag-releases-$REGION \
@@ -63,7 +65,18 @@ aws cloudformation create-stack \
       ParameterKey=AutoTagDebugLogging,ParameterValue=Disabled \
       ParameterKey=AutoTagTagsCreateTime,ParameterValue=Enabled \
       ParameterKey=AutoTagTagsInvokedBy,ParameterValue=Enabled
+# optionally list your stack sets
+aws cloudformation list-stack-sets --region $REGION
+# deploy the stack set across all accounts and regions you want
+aws cloudformation create-stack-instances \
+  --stack-set-name AutoTag \
+  --region $REGION \
+  --accounts '["account_ID_1","account_ID_2"]' \
+  --regions '["$REGION"]' \
+  --operation-preferences FailureToleranceCount=0,MaxConcurrentCount=20
 ```
+
+After the main stack status is CREATE_COMPLETE deploy the collector stack to each region where AWS resources should be tagged. This stack deploys the CloudWatch Event Rule and the SNS Topic.
 
 __Collector StackSet__
 
@@ -84,18 +97,21 @@ aws cloudformation create-stack-instances \
   --region $REGION \
   --accounts '["account_ID_1","account_ID_2"]' \
   --regions '["ap-southeast-2", "ap-south-1", "eu-west-3", "eu-west-2", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ca-central-1", "ap-southeast-1", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]' \
-  --operation-preferences FailureToleranceCount=0,MaxConcurrentCount=1
+  --operation-preferences FailureToleranceCount=0,MaxConcurrentCount=20
 ```
 
 ### Option 2: Deploy through the AWS Console
 
-__Main Stack__
+__Main StackSet__
 
-Deploy this stack first in a single "master" region. This stack is responsible for consuming events from all accounts, in all regions.
+Deploy this stack set first in all desired accounts in a single "master" region. This stack is responsible for consuming events from each account it is deployed to, in all regions.
 
+1. Read about the [CloudFormation StackSet Concepts](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html)
+1. Follow the instructions in the [CloudFormation StackSet Prerequisites](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html). To quickly deploy the requisite roles through the AWS CLI, [see the prerequisites section above](#prerequisites).
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
-1. Click the CloudFormation drop-down button and select "Stack"
-1. Click the blue "Create Stack" button
+tion drop-down button and select "Stack"
+1. Click the blue "Create StackSet" button
+1. Provide the local account number and the regions to deploy to, then click the blue "Next" button
 1. Select "Amazon S3 URL" and enter `https://gorillastack-autotag-releases.s3-ap-southeast-2.amazonaws.com/templates/autotag_event_main-template.json`
 1. Name the stack "AutoTag" - this cannot be changed
 1. In the parameter section:
@@ -105,13 +121,12 @@ Deploy this stack first in a single "master" region. This stack is responsible f
 * AutoTagDebugLoggingOnFailure: Enable/Disable Debug Logging when the Lambda Function has a failure
 * AutoTagTagsCreateTime: Enable/Disable the "CreateTime" tagging for all resources
 * AutoTagTagsInvokedBy: Enable/Disable the "InvokedBy" tagging for all resources (when it is provided)
-  
+1. Select a single master region, and enter the accountIds that you want to deploy the StackSet to.
+
 __Collector StackSet__
 
 After the main stack status is CREATE_COMPLETE deploy the collector stack to each region where AWS resources should be tagged. This stack deploys the CloudWatch Event Rule and the SNS Topic.
 
-1. Read about the [CloudFormation StackSet Concepts](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html)
-1. Follow the instructions in the [CloudFormation StackSet Prerequisites](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html). To quickly deploy the requisite roles through the AWS CLI, [see the prerequisites section above](#prerequisites).
 1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
 1. Click the blue "Create StackSet" button
 1. Provide the local account number and the regions to deploy to, then click the blue "Next" button
