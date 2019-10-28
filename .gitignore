@@ -1,8 +1,6 @@
 lib/
-**/old/
 node_modules/
 example_events/
-stackset_templates/
 .eslintcache
 *.bak
 *.sh
@@ -12,9 +10,5 @@ sample*.js
 *.lock
 *-lock.json
 **/*-parameters.json
-cache/
-**/cache/
-cloud_formation/event_multi_region_template/autotag_event_main-template.json
-pgi_deployment/
-**/old2/
-test_suite_sum/
+deploy.fish
+deloy/

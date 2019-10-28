@@ -1,0 +1,571 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Auto Tag (Open Source by GorillaStack)",
+  "Parameters": {
+    "CodeS3Bucket": {
+      "Description": "The name of the code bucket in S3.",
+      "Type": "String",
+      "Default": "gorillastack-autotag-releases-ap-northeast-1"
+    },
+    "CodeS3Path": {
+      "Description": "The path of the code zip file in the code bucket in S3.",
+      "Type": "String",
+      "Default": "autotag-0.5.0.zip"
+    },
+    "AutoTagDebugLogging": {
+      "Description": "Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Disabled"
+    },
+    "AutoTagDebugLoggingOnFailure": {
+      "Description": "Enable/Disable Debug Logging when the Lambda Function has a failure.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
+    },
+    "AutoTagTagsCreateTime": {
+      "Description": "Enable/Disable the \"CreateTime\" tagging for all resources.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
+    },
+    "AutoTagTagsInvokedBy": {
+      "Description": "Enable/Disable the \"InvokedBy\" tagging for all resources.",
+      "Type": "String",
+      "AllowedValues": [
+        "Enabled",
+        "Disabled"
+      ],
+      "Default": "Enabled"
+    }
+  },
+  "Resources": {
+    "AutoTagLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CodeS3Bucket"
+          },
+          "S3Key": {
+            "Ref": "CodeS3Path"
+          }
+        },
+        "Description": "Auto Tag (Open Source by GorillaStack)",
+        "FunctionName": "AutoTag",
+        "Handler": {
+          "Fn::Sub": "autotag_event.handler"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "AutoTagExecutionRole",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs10.x",
+        "Timeout": 120,
+        "Environment": {
+          "Variables": {
+            "DEBUG_LOGGING_ON_FAILURE": {
+              "Ref": "AutoTagDebugLoggingOnFailure"
+            },
+            "DEBUG_LOGGING": {
+              "Ref": "AutoTagDebugLogging"
+            },
+            "CREATE_TIME": {
+              "Ref": "AutoTagTagsCreateTime"
+            },
+            "INVOKED_BY": {
+              "Ref": "AutoTagTagsInvokedBy"
+            },
+            "ROLE_NAME": {
+              "Ref": "AutoTagMasterRole"
+            }
+          }
+        }
+      }
+    },
+    "AutoTagLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/aws/lambda/${AutoTagLambdaFunction}"
+        },
+        "RetentionInDays": 731
+      }
+    },
+    "AutoTagLogsMetricFilterMaxMemoryUsed": {
+      "Type": "AWS::Logs::MetricFilter",
+      "DependsOn": [
+        "AutoTagLogGroup"
+      ],
+      "Properties": {
+        "FilterPattern": "[report_name=\"REPORT\", request_id_name=\"RequestId:\", request_id_value, duration_name=\"Duration:\", duration_value, duration_unit=\"ms\", billed_duration_name_1=\"Billed\", bill_duration_name_2=\"Duration:\", billed_duration_value, billed_duration_unit=\"ms\", memory_size_name_1=\"Memory\", memory_size_name_2=\"Size:\", memory_size_value, memory_size_unit=\"MB\", max_memory_used_name_1=\"Max\", max_memory_used_name_2=\"Memory\", max_memory_used_name_3=\"Used:\", max_memory_used_value, max_memory_used_unit=\"MB\"]",
+        "LogGroupName": {
+          "Fn::Sub": "/aws/lambda/${AutoTagLambdaFunction}"
+        },
+        "MetricTransformations": [
+          {
+            "MetricValue": "$max_memory_used_value",
+            "MetricNamespace": {
+              "Fn::Sub": "PGi/${AutoTagLambdaFunction}"
+            },
+            "MetricName": {
+              "Fn::Sub": "${AutoTagLambdaFunction}-MemoryUsed"
+            }
+          }
+        ]
+      }
+    },
+    "AutoTagExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Sub": "${AWS::StackName}Lambda"
+        },
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/gorillastack/autotag/execution/"
+      }
+    },
+    "AutoTagExecutionPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Sub": "${AWS::StackName}AutoTagExecutionPolicy"
+        },
+        "Roles": [
+          {
+            "Ref": "AutoTagExecutionRole"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": "arn:aws:logs:*:*:*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sts:*"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "arn:aws:iam::*:role/gorillastack/autotag/master/${AWS::StackName}"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "AutoTagMasterRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": {
+          "Fn::Sub": "${AWS::StackName}"
+        },
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "AutoTagExecutionRole",
+                    "Arn"
+                  ]
+                }
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/gorillastack/autotag/master/"
+      }
+    },
+    "AutoTagMasterPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Sub": "${AWS::StackName}MasterPolicy"
+        },
+        "Roles": [
+          {
+            "Ref": "AutoTagMasterRole"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "autoscaling:CreateOrUpdateTags",
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeTags",
+                "datapipeline:AddTags",
+                "dynamodb:ListTagsOfResource",
+                "dynamodb:TagResource",
+                "ec2:CreateTags",
+                "ec2:DescribeInstances",
+                "elasticloadbalancing:AddTags",
+                "elasticmapreduce:AddTags",
+                "opsworks:DescribeInstances",
+                "opsworks:DescribeStacks",
+                "opsworks:ListTags",
+                "opsworks:TagResource",
+                "rds:AddTagsToResource",
+                "s3:GetBucketTagging",
+                "s3:PutBucketTagging",
+                "iam:Tag*"
+              ],
+              "Resource": [
+                "*"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "TriggerLambdaPermRegionHongKong": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:ap-east-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionTokyo": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:ap-northeast-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionSeoul": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:ap-northeast-2:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionMumbai": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:ap-south-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionSingapore": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:ap-southeast-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionSydney": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:ap-southeast-2:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionCentral": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:ca-central-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionFrankfurt": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:eu-central-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionStockholm": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:eu-north-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionIreland": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:eu-west-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionLondon": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:eu-west-2:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionParis": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:eu-west-3:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionBahrain": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:me-south-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionSaoPaulo": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:sa-east-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionNVirginia": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:us-east-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionOhio": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:us-east-2:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionNCalifornia": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:us-west-1:${AWS::AccountId}:AutoTag"
+        }
+      }
+    },
+    "TriggerLambdaPermRegionOregon": {
+      "Type": "AWS::Lambda::Permission",
+      "DependsOn": "AutoTagLambdaFunction",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AutoTagLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Fn::Sub": "arn:aws:sns:us-west-2:${AWS::AccountId}:AutoTag"
+        }
+      }
+    }
+  }
+}

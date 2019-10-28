@@ -72,7 +72,7 @@ aws cloudformation create-stack-instances \
   --stack-set-name AutoTag \
   --region $REGION \
   --accounts '["account_ID_1","account_ID_2"]' \
-  --regions '["$REGION"]' \
+  --regions "[\"$REGION\"]" \
   --operation-preferences FailureToleranceCount=0,MaxConcurrentCount=20
 ```
 
