@@ -24,6 +24,7 @@
     "spaced-comment": "off",
     "object-curly-newline": "off",
     "no-plusplus": "off",
-    "indent": "off"
+    "indent": "off",
+    "no-console": "off"
   }
 }
