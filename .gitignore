@@ -10,5 +10,5 @@ sample*.js
 *.lock
 *-lock.json
 **/*-parameters.json
-deploy.fish
+deploy.sh
 deloy/
