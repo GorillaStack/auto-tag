@@ -164,8 +164,8 @@ __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 |EC2 Snapshot *|ImportSnapshot|C, T, I|Yes
 |Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|No
 |EMR Cluster|RunJobFlow|C, T, I|No
-|IAM Role *?|CreateRole|C, T, I|?
-|IAM User *?|CreateUser|C, T, I|?
+|IAM Role|CreateRole|C, T, I|?
+|IAM User|CreateUser|C, T, I|?
 |OpsWorks Stack|CreateStack|C (Propagated to Instances)|No
 |OpsWorks Clone Stack *|CloneStack|C (Propagated to instances)|No
 |OpsWorks Stack Instances w/ENI & Volume|RunInstances|C, T, I|Yes
