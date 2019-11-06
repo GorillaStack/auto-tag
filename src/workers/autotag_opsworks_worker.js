@@ -43,11 +43,10 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
 
   getOpsworksStackArn(opsworksStacks) {
     const opsworksStack = opsworksStacks.Stacks.find(stack => stack.Name === this.event.requestParameters.name);
-    const stackCount = opsworksStack.length;
-    if (stackCount === 1) {
-      return opsworksStack[0].Arn;
+    if (opsworksStack) {
+      return opsworksStack.Arn;
     } else {
-      throw Error(`Error: Found (${stackCount}) OpsWorks Stacks when searching by name.`);
+      throw Error(`Error: No OpsWorks Stacks found when searching for '${this.event.requestParameters.name}' by name.`);
     }
   }
 

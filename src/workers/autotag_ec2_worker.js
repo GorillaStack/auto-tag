@@ -153,17 +153,17 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
       } catch (e) {
         reject(e);
       }
-      // sometimes the event for the instances is delivered before the auto-scaling group,
-      // added some retries to wait for the creator tag to exist before giving up
-      // and tagging the instance with the root arn
-    }).then(function (res) {
+    // sometimes the event for the instances is delivered before the auto-scaling group,
+    // added some retries to wait for the creator tag to exist before giving up
+    // and tagging the instance with the root arn
+    }).then(res => {
       if (this.autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
         console.log(`${this.getCreatorTagName()} tag on parent AutoScaling group not found, retrying in ${retryInterval / 1000} secs...`);
         return new Promise(resolve => resolve(res)).then(delay(retryInterval)).then(result => result);
       } else {
         return res;
       }
-    }).then(function (res) {
+    }).then(res => {
       if (this.autoscalingAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
         return this.getAutoscalingGroupTags(autoScalingGroupName, retries - 1);
       } else {
@@ -212,9 +212,9 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
       } catch (e) {
         reject(e);
       }
-      // sometimes the event for the instances is delivered before the opsworks stack,
-      // added some retries to wait for the creator tag to exist before giving up
-      // and tagging the instance with the opsworks service role
+    // sometimes the event for the instances is delivered before the opsworks stack,
+    // added some retries to wait for the creator tag to exist before giving up
+    // and tagging the instance with the opsworks service role
     }).then(res => {
       if (this.opsworksAutoTagCreatorTagNotExistsAndRetriesLeft(res, retries)) {
         console.log(`${this.getCreatorTagName()} tag on parent OpsWorks stack not found, retrying in ${retryInterval / 1000} secs...`);
@@ -292,8 +292,8 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
 
           return tag;
         });
-        // instances created by OpsWorks are always invoked by the opsworks service role
-        // so we'll use the OpsWorks stack's creator value
+      // instances created by OpsWorks are always invoked by the opsworks service role
+      // so we'll use the OpsWorks stack's creator value
       } else if (this.isInvokedByOpsworks() && parentTags.Tags[this.getCreatorTagName()]) {
         return tags.map(tag => {
           if (tag.Key === this.getCreatorTagName()) {

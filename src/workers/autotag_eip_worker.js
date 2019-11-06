@@ -19,7 +19,7 @@ class AutotagEIPWorker extends AutotagEC2Worker {
   }
 
   getAllocationId() {
-    return this.event.responseElements.publicIp;
+    return this.event.responseElements.allocationId;
   }
 }
 

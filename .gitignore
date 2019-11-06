@@ -10,5 +10,6 @@ sample*.js
 *.lock
 *-lock.json
 **/*-parameters.json
+.idea
 deploy.sh
 deloy/
