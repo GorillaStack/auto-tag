@@ -28,10 +28,10 @@
               "ec2.amazonaws.com",
               "elasticloadbalancing.amazonaws.com",
               "elasticmapreduce.amazonaws.com",
+              "iam.amazonaws.com",
               "opsworks.amazonaws.com",
               "rds.amazonaws.com",
-              "s3.amazonaws.com",
-              "iam.amazonaws.com"
+              "s3.amazonaws.com"
             ],
             "eventName": [
               "AllocateAddress",
@@ -48,12 +48,14 @@
               "CreateNetworkAcl",
               "CreateNetworkInterface",
               "CreatePipeline",
+              "CreateRole",
               "CreateRouteTable",
               "CreateSecurityGroup",
               "CreateSnapshot",
               "CreateStack",
               "CreateSubnet",
               "CreateTable",
+              "CreateUser",
               "CreateVolume",
               "CreateVpc",
               "CreateVpnConnection",
@@ -62,9 +64,7 @@
               "ImportSnapshot",
               "RegisterImage",
               "RunInstances",
-              "RunJobFlow",
-              "CreateUser",
-              "CreateRole"
+              "RunJobFlow"
             ]
           }
         },

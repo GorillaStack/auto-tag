@@ -55,8 +55,9 @@ __Main StackSet__
 
 ```bash
 export REGION=ap-southeast-2 # set this to the region you plan to deploy to
+wget https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/event_multi_region_template/autotag_event_main-template.json
 aws cloudformation create-stack-set \
-  --template-url https://gorillastack-autotag-releases.s3-ap-southeast-2.amazonaws.com/templates/autotag_event_main-template.json \
+  --template-body file://autotag_event_main-template.json \
   --stack-set-name AutoTag \
   --region $REGION \
   --capabilities CAPABILITY_NAMED_IAM \
@@ -72,7 +73,7 @@ aws cloudformation create-stack-instances \
   --stack-set-name AutoTag \
   --region $REGION \
   --accounts '["account_ID_1","account_ID_2"]' \
-  --regions '["$REGION"]' \
+  --regions "[\"$REGION\"]" \
   --operation-preferences FailureToleranceCount=0,MaxConcurrentCount=20
 ```
 
@@ -112,7 +113,8 @@ Deploy this stack set first in all desired accounts in a single "master" region.
 tion drop-down button and select "Stack"
 1. Click the blue "Create StackSet" button
 1. Provide the local account number and the regions to deploy to, then click the blue "Next" button
-1. Select "Amazon S3 URL" and enter `https://gorillastack-autotag-releases.s3-ap-southeast-2.amazonaws.com/templates/autotag_event_main-template.json`
+6. Download the Main Stack CloudFormation Template: [autotag_event_main-template.json](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/event_multi_region_template/autotag_event_main-template.json)
+1. Select "Upload a template file" and browse to the `autotag_event_main-template.json` file
 1. Name the stack "AutoTag" - this cannot be changed
 1. In the parameter section:
 * CodeS3Bucket: The name of the code bucket in S3 (i.e. `gorillastack-autotag-releases-${region-name}`)
@@ -164,8 +166,8 @@ __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 |EC2 Snapshot *|ImportSnapshot|C, T, I|Yes
 |Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|No
 |EMR Cluster|RunJobFlow|C, T, I|No
-|IAM Role *?|CreateRole|C, T, I|?
-|IAM User *?|CreateUser|C, T, I|?
+|IAM Role|CreateRole|C, T, I|?
+|IAM User|CreateUser|C, T, I|?
 |OpsWorks Stack|CreateStack|C (Propagated to Instances)|No
 |OpsWorks Clone Stack *|CloneStack|C (Propagated to instances)|No
 |OpsWorks Stack Instances w/ENI & Volume|RunInstances|C, T, I|Yes
