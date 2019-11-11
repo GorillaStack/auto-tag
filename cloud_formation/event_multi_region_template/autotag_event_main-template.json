@@ -47,6 +47,11 @@
         "Disabled"
       ],
       "Default": "Enabled"
+    },
+    "LogRetentionInDays": {
+      "Description": "Number of days to retain AutoTag logs.",
+      "Type": "Number",
+      "Default": 731
     }
   },
   "Resources": {
@@ -101,7 +106,9 @@
         "LogGroupName": {
           "Fn::Sub": "/aws/lambda/${AutoTagLambdaFunction}"
         },
-        "RetentionInDays": 731
+        "RetentionInDays": {
+          "Ref": "LogRetentionInDays"
+        }
       }
     },
     "AutoTagLogsMetricFilterMaxMemoryUsed": {

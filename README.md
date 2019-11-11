@@ -65,7 +65,8 @@ aws cloudformation create-stack-set \
       ParameterKey=CodeS3Path,ParameterValue=autotag-0.5.0.zip \
       ParameterKey=AutoTagDebugLogging,ParameterValue=Disabled \
       ParameterKey=AutoTagTagsCreateTime,ParameterValue=Enabled \
-      ParameterKey=AutoTagTagsInvokedBy,ParameterValue=Enabled
+      ParameterKey=AutoTagTagsInvokedBy,ParameterValue=Enabled \
+      ParameterKey=LogRetentionInDays,ParameterValue=731
 # optionally list your stack sets
 aws cloudformation list-stack-sets --region $REGION
 # deploy the stack set across all accounts and regions you want
