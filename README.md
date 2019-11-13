@@ -124,6 +124,7 @@ tion drop-down button and select "Stack"
 * AutoTagDebugLoggingOnFailure: Enable/Disable Debug Logging when the Lambda Function has a failure
 * AutoTagTagsCreateTime: Enable/Disable the "CreateTime" tagging for all resources
 * AutoTagTagsInvokedBy: Enable/Disable the "InvokedBy" tagging for all resources (when it is provided)
+* LogRetentionInDays: Number of days to retain AutoTag logs
 1. Select a single master region, and enter the accountIds that you want to deploy the StackSet to.
 
 __Collector StackSet__
