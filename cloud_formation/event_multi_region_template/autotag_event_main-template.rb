@@ -45,6 +45,11 @@ template do
             AllowedValues: %w(Enabled Disabled),
             Default: 'Enabled'
 
+  parameter 'LogRetentionInDays',
+            Description: 'Number of days to retain AutoTag logs.',
+            Type: 'Number',
+            Default: 731
+
 
   resource 'AutoTagLambdaFunction', Type: 'AWS::Lambda::Function', Properties: {
     Code: {
@@ -73,7 +78,7 @@ template do
 
   resource 'AutoTagLogGroup', Type: 'AWS::Logs::LogGroup', Properties: {
       LogGroupName: sub('/aws/lambda/${AutoTagLambdaFunction}'),
-      RetentionInDays: 731
+      RetentionInDays: ref('LogRetentionInDays')
   }
 
   resource 'AutoTagLogsMetricFilterMaxMemoryUsed', Type: 'AWS::Logs::MetricFilter', DependsOn: %w[AutoTagLogGroup], Properties: {

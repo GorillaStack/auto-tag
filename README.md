@@ -65,7 +65,8 @@ aws cloudformation create-stack-set \
       ParameterKey=CodeS3Path,ParameterValue=autotag-0.5.0.zip \
       ParameterKey=AutoTagDebugLogging,ParameterValue=Disabled \
       ParameterKey=AutoTagTagsCreateTime,ParameterValue=Enabled \
-      ParameterKey=AutoTagTagsInvokedBy,ParameterValue=Enabled
+      ParameterKey=AutoTagTagsInvokedBy,ParameterValue=Enabled \
+      ParameterKey=LogRetentionInDays,ParameterValue=731
 # optionally list your stack sets
 aws cloudformation list-stack-sets --region $REGION
 # deploy the stack set across all accounts and regions you want
@@ -123,6 +124,7 @@ tion drop-down button and select "Stack"
 * AutoTagDebugLoggingOnFailure: Enable/Disable Debug Logging when the Lambda Function has a failure
 * AutoTagTagsCreateTime: Enable/Disable the "CreateTime" tagging for all resources
 * AutoTagTagsInvokedBy: Enable/Disable the "InvokedBy" tagging for all resources (when it is provided)
+* LogRetentionInDays: Number of days to retain AutoTag logs
 1. Select a single master region, and enter the accountIds that you want to deploy the StackSet to.
 
 __Collector StackSet__
