@@ -84,9 +84,6 @@ const AutotagFactory = {
       case CONFIG.AMI_COPY.name:
         return new AutotagAMIWorker(event, s3Region);
 
-      case CONFIG.AMI_IMPORT.name:
-        return new AutotagAMIWorker(event, s3Region);
-
       case CONFIG.AMI_REGISTER.name:
         return new AutotagAMIWorker(event, s3Region);
 

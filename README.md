@@ -155,17 +155,16 @@ __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 |Data Pipeline|CreatePipeline|C, T, I|No
 |DynamoDB Table|CreateTable|C, T, I|No
 |EBS Volume|CreateVolume|C, T, I|Yes
-|EC2 AMI *|CreateImage|C, T, I|Yes
-|EC2 AMI *|CopyImage|C, T, I|Yes
-|EC2 AMI *|ImportImage|C, T, I|Yes
-|EC2 AMI *|RegisterImage|C, T, I|Yes
+|EC2 AMI w/Snapshot \*|CreateImage|C, T, I|Yes
+|EC2 AMI w/Snapshot \*|CopyImage|C, T, I|Yes
+|EC2 AMI \*|RegisterImage|C, T, I|Yes
 |EC2 Elastic IP|AllocateAddress|C, T, I|Yes
 |EC2 ENI|CreateNetworkInterface|C, T, I|Yes
 |EC2 Instance w/ENI & Volume|RunInstances|C, T, I|Yes
 |EC2/VPC Security Group|CreateSecurityGroup|C, T, I|Yes
-|EC2 Snapshot *|CreateSnapshot|C, T, I|Yes
-|EC2 Snapshot *|CopySnapshot|C, T, I|Yes
-|EC2 Snapshot *|ImportSnapshot|C, T, I|Yes
+|EC2 Snapshot \*|CreateSnapshot|C, T, I|Yes
+|EC2 Snapshot \*|CopySnapshot|C, T, I|Yes
+|EC2 Snapshot \*|ImportSnapshot|C, T, I|Yes
 |Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|No
 |EMR Cluster|RunJobFlow|C, T, I|No
 |IAM Role|CreateRole|C, T, I|?
@@ -189,24 +188,31 @@ _*=not tested by the test suite_
 
 ## Deny Create/Delete/Edit for AutoTags
 
-Use the following IAM policy to deny a user or role the ability to create, delete, and edit any tag starting with 'AutoTag_'. At the time of this writing the deny tag IAM condition (aws:TagKeys) is only available for resources in EC2 and AutoScaling, see the table above for a status of each resource.
+Use the following IAM policy to deny a user or role the ability to create, delete, and edit any tag starting with 'AutoTag\_'. The `ec2:CreateAction` condition allows users to use the 'Launch More Like This' feature which will allow users to create AWS resources with tags starting with 'AutoTag_' but they will eventually be overwritten.
+
+NOTE: At the time of this writing the deny tag IAM condition (aws:TagKeys) is only available for resources in EC2 and AutoScaling, see the table above for a status of each resource.
 
 ```json
 {
-  "Sid": "DenyAutoTagPrefix",
-  "Effect": "Deny",
-  "Action": [
-    "ec2:CreateTags",
-    "ec2:DeleteTags",
-    "autoscaling:CreateOrUpdateTags",
-    "autoscaling:DeleteTags"
-  ],
-  "Condition": {
-    "ForAnyValue:StringLike": {
-      "aws:TagKeys": "AutoTag_*"
-    }
-  },
-  "Resource": "*"
+    "Sid": "DenyAutoTagPrefix",
+    "Effect": "Deny",
+    "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags",
+        "autoscaling:CreateOrUpdateTags",
+        "autoscaling:DeleteTags"
+    ],
+    "Condition": {
+        "ForAnyValue:StringLike": {
+            "aws:TagKeys": "AutoTag_*"
+        },
+        "StringNotEquals": {
+            "ec2:CreateAction": [
+                "RunInstances"
+            ]
+        }
+    },
+    "Resource": "*"
 }
 ```
 

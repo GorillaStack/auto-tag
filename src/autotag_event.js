@@ -20,7 +20,6 @@ export const handler = async (cloudtrailEvent, context) => {
     AwsCloudTrailEventListener.SECURITY_GROUP.name,
     AwsCloudTrailEventListener.AMI_CREATE.name,
     AwsCloudTrailEventListener.AMI_COPY.name,
-    AwsCloudTrailEventListener.AMI_IMPORT.name,
     AwsCloudTrailEventListener.AMI_REGISTER.name,
     AwsCloudTrailEventListener.SNAPSHOT_CREATE.name,
     AwsCloudTrailEventListener.SNAPSHOT_COPY.name,

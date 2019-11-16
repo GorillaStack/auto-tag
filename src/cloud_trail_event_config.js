@@ -83,12 +83,6 @@ export default {
     targetEventType: null,
     targetEventSource: null
   },
-  AMI_IMPORT: {
-    name: 'ami',
-    targetEventName: 'ImportImage',
-    targetEventType: null,
-    targetEventSource: null
-  },
   AMI_REGISTER: {
     name: 'ami',
     targetEventName: 'RegisterImage',

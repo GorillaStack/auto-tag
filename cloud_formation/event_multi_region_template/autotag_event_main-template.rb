@@ -157,6 +157,7 @@ template do
             dynamodb:TagResource
             ec2:CreateTags
             ec2:DescribeInstances
+            ec2:DescribeSnapshots
             elasticloadbalancing:AddTags
             elasticmapreduce:AddTags
             opsworks:DescribeInstances
