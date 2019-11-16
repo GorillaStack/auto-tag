@@ -20,7 +20,7 @@ class AutotagAMIWorker extends AutotagEC2Worker {
     resourceIds.push(this.getImageId());
 
     this.imageSnapshot = await this.getImageSnapshot();
-    if(this.imageSnapshot) resourceIds.push(this.getImageSnapshotId());
+    if (this.imageSnapshot) resourceIds.push(this.getImageSnapshotId());
 
     await this.tagEC2Resources(resourceIds);
   }
@@ -34,12 +34,12 @@ class AutotagAMIWorker extends AutotagEC2Worker {
     const delay = time => result => new Promise(resolve => setTimeout(() => resolve(result), time));
     let imageSnapshotDescription;
 
-    if(this.getEventName() === 'RegisterImage') {
+    if (this.getEventName() === 'RegisterImage') {
       // the image was created from an existing snapshot so there is no new snapshot to tag
       return false;
-    } else if(this.getEventName() === 'CopyImage') {
+    } else if (this.getEventName() === 'CopyImage') {
       imageSnapshotDescription = `Copied for DestinationAmi ${this.getImageId()}*`;
-    } else if(this.getEventName() === 'CreateImage') {
+    } else if (this.getEventName() === 'CreateImage') {
       imageSnapshotDescription = `Created by CreateImage(*) for ${this.getImageId()}*`;
     } else {
       console.log(`Error: event name '${this.getEventName()}' not recognized, unable to tag associated snapshot`);
