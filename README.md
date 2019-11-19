@@ -148,41 +148,48 @@ WARNING: When tag-able resources are created using CloudFormation __StackSets__ 
 
 __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 
-|Technology|Event Name|Tags Applied|IAM Deny Tag Support
-|----------|----------|------------|----------------------
-|AutoScaling Group|CreateAutoScalingGroup|C, T, I|Yes
-|AutoScaling Group Instances w/ENI & Volume|RunInstances|C, T, I|Yes
-|Data Pipeline|CreatePipeline|C, T, I|No
-|DynamoDB Table|CreateTable|C, T, I|No
-|EBS Volume|CreateVolume|C, T, I|Yes
-|EC2 AMI w/Snapshot \*|CreateImage|C, T, I|Yes
-|EC2 AMI w/Snapshot \*|CopyImage|C, T, I|Yes
-|EC2 AMI \*|RegisterImage|C, T, I|Yes
-|EC2 Elastic IP|AllocateAddress|C, T, I|Yes
-|EC2 ENI|CreateNetworkInterface|C, T, I|Yes
-|EC2 Instance w/ENI & Volume|RunInstances|C, T, I|Yes
-|EC2/VPC Security Group|CreateSecurityGroup|C, T, I|Yes
-|EC2 Snapshot \*|CreateSnapshot|C, T, I|Yes
-|EC2 Snapshot \*|CopySnapshot|C, T, I|Yes
-|EC2 Snapshot \*|ImportSnapshot|C, T, I|Yes
-|Elastic Load Balancer (v1 & v2)|CreateLoadBalancer|C, T, I|No
-|EMR Cluster|RunJobFlow|C, T, I|No
-|IAM Role|CreateRole|C, T, I|?
-|IAM User|CreateUser|C, T, I|?
-|OpsWorks Stack|CreateStack|C (Propagated to Instances)|No
-|OpsWorks Clone Stack *|CloneStack|C (Propagated to instances)|No
-|OpsWorks Stack Instances w/ENI & Volume|RunInstances|C, T, I|Yes
-|RDS Instance|CreateDBInstance|C, T, I|No
-|S3 Bucket|CreateBucket|C, T, I|No
-|NAT Gateway|CreateNatGateway||Yes
-|VPC|CreateVpc|C, T, I|Yes
-|VPC Internet Gateway|CreateInternetGateway|C, T, I|Yes
-|VPC Network ACL|CreateNetworkAcl|C, T, I|Yes
-|VPC Peering Connection|CreateVpcPeeringConnection|C, T, I|Yes
-|VPC Route Table|CreateRouteTable|C, T, I|Yes
-|VPC Subnet|CreateSubnet|C, T, I|Yes
-|VPN Connection|CreateVpnConnection|C, T, I|Yes
-
+|Technology                 |Event Name            |Tags Applied|IAM Deny Tag Support
+|---------------------------|----------------------|------------|---
+|AutoScaling Group          |CreateAutoScalingGroup|C, T, I     |Yes
+|ASG Instances w/ENI & Vol  |RunInstances          |C, T, I     |Yes
+|Data Pipeline              |CreatePipeline        |C, T, I     |No
+|DynamoDB Table             |CreateTable           |C, T, I     |No
+|CloudWatch Alarm ?         |PutMetricAlarm        |C, T, I     |?
+|CloudWatch Events Rule ?   |PutRule               |C, T, I     |?
+|CloudWatch Log Group ?     |CreateLogGroup        |C, T, I     |?
+|EBS Volume                 |CreateVolume          |C, T, I     |Yes
+|EC2 AMI w/Snapshot \*      |CreateImage           |C, T, I     |Yes
+|EC2 AMI w/Snapshot \*      |CopyImage             |C, T, I     |Yes
+|EC2 AMI \*                 |RegisterImage         |C, T, I     |Yes
+|EC2 Customer Gateway ?     |CreateCustomerGateway |C, T, I     |?
+|EC2 DHCP Options ?         |CreateDhcpOptions     |C, T, I     |?
+|EC2 Elastic IP             |AllocateAddress       |C, T, I     |Yes
+|EC2 ENI                    |CreateNetworkInterface|C, T, I     |Yes
+|EC2 Instance w/ENI & Volume|RunInstances          |C, T, I     |Yes
+|EC2/VPC Security Group     |CreateSecurityGroup   |C, T, I     |Yes
+|EC2 Snapshot \*            |CreateSnapshot        |C, T, I     |Yes
+|EC2 Snapshot \*            |CopySnapshot          |C, T, I     |Yes
+|EC2 Snapshot \*            |ImportSnapshot        |C, T, I     |Yes
+|Elastic LB (v1 & v2)       |CreateLoadBalancer    |C, T, I     |No
+|EMR Cluster                |RunJobFlow            |C, T, I     |No
+|IAM Role                   |CreateRole            |C, T, I     |?
+|IAM User                   |CreateUser            |C, T, I     |?
+|Lambda Function ?          |CreateFunction20150331|C, T, I     |?
+|Lambda Function ?          |CreateFunction20141111|C, T, I     |?
+|OpsWorks Stack             |CreateStack           |C           |No
+|OpsWorks Clone Stack *     |CloneStack            |C           |No
+|OpsWorks Instances w/ENI & Vol|RunInstances       |C, T, I     |Yes
+|RDS Instance               |CreateDBInstance      |C, T, I     |No
+|S3 Bucket                  |CreateBucket          |C, T, I     |No
+|NAT Gateway                |CreateNatGateway      |C, T, I     |Yes
+|VPC                        |CreateVpc             |C, T, I     |Yes
+|VPC Internet Gateway       |CreateInternetGateway |C, T, I     |Yes
+|VPC Network ACL            |CreateNetworkAcl      |C, T, I     |Yes
+|VPC Peering Connection     |CreateVpcPeeringConnection|C, T, I |Yes
+|VPC Route Table            |CreateRouteTable      |C, T, I     |Yes
+|VPC Subnet                 |CreateSubnet          |C, T, I     |Yes
+|VPN Connection             |CreateVpnConnection   |C, T, I     |Yes
+|VPN Gateway ?              |CreateVpnGateway      |C, T, I     |?
 _*=not tested by the test suite_
 
 

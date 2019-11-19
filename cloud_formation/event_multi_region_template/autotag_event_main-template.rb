@@ -152,14 +152,19 @@ template do
             autoscaling:DescribeAutoScalingGroups
             autoscaling:DescribeAutoScalingInstances
             autoscaling:DescribeTags
+            cloudwatch:TagResource
             datapipeline:AddTags
             dynamodb:ListTagsOfResource
             dynamodb:TagResource
             ec2:CreateTags
             ec2:DescribeInstances
             ec2:DescribeSnapshots
+            events:TagResource
             elasticloadbalancing:AddTags
             elasticmapreduce:AddTags
+            iam:TagRole
+            iam:TagUser
+            lambda:TagResource
             opsworks:DescribeInstances
             opsworks:DescribeStacks
             opsworks:ListTags
@@ -167,7 +172,6 @@ template do
             rds:AddTagsToResource
             s3:GetBucketTagging
             s3:PutBucketTagging
-            iam:Tag*
           ],
           Resource: ['*']
         }

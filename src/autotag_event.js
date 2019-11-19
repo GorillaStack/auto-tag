@@ -31,11 +31,19 @@ export const handler = async (cloudtrailEvent, context) => {
     AwsCloudTrailEventListener.NETWORK_ACL.name,
     AwsCloudTrailEventListener.ROUTE_TABLE.name,
     AwsCloudTrailEventListener.VPC_PEERING.name,
-    AwsCloudTrailEventListener.VPN.name,
+    AwsCloudTrailEventListener.VPN_CONNECTION.name,
+    AwsCloudTrailEventListener.VPN_GATEWAY.name,
     AwsCloudTrailEventListener.OPS_WORKS.name,
     AwsCloudTrailEventListener.OPS_WORKS_CLONE.name,
     AwsCloudTrailEventListener.IAM_USER.name,
-    AwsCloudTrailEventListener.IAM_ROLE.name
+    AwsCloudTrailEventListener.IAM_ROLE.name,
+    AwsCloudTrailEventListener.CUSTOMER_GATEWAY.name,
+    AwsCloudTrailEventListener.DHCP_OPTIONS.name,
+    AwsCloudTrailEventListener.LAMBDA_FUNCTION_2015.name,
+    AwsCloudTrailEventListener.LAMBDA_FUNCTION_2014.name,
+    AwsCloudTrailEventListener.CLOUDWATCH_ALARM.name,
+    AwsCloudTrailEventListener.CLOUDWATCH_EVENTS_RULE.name,
+    AwsCloudTrailEventListener.CLOUDWATCH_LOG_GROUP.name
   ];
 
   const listener = new AwsCloudTrailEventListener(cloudtrailEvent, context, enabledListeners);

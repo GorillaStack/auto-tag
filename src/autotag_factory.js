@@ -22,10 +22,17 @@ import AutotagNATGatewayWorker from './workers/autotag_nat_gateway_worker';
 import AutotagNetworkACLWorker from './workers/autotag_network_acl_worker';
 import AutotagRouteTableWorker from './workers/autotag_route_table_worker';
 import AutotagVPCPeeringWorker from './workers/autotag_vpc_peering_worker';
-import AutotagVPNWorker from './workers/autotag_vpn_worker';
+import AutotagVPNConnectionWorker from './workers/autotag_vpn_connection_worker';
+import AutotagVPNGatewayWorker from './workers/autotag_vpn_gateway_worker';
 import AutotagOpsworksWorker from './workers/autotag_opsworks_worker';
 import AutotagIAMUserWorker from './workers/autotag_iam_user_worker';
 import AutotagIAMRoleWorker from './workers/autotag_iam_role_worker';
+import AutotagCustomerGatewayWorker from './workers/autotag_customer_gateway_worker';
+import AutotagDhcpOptionsWorker from './workers/autotag_dhcp_options_worker';
+import AutotagLambdaFunctionWorker from './workers/autotag_lambda_function_worker';
+import AutotagCloudwatchAlarmWorker from './workers/autotag_cw_alarm_worker';
+import AutotagCloudwatchEventsRuleWorker from './workers/autotag_cw_events_rule_worker';
+import AutotagCloudwatchLogGroupWorker from './workers/autotag_cw_loggroup_worker';
 import CONFIG from './cloud_trail_event_config';
 
 const AutotagFactory = {
@@ -117,8 +124,11 @@ const AutotagFactory = {
       case CONFIG.VPC_PEERING.name:
         return new AutotagVPCPeeringWorker(event, s3Region);
 
-      case CONFIG.VPN.name:
-        return new AutotagVPNWorker(event, s3Region);
+      case CONFIG.VPN_CONNECTION.name:
+        return new AutotagVPNConnectionWorker(event, s3Region);
+
+      case CONFIG.VPN_GATEWAY.name:
+        return new AutotagVPNGatewayWorker(event, s3Region);
 
       case CONFIG.OPS_WORKS.name:
         return new AutotagOpsworksWorker(event, s3Region);
@@ -131,6 +141,27 @@ const AutotagFactory = {
 
       case CONFIG.IAM_ROLE.name:
         return new AutotagIAMRoleWorker(event, s3Region);
+
+      case CONFIG.CUSTOMER_GATEWAY.name:
+        return new AutotagCustomerGatewayWorker(event, s3Region);
+
+      case CONFIG.DHCP_OPTIONS.name:
+        return new AutotagDhcpOptionsWorker(event, s3Region);
+
+      case CONFIG.LAMBDA_FUNCTION_2015.name:
+        return new AutotagLambdaFunctionWorker(event, s3Region);
+
+      case CONFIG.LAMBDA_FUNCTION_2014.name:
+        return new AutotagLambdaFunctionWorker(event, s3Region);
+
+      case CONFIG.CLOUDWATCH_ALARM.name:
+        return new AutotagCloudwatchAlarmWorker(event, s3Region);
+
+      case CONFIG.CLOUDWATCH_EVENTS_RULE.name:
+        return new AutotagCloudwatchEventsRuleWorker(event, s3Region);
+
+      case CONFIG.CLOUDWATCH_LOG_GROUP.name:
+        return new AutotagCloudwatchLogGroupWorker(event, s3Region);
 
       // Default: worker that does nothing
       default:

@@ -149,33 +149,81 @@ export default {
     targetEventType: null,
     targetEventSource: null
   },
-  VPN: {
-    name: 'vpn',
+  VPN_CONNECTION: {
+    name: 'vpnConnection',
     targetEventName: 'CreateVpnConnection',
     targetEventType: null,
     targetEventSource: null
   },
+  VPN_GATEWAY: {
+    name: 'vpnGateway',
+    targetEventName: 'CreateVpnGateway',
+    targetEventType: null,
+    targetEventSource: null
+  },
   OPS_WORKS: {
-    name: 'opsworks',
+    name: 'opsWorks',
     targetEventName: 'CreateStack',
     targetEventType: null,
     targetEventSource: null
   },
   OPS_WORKS_CLONE: {
-    name: 'opsworks',
+    name: 'opsWorks',
     targetEventName: 'CloneStack',
     targetEventType: null,
     targetEventSource: null
   },
   IAM_USER: {
-    name: 'iam_user',
+    name: 'iamUser',
     targetEventName: 'CreateUser',
     targetEventType: null,
     targetEventSource: null
   },
   IAM_ROLE: {
-    name: 'iam_role',
+    name: 'iamRole',
     targetEventName: 'CreateRole',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  CUSTOMER_GATEWAY: {
+    name: 'customerGateway',
+    targetEventName: 'CreateCustomerGateway',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  DHCP_OPTIONS: {
+    name: 'dhcpOptions',
+    targetEventName: 'CreateDhcpOptions',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  LAMBDA_FUNCTION_2015: {
+    name: 'lambdaFunction',
+    targetEventName: 'CreateFunction20150331',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  LAMBDA_FUNCTION_2014: {
+    name: 'lambdaFunction',
+    targetEventName: 'CreateFunction20141111',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  CLOUDWATCH_ALARM: {
+    name: 'cloudwatchAlarm',
+    targetEventName: 'PutMetricAlarm',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  CLOUDWATCH_EVENTS_RULE: {
+    name: 'cloudwatchEventsRule',
+    targetEventName: 'PutRule',
+    targetEventType: null,
+    targetEventSource: null
+  },
+  CLOUDWATCH_LOG_GROUP: {
+    name: 'cloudwatchLogGroup',
+    targetEventName: 'CreateLogGroup',
     targetEventType: null,
     targetEventSource: null
   }

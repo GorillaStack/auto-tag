@@ -1,7 +1,7 @@
 import AWS from 'aws-sdk';
 import AutotagEC2Worker from './autotag_ec2_worker';
 
-class AutotagVPNWorker extends AutotagEC2Worker {
+class AutotagVPNConnectionWorker extends AutotagEC2Worker {
   /* tagResource
   ** method: tagResource
   **
@@ -23,4 +23,4 @@ class AutotagVPNWorker extends AutotagEC2Worker {
   }
 }
 
-export default AutotagVPNWorker;
+export default AutotagVPNConnectionWorker;
