@@ -165,6 +165,7 @@ template do
             iam:TagRole
             iam:TagUser
             lambda:TagResource
+            logs:TagLogGroup
             opsworks:DescribeInstances
             opsworks:DescribeStacks
             opsworks:ListTags

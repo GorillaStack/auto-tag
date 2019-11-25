@@ -186,6 +186,7 @@
                 "iam:TagRole",
                 "iam:TagUser",
                 "lambda:TagResource",
+                "logs:TagLogGroup",
                 "rds:AddTagsToResource",
                 "opsworks:DescribeInstances",
                 "opsworks:DescribeStacks",
