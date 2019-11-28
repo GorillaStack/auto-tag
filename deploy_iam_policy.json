@@ -38,7 +38,7 @@
                 "s3:GetBucketLocation",
                 "s3:ListBucket"
             ],
-            "Resource": "arn:aws:s3:::pgi-autotag-temp"
+            "Resource": "arn:aws:s3:::my-autotag-bucket"
         },
         {
             "Sid": "S3BucketReadWrite",
@@ -47,7 +47,7 @@
                 "s3:GetObject",
                 "s3:PutObject"
             ],
-            "Resource": "arn:aws:s3:::pgi-autotag-temp/*"
+            "Resource": "arn:aws:s3:::my-autotag-bucket/*"
         },
         {
             "Sid": "ManagedCloudFormationResources",
