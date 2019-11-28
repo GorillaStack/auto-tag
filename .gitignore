@@ -11,5 +11,6 @@ sample*.js
 *-lock.json
 **/*-parameters.json
 .idea
-deploy.sh
+deploy_retro.sh
 deloy/
+!deploy_autotag.sh

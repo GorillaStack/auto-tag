@@ -17,134 +17,150 @@ Automatically tagging resources can greatly improve the ease of cost allocation 
 
 CloudWatch events delivers a near real-time stream of CloudTrail events as soon as a supported resource type is created. CloudWatch event rules triggers our AutoTag code to tag the resource. In this configuration the Lambda function is executed once each time it is triggered by the CloudWatch Event Rule (one event at a time). The CloudWatch Event Rule includes a pattern filter so it is only triggered by the supported events, meaning fewer Lambda invocations and lower operational costs.
 
+## Installation
+
+The infrastructure consists of:
+
+* S3 Bucket
+* Main CloudFormation Stack (1 AWS region)
+  * Lambda Function
+  * IAM Role
+* Collector CloudFormation Stack (All active AWS regions)
+  * CloudWatch Events Rule
+  * SNS Topic
+
 ## Prerequisites
 
 You will need at least 1 AWS Account, and CloudTrail should be enabled.
 
-To make it as easy as possible to deploy across multiple regions and multiple accounts, we recommend deploying the AutoTag-Collector Stack as a [CloudFormation StackSet](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/what-is-cfnstacksets.html).
+## Deployment Methods
 
-### Deploy Roles for StackSets via CloudFormation
+We have documented two different ways to deploy the infrastructure to your account. Since there are CloudFormation stacks that need to be deployed in multiple regions we've provided a script that uses the AWS CLI to deploy everything for you. The other deployment method has more steps and uses CloudFormation StackSets to deploy across multiple regions.
 
-If you have never used StackSets before, there are some IAM roles that are required for StackSets to assume in order to deploy across regions and accounts (more information on this [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html)). Follow the instructions below to set these up.
+### Script Deployment Method: Deploy through our script
 
-In the administrator account (the account from where you deploy your StackSets), you will need to deploy the [AWSCloudFormationStackSetAdministrationRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml). 
+This deploy script `deploy_autotag.sh` will create, delete, or update all of the AutoTag infrastructure for a single AWS account.
 
-```bash
-aws cloudformation create-stack --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml --stack-name cloudformation-stack-set-admin-role --capabilities CAPABILITY_NAMED_IAM --region $REGION
+The script will attempt to auto-install its own dependencies: `aws-cli`, `jq`, `npm`, `git`, `zip`
+
+The `create` command will start by creating a dedicated AutoTag S3 Bucket for storing code deployment packages in your AWS account. Then it will download or build the code package, and create both the main CloudFormation stack and the collector CloudFormation stacks. When executing the `delete` command all resources will be removed except the S3 bucket.
+
+#### Credentials
+
+The deploy script can use all of the credential providers that the AWS CLI allows, see [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) and take a look at the examples below. A separate set of CLI credentials can be provided by the argument `--s3-profile` for utilizing a single S3 bucket when deploying infrastructure across multiple AWS accounts. The script will also secure the S3 bucket by blocking all public access configuration, and add the required S3 bucket-policy statement to allow the cross-account `GetObject` access if necessary. 
+
+#### IAM Policy
+
+The script needs at minimum these IAM permissions: [deploy\_iam\_policy.json](deploy_iam_policy.json)
+
+#### Commands and Options
+
+```text
+Usage: deploy_autotag.sh [options] <command>
+
+Commands:
+    create                    Create the AutoTag infrastructure
+    delete                    Delete the AutoTag infrastructure
+    update-release            Update the AutoTag infrastructure with a specific release version
+    update-master             Update the AutoTag infrastructure with the latest from the master branch
+    update-local              Update the AutoTag infrastructure with the local source code
+
+Options:
+    -h   --help                  Show this screen
+    -r   --region                The primary AWS region where the main CloudFormation stack will be deployed
+    -p   --profile               The main AWS credential profile
+    -s3bu --s3-bucket            The S3 bucket where the code package will be uploaded
+    -s3pr --s3-profile           A separate AWS credential profile to upload code packages to the S3 Bucket
+    -rv   --release-version      The release version to deploy, e.g. '0.5.2' or 'latest'
+    
+    -lr   --log-retention-days   The number of days to retain the Lambda Function's logs (default: 90)
+    -ld   --log-level-debug      Enable the debug logging for the Lambda Function
+    -ct   --disable-create-time  Disable the 'CreateTime' tagging for all AWS resources
+    -ib   --disable-invoked-by   Disable the 'InvokedBy' tagging for all AWS resources
 ```
 
-In each account you plan to use StackSets (or deploy AutoTag), you will need to deploy the [AWSCloudFormationStackSetExecutionRole.yml](https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml).
+#### Preparation
 
-```bash
-aws cloudformation create-stack --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml --stack-name cloudformation-stack-set-execution-role --parameters ParameterKey=AdministratorAccountId,ParameterValue=$ADMIN_ACCOUNT_ID --capabilities CAPABILITY_NAMED_IAM --region $REGION
+Follow these steps to prepare to run the `create` command.
+
+1. Select a primary AWS `--region` for the S3 bucket and the Main CloudFormation stack
+2. Pick a dedicated AutoTag `--s3-bucket` name, e.g. 'acme-autotag'
+3. Configure AWS credentials for the AWS CLI, see [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
+
+#### Deployment
+
+Download the latest version of `deploy_autotag.sh`, or find it in the root of the repository.
+
+```
+curl -LO https://raw.githubusercontent.com/GorillaStack/auto-tag/master/deploy_autotag.sh
+chmod +x deploy_autotag.sh
 ```
 
-## Installation
-
-The friendly team at GorillaStack maintain hosted versions of the CloudFormation templates and Lambda code zip files, so deployment should be pretty straightforward.
-
-The CloudFormation templates are available for use from any region.
-Because AWS Lambda requires the S3 code location to be in the same region, we only have the code zip file in some supported regions (namely, "ap-southeast-2", "ap-southeast-1", "ap-northeast-1", "ap-northeast-2", "eu-central-1", "eu-west-1", "eu-west-2", "eu-west-3", "us-west-1", "us-west-2", "us-east-1", "us-east-2" and "ca-central-1").
-We suggest that you deploy your main stack to one of these regions, however, if you want to still deploy to one of the regions we are not hosting the zip file, please feel free to download the artifacts and place them in your own bucket.
-
-### Option 1: Deploy through the AWS CLI
-
-Deploy this stack set first in all desired accounts in a single "master" region. This stack is responsible for consuming events from each account it is deployed to, in all regions.
-
-__Main StackSet__
+Create the infrastructure with the latest release using either the `default`, `$AWS_PROFILE`, or `instance` AWS credentials profile.
 
 ```bash
-export REGION=ap-southeast-2 # set this to the region you plan to deploy to
-wget https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/event_multi_region_template/autotag_event_main-template.json
-aws cloudformation create-stack-set \
-  --template-body file://autotag_event_main-template.json \
-  --stack-set-name AutoTag \
-  --region $REGION \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --parameters ParameterKey=CodeS3Bucket,ParameterValue=gorillastack-autotag-releases-$REGION \
-      ParameterKey=CodeS3Path,ParameterValue=autotag-0.5.0.zip \
-      ParameterKey=AutoTagDebugLogging,ParameterValue=Disabled \
-      ParameterKey=AutoTagTagsCreateTime,ParameterValue=Enabled \
-      ParameterKey=AutoTagTagsInvokedBy,ParameterValue=Enabled \
-      ParameterKey=LogRetentionInDays,ParameterValue=731
-# optionally list your stack sets
-aws cloudformation list-stack-sets --region $REGION
-# deploy the stack set across all accounts and regions you want
-aws cloudformation create-stack-instances \
-  --stack-set-name AutoTag \
-  --region $REGION \
-  --accounts '["account_ID_1","account_ID_2"]' \
-  --regions "[\"$REGION\"]" \
-  --operation-preferences FailureToleranceCount=0,MaxConcurrentCount=20
+./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket --release-version latest create
 ```
 
-After the main stack status is CREATE_COMPLETE deploy the collector stack to each region where AWS resources should be tagged. This stack deploys the CloudWatch Event Rule and the SNS Topic.
-
-__Collector StackSet__
+Create the infrastructure with the latest release using a named AWS credentials profile.
 
 ```bash
-export REGION=ap-southeast-2 # set this to the region your ^ main stack is deployed in
-# first create the stack set
-aws cloudformation create-stack-set \
-  --template-url https://gorillastack-autotag-releases.s3-ap-southeast-2.amazonaws.com/templates/autotag_event_collector-template.json \
-  --stack-set-name AutoTag-Collector \
-  --region $REGION \
-  --capabilities CAPABILITY_IAM \
-  --parameters ParameterKey=MainAwsRegion,ParameterValue=$REGION
-# optionally list your stack sets
-aws cloudformation list-stack-sets --region $REGION
-# deploy the stack set across all accounts and regions you want
-aws cloudformation create-stack-instances \
-  --stack-set-name AutoTag-Collector \
-  --region $REGION \
-  --accounts '["account_ID_1","account_ID_2"]' \
-  --regions '["ap-southeast-2", "ap-south-1", "eu-west-3", "eu-west-2", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ca-central-1", "ap-southeast-1", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]' \
-  --operation-preferences FailureToleranceCount=0,MaxConcurrentCount=20
+./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket --release-version latest --profile dev-acct create
 ```
 
-### Option 2: Deploy through the AWS Console
+Create the infrastructure using `$AWS_ACCESS_KEY_ID` and `$AWS_SECRET_ACCESS_KEY`.
 
-__Main StackSet__
+```bash
+export AWS_ACCESS_KEY_ID=XXX
+export AWS_SECRET_ACCESS_KEY=YYY
+./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket create
+```
 
-Deploy this stack set first in all desired accounts in a single "master" region. This stack is responsible for consuming events from each account it is deployed to, in all regions.
+Create the infrastructure using a named AWS credentials profile (`--profile`), but with the S3 Bucket operations utilizing a separate AWS credential profile (`--s3-profile`). Use this feature to deploy across multiple accounts using a single S3 bucket.
 
-1. Read about the [CloudFormation StackSet Concepts](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-concepts.html)
-1. Follow the instructions in the [CloudFormation StackSet Prerequisites](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html). To quickly deploy the requisite roles through the AWS CLI, [see the prerequisites section above](#prerequisites).
-1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
-tion drop-down button and select "Stack"
-1. Click the blue "Create StackSet" button
-1. Provide the local account number and the regions to deploy to, then click the blue "Next" button
-6. Download the Main Stack CloudFormation Template: [autotag_event_main-template.json](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/event_multi_region_template/autotag_event_main-template.json)
-1. Select "Upload a template file" and browse to the `autotag_event_main-template.json` file
-1. Name the stack "AutoTag" - this cannot be changed
-1. In the parameter section:
-* CodeS3Bucket: The name of the code bucket in S3 (i.e. `gorillastack-autotag-releases-${region-name}`)
-* CodeS3Path: This is the version of AutoTag that you wish to deploy. The default value `autotag-0.5.0.zip` is the latest version
-* AutoTagDebugLogging: Enable/Disable Debug Logging for the Lambda Function for **all** processed CloudTrail events
-* AutoTagDebugLoggingOnFailure: Enable/Disable Debug Logging when the Lambda Function has a failure
-* AutoTagTagsCreateTime: Enable/Disable the "CreateTime" tagging for all resources
-* AutoTagTagsInvokedBy: Enable/Disable the "InvokedBy" tagging for all resources (when it is provided)
-* LogRetentionInDays: Number of days to retain AutoTag logs
-1. Select a single master region, and enter the accountIds that you want to deploy the StackSet to.
+```bash
+./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket --profile dev-acct --s3-profile s3-acct create
+```
 
-__Collector StackSet__
+Update the infrastructure to the bleeding edge (master).
 
-After the main stack status is CREATE_COMPLETE deploy the collector stack to each region where AWS resources should be tagged. This stack deploys the CloudWatch Event Rule and the SNS Topic.
+```bash
+./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket update-master
+```
 
-1. Go to the [CloudFormation console](https://console.aws.amazon.com/cloudformation/home)
-1. Click the blue "Create StackSet" button
-1. Provide the local account number and the regions to deploy to, then click the blue "Next" button
-1. Select "Amazon S3 URL" and enter `https://gorillastack-autotag-releases.s3-ap-southeast-2.amazonaws.com/templates/autotag_event_collector-template.json`
-1. Name the stack "AutoTag-Collector" - this name can be anything
-1. In the parameter section:
-* MainAwsRegion: The region where the main auto-tag CloudFormation stack will be running
-1. Select all regions, and enter the accountIds that you want to deploy the StackSet to.
+Update the infrastructure to the latest git release.
+
+```bash
+./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket  --release-version latest update-release
+```
+
+Update the infrastructure to a specific git release - *only works for releases >= 0.5.1*.
+
+```bash
+./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket --release-version 0.5.2 update-release
+```
+
+Update the infrastructure to the local git folder's current state.
+
+```bash
+git clone https://github.com/GorillaStack/auto-tag.git
+cd auto-tag
+./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket update-local
+```
+
+Delete the infrastructure.
+
+```bash
+./deploy_autotag.sh --region us-west-2 delete
+```
+
+### StackSet Deployment Method: Deploy using CloudFormation StackSets
+
+[CloudFormation StackSet Deployment Method](STACKSET.md)
 
 ## Supported Resource Types
 
-Currently Auto-Tag, supports the following AWS resource types
-
-WARNING: When tag-able resources are created using CloudFormation __StackSets__ the "Creator" tag is NEVER populated with the ARN of the user who executed the StackSet, instead it is tagged with the less useful CloudFormation StackSet Execution Role's "assumed-role" ARN. 
+Currently Auto-Tag, supports the following AWS resource types:
 
 __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 
@@ -166,7 +182,7 @@ __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 |EC2 Elastic IP             |AllocateAddress       |C, T, I     |Yes
 |EC2 ENI                    |CreateNetworkInterface|C, T, I     |Yes
 |EC2 Instance w/ENI & Volume|RunInstances          |C, T, I     |Yes
-|EC2/VPC Security Group     |CreateSecurityGroup   |C, T, I     |Yes
+|EC2 / VPC Security Group   |CreateSecurityGroup   |C, T, I     |Yes
 |EC2 Snapshot \*            |CreateSnapshot        |C, T, I     |Yes
 |EC2 Snapshot \*            |CopySnapshot          |C, T, I     |Yes
 |EC2 Snapshot \*            |ImportSnapshot        |C, T, I     |Yes
@@ -190,14 +206,14 @@ __Tags Applied__: C=Creator, T=Create Time, I=Invoked By
 |VPC Subnet                 |CreateSubnet          |C, T, I     |Yes
 |VPN Connection             |CreateVpnConnection   |C, T, I     |Yes
 |VPN Gateway ?              |CreateVpnGateway      |C, T, I     |?
+
 _*=not tested by the test suite_
 
+NOTE: When tag-able resources are created using CloudFormation __StackSets__ the "Creator" tag is NEVER populated with the ARN of the user who executed the StackSet, instead it is tagged with the less useful CloudFormation StackSet Execution Role's "assumed-role" ARN. 
 
 ## Deny Create/Delete/Edit for AutoTags
 
-Use the following IAM policy to deny a user or role the ability to create, delete, and edit any tag starting with 'AutoTag\_'. The `ec2:CreateAction` condition allows users to use the 'Launch More Like This' feature which will allow users to create AWS resources with tags starting with 'AutoTag_' but they will eventually be overwritten.
-
-NOTE: At the time of this writing the deny tag IAM condition (aws:TagKeys) is only available for resources in EC2 and AutoScaling, see the table above for a status of each resource.
+Use the following IAM policy to deny a user or role the ability to create, delete, and edit any tag starting with 'AutoTag\_'. The `ec2:CreateAction` condition allows users to create EC2 instances with tags starting with 'AutoTag_', this enables the 'Launch More Like This' feature, in that case the tags will be overwritten after the instance is created.
 
 ```json
 {
@@ -222,6 +238,8 @@ NOTE: At the time of this writing the deny tag IAM condition (aws:TagKeys) is on
     "Resource": "*"
 }
 ```
+
+NOTE: At the time of this writing the deny tag IAM condition (aws:TagKeys) is only available for resources in EC2 and AutoScaling, see the table above for a status of each resource.
 
 ## Contributing
 
