@@ -106,7 +106,7 @@ template do
   }
 
   resource 'AutoTagExecutionPolicy', Type: 'AWS::IAM::Policy', Properties: {
-    PolicyName: sub('${AWS::StackName}AutoTagExecutionPolicy'),
+    PolicyName: sub('${AWS::StackName}ExecutionPolicy'),
     Roles: [ref('AutoTagExecutionRole')],
     PolicyDocument: {
       Version: '2012-10-17',

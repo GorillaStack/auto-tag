@@ -35,7 +35,7 @@ You will need at least 1 AWS Account, and CloudTrail should be enabled.
 
 ## Deployment Methods
 
-We have documented two different ways to deploy the infrastructure to your account. Since there are CloudFormation stacks that need to be deployed in multiple regions we've provided a script that uses the AWS CLI to deploy everything for you. The other deployment method has more steps and uses CloudFormation StackSets to deploy across multiple regions.
+We have documented two different ways to deploy the infrastructure to an AWS account. Since there are CloudFormation stacks that need to be deployed in multiple regions we've provided a script that uses the AWS CLI to deploy everything for you. The other deployment method has more steps and uses CloudFormation StackSets to deploy across multiple regions.
 
 ### Script Deployment Method: Deploy through our script
 
@@ -49,11 +49,11 @@ The `create` command will start by creating a dedicated AutoTag S3 Bucket for st
 
 The deploy script can use all of the credential providers that the AWS CLI allows, see [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) and take a look at the examples below. A separate set of CLI credentials can be provided by the argument `--s3-profile` for utilizing a single S3 bucket when deploying infrastructure across multiple AWS accounts. The script will also secure the S3 bucket by blocking all public access configuration, and add the required S3 bucket-policy statement to allow the cross-account `GetObject` access if necessary. 
 
-#### IAM Policy
+#### IAM Policy Permissions
 
-The script needs at minimum these IAM permissions: [deploy\_iam\_policy.json](deploy_iam_policy.json)
+The script needs at minimum the IAM permissions described in this policy: [deploy\_iam\_policy.json](deploy_iam_policy.json)
 
-If you are going to use the policy replace the 2 occurrences of `my-autotag-bucket` with the name of your actual AutoTag S3 bucket.
+Before using this IAM policy replace the 2 occurrences of `my-autotag-bucket` with the name of your actual AutoTag S3 bucket.
 
 #### Commands and Options
 

@@ -162,7 +162,7 @@
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyName": {
-          "Fn::Sub": "${AWS::StackName}AutoTagExecutionPolicy"
+          "Fn::Sub": "${AWS::StackName}ExecutionPolicy"
         },
         "Roles": [
           {

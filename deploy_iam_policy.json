@@ -11,7 +11,7 @@
             "Resource": "*"
         },
         {
-            "Sid": "CloudFormation",
+            "Sid": "CloudFormationManageStacks",
             "Effect": "Allow",
             "Action": [
                 "cloudformation:CreateStack",
@@ -41,7 +41,7 @@
             "Resource": "arn:aws:s3:::my-autotag-bucket"
         },
         {
-            "Sid": "S3BucketReadWrite",
+            "Sid": "S3ObjectReadWrite",
             "Effect": "Allow",
             "Action": [
                 "s3:GetObject",
@@ -56,29 +56,29 @@
                 "events:*",
                 "lambda:*",
                 "logs:*",
-                "sns:*"
+                "sns:*",
+                "iam:GetRole"
             ],
             "Resource": "*"
         },
         {
-            "Sid": "ManagedIamCloudFormationResources",
+            "Sid": "IamRole",
             "Effect": "Allow",
             "Action": [
-                "iam:GetRole",
                 "iam:CreateRole",
                 "iam:DeleteRole",
                 "iam:UpdateRole",
                 "iam:GetPolicy",
-                "iam:CreatePolicy",
-                "iam:DeletePolicy",
-                "iam:UpdatePolicy",
                 "iam:GetRolePolicy",
                 "iam:PutRolePolicy",
-                "iam:AttachRolePolicy",
                 "iam:DeleteRolePolicy",
+                "iam:AttachRolePolicy",
                 "iam:DetachRolePolicy"
             ],
-            "Resource": "*"
+            "Resource": [
+                "arn:aws:iam::*:role/gorillastack/autotag/master/AutoTag",
+                "arn:aws:iam::*:role/gorillastack/autotag/execution/AutoTagLambda"
+            ]
         },
         {
             "Sid": "IamPassRole",
