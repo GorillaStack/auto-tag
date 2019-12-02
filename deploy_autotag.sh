@@ -466,7 +466,7 @@ function check-dependencies () {
   elif command_exists 'apt' ; then
     PLATFORM='debian'
   else
-    echo "Supported platform not detected: macOS, redhat, debian"
+    echo "Supported platform not detected: macOS, redhat, debian/ubuntu"
     echo "Install the dependencies manually: jq, aws-cli, git, npm, and zip"
     exit 1
   fi
@@ -485,7 +485,7 @@ function check-dependencies () {
     elif [ "$PLATFORM" == 'redhat' ] ; then
       sudo yum install -y jq
     elif [ "$PLATFORM" == 'debian' ] ; then
-      sudo snap install jq
+      sudo apt install -y jq
     fi
   fi
 
