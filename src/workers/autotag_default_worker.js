@@ -160,35 +160,37 @@ class AutotagDefaultWorker {
   getCustomTags() {
     const keyword = '$event.';
     // substitute any word starting with the keyword in the tag value with the actual value from the event
-    return objectMap(JSON.parse(SETTINGS.CustomTags), (tagValue) => {
+    return this.objectMap(JSON.parse(SETTINGS.CustomTags), tagValue => {
+      let newTagValue = tagValue;
       // split up the tag value by any character except these
       const tagValueVariables = tagValue.match(/\$[A-Za-z0-9.]+/g) || [];
 
-      tagValueVariables.forEach ( (tagValueVariable) => {
+      tagValueVariables.forEach(tagValueVariable => {
         const tagValueVariableReplacement = get(this.event, tagValueVariable.replace(keyword, ''), undefined);
 
         if (tagValueVariableReplacement === undefined) {
           console.log(`WARN: Failed to perform the variable substitution for ${tagValueVariable}`);
         }
         // replace the variable in the tag value with the associated event value
-        tagValue = tagValue.replace(tagValueVariable, tagValueVariableReplacement)
+        newTagValue = newTagValue.replace(tagValueVariable, tagValueVariableReplacement);
       });
       // if all of the variable substitutions in the tag value have failed drop the entire tag
-      if (tagValueVariables.length > 0 && tagValueVariables.length === (tagValue.match(/undefined/g) || []).length) {
-        return
+      if (tagValueVariables.length > 0 && tagValueVariables.length === (newTagValue.match(/undefined/g) || []).length) {
+        return false;
       }
 
-      return tagValue
+      return newTagValue;
     });
   }
-}
 
-// returns a new array with the values at each key mapped using mapFn(value)
-function objectMap(object, mapFn) {
-  return Object.keys(object).reduce( (result, key) => {
-    result.push({ Key: key, Value: mapFn(object[key]) });
-    return result
-  }, [])
+  // returns a new array with the values at each key mapped using mapFn(value)
+  objectMap(object, mapFn) {
+    return Object.keys(object).reduce((result, key) => {
+      const newValue = mapFn(object[key]);
+      if (newValue) result.push({ Key: key, Value: newValue });
+      return result;
+    }, []);
+  }
 }
 
 export default AutotagDefaultWorker;
