@@ -52,6 +52,10 @@
       "Description": "Number of days to retain AutoTag logs.",
       "Type": "Number",
       "Default": 731
+    },
+    "CustomTags": {
+      "Description": "Define custom tags in a JSON document.",
+      "Type": "String"
     }
   },
   "Resources": {
@@ -95,6 +99,9 @@
             },
             "ROLE_NAME": {
               "Ref": "AutoTagMasterRole"
+            },
+            "CUSTOM_TAGS": {
+              "Ref": "CustomTags"
             }
           }
         }

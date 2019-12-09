@@ -50,6 +50,9 @@ template do
             Type: 'Number',
             Default: 731
 
+  parameter 'CustomTags',
+            Description: 'Define custom tags in a JSON document.',
+            Type: 'String'
 
   resource 'AutoTagLambdaFunction', Type: 'AWS::Lambda::Function', Properties: {
     Code: {
@@ -71,7 +74,8 @@ template do
         DEBUG_LOGGING:            ref('AutoTagDebugLogging'),
         CREATE_TIME:              ref('AutoTagTagsCreateTime'),
         INVOKED_BY:               ref('AutoTagTagsInvokedBy'),
-        ROLE_NAME:                ref('AutoTagMasterRole')
+        ROLE_NAME:                ref('AutoTagMasterRole'),
+        CUSTOM_TAGS:              ref('CustomTags')
       }
     }
   }
