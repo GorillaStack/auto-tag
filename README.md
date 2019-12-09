@@ -15,7 +15,7 @@ Also see [retro-tag](https://github.com/GorillaStack/retro-tag) for a solution t
 
 Automatically tagging resources can greatly improve the ease of cost allocation and governance.
 
-CloudWatch events delivers a near real-time stream of CloudTrail events as soon as a supported resource type is created. CloudWatch event rules triggers our AutoTag code to tag the resource. In this configuration the Lambda function is executed once each time it is triggered by the CloudWatch Event Rule (one event at a time). The CloudWatch Event Rule includes a pattern filter so it is only triggered by the supported events, meaning fewer Lambda invocations and lower operational costs.
+CloudWatch events delivers a near real-time stream of CloudTrail events as soon as a [supported resource type](#supported-resource-types) is created. CloudWatch event rules triggers our AutoTag code to tag the resource. In this configuration the Lambda function is executed once each time it is triggered by the CloudWatch Event Rule (one event at a time). The CloudWatch Event Rule includes a pattern filter so it is only triggered by the supported events, meaning fewer Lambda invocations and lower operational costs.
 
 ## Installation
 
@@ -55,6 +55,22 @@ The script needs at minimum the IAM permissions described in this policy: [deplo
 
 Before using this IAM policy replace the 2 occurrences of `my-autotag-bucket` with the name of your actual AutoTag S3 bucket.
 
+#### Custom Tags
+
+Add pre-defined static tagging or custom tagging from the CloudTrail event. Using a JSON document define one or more tags with either a hard-coded value or a value extracted from the CloudTrail event using variable substitution. Hard-coded tags will be applied to all [supported AWS resources](#supported-resource-types). When using variable substitution more than one variable can be provided in a single tag value, and if all of the substitutions in the field fail to be resolved the tag will not be written. That will allow for custom tags to be created using certain CloudTrail event fields that may not exist in all CloudTrail event types, see the [CloudTrail Log Event Reference](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference.html) for the available fields.
+
+Example:
+
+```json
+{
+  "AutoTag_ManagedBy": "Site Reliability Engineering",
+  "AutoTag_UserIdentityType": "$event.userIdentity.type",
+  "AutoTag_UserName": "$event.userIdentity.userName",
+  "AutoTag_ClientInfo": "SourceIP: $event.sourceIPAddress, UserAgent: $event.userAgent",
+  "AutoTag_Ec2_ImageId": "$event.responseElements.instancesSet.items.0.imageId"
+}
+```
+
 #### Commands and Options
 
 ```text
@@ -77,8 +93,9 @@ Options:
     
     -lr   --log-retention-days   The number of days to retain the Lambda Function's logs (default: 90)
     -ld   --log-level-debug      Enable the debug logging for the Lambda Function
-    -ct   --disable-create-time  Disable the 'CreateTime' tagging for all AWS resources
-    -ib   --disable-invoked-by   Disable the 'InvokedBy' tagging for all AWS resources
+    -dct  --disable-create-time  Disable the 'CreateTime' tagging for all AWS resources
+    -dib  --disable-invoked-by   Disable the 'InvokedBy' tagging for all AWS resources
+    -ct   --custom-tags          Define custom tags in a JSON document
 ```
 
 #### Preparation
@@ -107,7 +124,7 @@ Create the infrastructure with the latest release using either the `default`, `$
 Create the infrastructure with the latest release using a named AWS credentials profile.
 
 ```bash
-./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket --release-version latest --profile dev-acct create
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket --release-version latest --profile dev-acct create
 ```
 
 Create the infrastructure using `$AWS_ACCESS_KEY_ID` and `$AWS_SECRET_ACCESS_KEY`.
@@ -115,31 +132,53 @@ Create the infrastructure using `$AWS_ACCESS_KEY_ID` and `$AWS_SECRET_ACCESS_KEY
 ```bash
 export AWS_ACCESS_KEY_ID=XXX
 export AWS_SECRET_ACCESS_KEY=YYY
-./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket create
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket create
 ```
 
 Create the infrastructure using a named AWS credentials profile (`--profile`), but with the S3 Bucket operations utilizing a separate AWS credential profile (`--s3-profile`). Use this feature to deploy across multiple accounts using a single S3 bucket.
 
 ```bash
-./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket --profile dev-acct --s3-profile s3-acct create
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket --profile dev-acct --s3-profile s3-acct create
+```
+
+Create the infrastructure with an additional custom tag with a static value, this tag will be applied globally across all of the [supported AWS resources](#supported-resource-types).
+
+```bash
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket create \
+--custom-tags '{"AutoTag_ManagedBy": "Site Reliability Engineering"}'
+```
+
+Create the infrastructure with an additional event-based custom tag, any key in the CloudTrail event
+is valid to use but it will be applied globally across all of the [supported AWS resources](#supported-resource-types).
+
+```bash
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket create \
+--custom-tags '{"AutoTag_UserIdentityType": "$event.userIdentity.type"}'
+```
+
+Interpolation with text in the value is supported and more than one field from the event can be rendered in a single tag's value.
+
+```bash
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket create \
+--custom-tags '{"AutoTag_ClientInfo": "SourceIP: $event.sourceIPAddress, UserAgent: $event.userAgent"}'
 ```
 
 Update the infrastructure to the bleeding edge (master).
 
 ```bash
-./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket update-master
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket update-master
 ```
 
 Update the infrastructure to the latest git release.
 
 ```bash
-./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket  --release-version latest update-release
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket --release-version latest update-release
 ```
 
 Update the infrastructure to a specific git release - *only works for releases >= 0.5.1*.
 
 ```bash
-./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket --release-version 0.5.2 update-release
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket --release-version 0.5.2 update-release
 ```
 
 Update the infrastructure to the local git folder's current state.
@@ -147,13 +186,13 @@ Update the infrastructure to the local git folder's current state.
 ```bash
 git clone https://github.com/GorillaStack/auto-tag.git
 cd auto-tag
-./deploy_autotag.sh --region us-west-2 --s3-bucket my-autotag-bucket update-local
+./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket update-local
 ```
 
 Delete the infrastructure.
 
 ```bash
-./deploy_autotag.sh --region us-west-2 delete
+./deploy_autotag.sh -r us-west-2 delete
 ```
 
 ### StackSet Deployment Method: Deploy using CloudFormation StackSets

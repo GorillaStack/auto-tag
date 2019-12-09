@@ -5,5 +5,5 @@ export default {
     CreateTime: (process.env.CREATE_TIME !== 'Disabled'),
     InvokedBy: (process.env.INVOKED_BY !== 'Disabled')
   },
-
+  CustomTags: (!process.env.CUSTOM_TAGS || process.env.CUSTOM_TAGS === '') ? '{}' : process.env.CUSTOM_TAGS
 };

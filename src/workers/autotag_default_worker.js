@@ -1,3 +1,4 @@
+import get from 'lodash/get';
 import * as AWS from 'aws-sdk';
 import SETTINGS from '../autotag_settings';
 
@@ -98,6 +99,7 @@ class AutotagDefaultWorker {
       this.getAutotagCreatorTag(),
       ...(SETTINGS.AutoTags.CreateTime ? [this.getAutotagCreateTimeTag()] : []),
       ...(this.getInvokedByTagValue() && SETTINGS.AutoTags.InvokedBy ? [this.getAutotagInvokedByTag()] : []),
+      ...this.getCustomTags()
     ];
   }
 
@@ -154,6 +156,39 @@ class AutotagDefaultWorker {
   getInvokedByTagValue() {
     return (this.event.userIdentity && this.event.userIdentity.invokedBy ? this.event.userIdentity.invokedBy : false);
   }
+
+  getCustomTags() {
+    const keyword = '$event.';
+    // substitute any word starting with the keyword in the tag value with the actual value from the event
+    return objectMap(JSON.parse(SETTINGS.CustomTags), (tagValue) => {
+      // split up the tag value by any character except these
+      const tagValueVariables = tagValue.match(/\$[A-Za-z0-9.]+/g) || [];
+
+      tagValueVariables.forEach ( (tagValueVariable) => {
+        const tagValueVariableReplacement = get(this.event, tagValueVariable.replace(keyword, ''), undefined);
+
+        if (tagValueVariableReplacement === undefined) {
+          console.log(`WARN: Failed to perform the variable substitution for ${tagValueVariable}`);
+        }
+        // replace the variable in the tag value with the associated event value
+        tagValue = tagValue.replace(tagValueVariable, tagValueVariableReplacement)
+      });
+      // if all of the variable substitutions in the tag value have failed drop the entire tag
+      if (tagValueVariables.length > 0 && tagValueVariables.length === (tagValue.match(/undefined/g) || []).length) {
+        return
+      }
+
+      return tagValue
+    });
+  }
+}
+
+// returns a new array with the values at each key mapped using mapFn(value)
+function objectMap(object, mapFn) {
+  return Object.keys(object).reduce( (result, key) => {
+    result.push({ Key: key, Value: mapFn(object[key]) });
+    return result
+  }, [])
 }
 
 export default AutotagDefaultWorker;

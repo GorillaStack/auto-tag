@@ -176,6 +176,42 @@ function select-release-version () {
   fi
 }
 
+function cf-parameters () {
+  CF_PARAMETERS=$(cat <<EOF
+    [
+      {
+        "ParameterKey": "CodeS3Bucket",
+        "ParameterValue": "$S3_BUCKET"
+      },
+      {
+        "ParameterKey": "CodeS3Path",
+        "ParameterValue": "$S3_PATH"
+      },
+      {
+        "ParameterKey": "AutoTagDebugLogging",
+        "ParameterValue": "$LOG_LEVEL_DEBUG"
+      },
+      {
+        "ParameterKey": "AutoTagTagsCreateTime",
+        "ParameterValue": "$CREATE_TIME"
+      },
+      {
+        "ParameterKey": "AutoTagTagsInvokedBy",
+        "ParameterValue": "$INVOKED_BY"
+      },
+      {
+        "ParameterKey": "LogRetentionInDays",
+        "ParameterValue": "$LOG_RETENTION_DAYS"
+      },
+      {
+        "ParameterKey": "CustomTags",
+        "ParameterValue": "${CUSTOM_TAGS//\"/\\\"}"
+      }
+    ]
+EOF
+  )
+}
+
 function wait-for-stack () {
 
   local STACK_PREFIX="$1"
@@ -236,6 +272,8 @@ EOF
 
     echo "Creating the Main CloudFormation Stack..."
 
+    cf-parameters
+
     # TODO: this doesn't work before v0.5.1 because the template wasn't in the repo
     MAIN_TEMPLATE=$(curl -sS ${GITHUB_URL}/${RELEASE_COMMIT}/cloud_formation/event_multi_region_template/autotag_event_main-template.json)
 
@@ -245,13 +283,7 @@ EOF
       --stack-name "$MAIN_STACK_NAME" \
       --region "$MAIN_STACK_AWS_REGION" \
       --capabilities CAPABILITY_NAMED_IAM \
-      --parameters \
-          ParameterKey=CodeS3Bucket,ParameterValue=$S3_BUCKET \
-          ParameterKey=CodeS3Path,ParameterValue=$S3_PATH \
-          ParameterKey=AutoTagDebugLogging,ParameterValue=$LOG_LEVEL_DEBUG \
-          ParameterKey=AutoTagTagsCreateTime,ParameterValue=$CREATE_TIME \
-          ParameterKey=AutoTagTagsInvokedBy,ParameterValue=$INVOKED_BY \
-          ParameterKey=LogRetentionInDays,ParameterValue=$LOG_RETENTION_DAYS
+      --parameters "$CF_PARAMETERS"
 
     wait-for-stack 'Main' "$MAIN_STACK_NAME" "$MAIN_STACK_AWS_REGION"
 
@@ -375,6 +407,8 @@ EOF
 
   echo "Updating the Main CloudFormation Stack..."
 
+  cf-parameters
+
   MAIN_STACK_FAIL_FILE=$(mktemp)
 
   set +e
@@ -385,13 +419,7 @@ EOF
     --stack-name "$MAIN_STACK_NAME" \
     --region "$MAIN_STACK_AWS_REGION" \
     --capabilities CAPABILITY_NAMED_IAM \
-    --parameters \
-        ParameterKey=CodeS3Bucket,ParameterValue=$S3_BUCKET \
-        ParameterKey=CodeS3Path,ParameterValue=$S3_PATH \
-        ParameterKey=AutoTagDebugLogging,ParameterValue=$LOG_LEVEL_DEBUG \
-        ParameterKey=AutoTagTagsCreateTime,ParameterValue=$CREATE_TIME \
-        ParameterKey=AutoTagTagsInvokedBy,ParameterValue=$INVOKED_BY \
-        ParameterKey=LogRetentionInDays,ParameterValue=$LOG_RETENTION_DAYS
+    --parameters "$CF_PARAMETERS"
 
   set -e
   MAIN_STACK_FAILURE=$(<$MAIN_STACK_FAIL_FILE)
@@ -606,8 +634,9 @@ Options:
 
     -lr   --log-retention-days   The number of days to retain the Lambda Function's logs (default: 90)
     -ld   --log-level-debug      Enable the debug logging for the Lambda Function
-    -ct   --disable-create-time  Disable the 'CreateTime' tagging for all AWS resources
-    -ib   --disable-invoked-by   Disable the 'InvokedBy' tagging for all AWS resources
+    -dct  --disable-create-time  Disable the 'CreateTime' tagging for all AWS resources
+    -dib  --disable-invoked-by   Disable the 'InvokedBy' tagging for all AWS resources
+    -ct   --custom-tags          Define custom tags in a JSON document
 
 EOF
   exit 0
@@ -647,13 +676,17 @@ while (( "$#" )); do
       export LOG_LEVEL_DEBUG=Enabled
       shift 1
       ;;
-    -ct|--disable-create-time)
+    -dct|--disable-create-time)
       export CREATE_TIME=Disabled
       shift 1
       ;;
-    -ib|--disable-invoked-by)
+    -dib|--disable-invoked-by)
       export INVOKED_BY=Disabled
       shift 1
+      ;;
+    -ct|--custom-tags)
+      export CUSTOM_TAGS="$2"
+      shift 2
       ;;
     -d|--dev)
       export DEV_MODE=true
@@ -725,6 +758,7 @@ fi
 [ -z "$LOG_LEVEL_DEBUG" ]    && export LOG_LEVEL_DEBUG=Disabled
 [ -z "$CREATE_TIME" ] && export CREATE_TIME=Enabled
 [ -z "$INVOKED_BY" ]  && export INVOKED_BY=Enabled
+[ -z "$CUSTOM_TAGS" ] && export CUSTOM_TAGS=''
 
 check-dependencies
 
@@ -750,7 +784,7 @@ elif [ "$COMMAND" == 'update-master' ] ; then
 
 elif [ "$COMMAND" == 'update-local' ] ; then
   print-header  'Update Stacks from the local repo'
-  update-stacks  'local'
+  update-stacks 'local'
 
 fi
 
