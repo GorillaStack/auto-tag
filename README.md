@@ -57,7 +57,7 @@ Before using this IAM policy replace the 2 occurrences of `my-autotag-bucket` wi
 
 #### Custom Tags
 
-Add pre-defined static tagging or custom tagging from the CloudTrail event. Using a JSON document define one or more tags with either a hard-coded value or a value extracted from the CloudTrail event using variable substitution. Hard-coded tags will be applied to all [supported AWS resources](#supported-resource-types). When using variable substitution more than one variable can be provided in a single tag value, and if all of the substitutions in the field fail to be resolved the tag will not be written. That will allow for custom tags to be created using certain CloudTrail event fields that may not exist in all CloudTrail event types, see the [CloudTrail Log Event Reference](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference.html) for the available fields.
+Add pre-defined static tagging or custom tagging from the CloudTrail event. Using a JSON document, define one or more tags with either a hard-coded value or a value extracted from the CloudTrail event using variable substitution. Hard-coded tags will be applied to all [supported AWS resources](#supported-resource-types). When using variable substitution more than one variable can be provided in a single tag value, and if all of the substitutions in the field fail to be resolved the tag will not be written. That will allow for custom tags to be created using certain CloudTrail event fields that may not exist in all CloudTrail event types. Check out the [CloudTrail Log Event Reference](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference.html) for the most common fields. Also, each AWS resource will have unique fields in the `requestParameters` and `responseElements` fields that can be used. Examples of specific AWS resource CloudTrail events can be found at [CloudTrail Log File Examples](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-examples.html) or by searching in the CloudTrail event history.
 
 Example:
 
@@ -148,15 +148,14 @@ Create the infrastructure with an additional custom tag with a static value, thi
 --custom-tags '{"AutoTag_ManagedBy": "Site Reliability Engineering"}'
 ```
 
-Create the infrastructure with an additional event-based custom tag, any key in the CloudTrail event
-is valid to use but it will be applied globally across all of the [supported AWS resources](#supported-resource-types).
+Create the infrastructure with an additional event-based custom tag, any key in the CloudTrail event is valid to use and it will be applied globally across all of the [supported AWS resources](#supported-resource-types) unless the field does not exist in the CloudTrail event.
 
 ```bash
 ./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket create \
 --custom-tags '{"AutoTag_UserIdentityType": "$event.userIdentity.type"}'
 ```
 
-Interpolation with text in the value is supported and more than one field from the event can be rendered in a single tag's value.
+Interpolation with text in the value is supported and more than one field from the event can be rendered in a single tag value.
 
 ```bash
 ./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket create \
