@@ -495,8 +495,8 @@ function check-dependencies () {
     PLATFORM='debian'
   else
     echo "Supported platform not detected: macOS, redhat, debian/ubuntu"
-    echo "Install the dependencies manually: jq, aws-cli, git, npm, and zip"
-    exit 1
+    echo -e "Install the dependencies manually: jq, aws-cli, git, npm, and zip\n"
+    return 0
   fi
 
   # checking for jq
