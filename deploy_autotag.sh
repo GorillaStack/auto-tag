@@ -177,6 +177,8 @@ function select-release-version () {
 }
 
 function cf-parameters () {
+  # If we rename or delete parameters from the CF template, do not remove them from this list,
+  # logic below keeps this list backward-compatible for older CF templates
   CF_PARAMETERS=$(cat <<EOF
     [
       {
@@ -210,6 +212,11 @@ function cf-parameters () {
     ]
 EOF
   )
+
+  TEMPLATE_PARAMETER_KEYS=$(echo "$MAIN_TEMPLATE" | jq -r '.Parameters | [keys[]]')
+
+  # For backward-compatibility remove any CF_PARAMETERS that don't exist in the MAIN_TEMPLATE that has been selected
+  CF_PARAMETERS=$(echo "$CF_PARAMETERS" | jq --argjson tpk "$TEMPLATE_PARAMETER_KEYS" -r '[.[] | select( .[] as $in | $tpk | index($in))]')
 }
 
 function wait-for-stack () {
@@ -270,12 +277,12 @@ EOF
     ZIP_FILE="autotag-$MANAGE_RELEASE_VERSION.zip"
     S3_PATH="releases/$ZIP_FILE"
 
+    # TODO: this doesn't work before v0.5.1 because the JSON template wasn't in the repo
+    MAIN_TEMPLATE=$(curl -sS ${GITHUB_URL}/${RELEASE_COMMIT}/cloud_formation/event_multi_region_template/autotag_event_main-template.json)
+
     echo "Creating the Main CloudFormation Stack..."
 
     cf-parameters
-
-    # TODO: this doesn't work before v0.5.1 because the template wasn't in the repo
-    MAIN_TEMPLATE=$(curl -sS ${GITHUB_URL}/${RELEASE_COMMIT}/cloud_formation/event_multi_region_template/autotag_event_main-template.json)
 
     aws cloudformation create-stack \
       $AWS_CREDENTIALS \
@@ -753,7 +760,7 @@ else
   S3_AWS_CREDENTIALS="$AWS_CREDENTIALS"
 fi
 
-# defaults
+# CF template defaults
 [ -z "$LOG_RETENTION_DAYS" ] && export LOG_RETENTION_DAYS=90
 [ -z "$LOG_LEVEL_DEBUG" ]    && export LOG_LEVEL_DEBUG=Disabled
 [ -z "$CREATE_TIME" ] && export CREATE_TIME=Enabled
