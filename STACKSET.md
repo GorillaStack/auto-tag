@@ -45,7 +45,7 @@ aws cloudformation create-stack-set \
       ParameterKey=AutoTagDebugLogging,ParameterValue=Disabled \
       ParameterKey=AutoTagTagsCreateTime,ParameterValue=Enabled \
       ParameterKey=AutoTagTagsInvokedBy,ParameterValue=Enabled \
-      ParameterKey=LogRetentionInDays,ParameterValue=731
+      ParameterKey=LogRetentionInDays,ParameterValue=90
 # optionally list your stack sets
 aws cloudformation list-stack-sets --region $REGION
 # deploy the stack set across all accounts and regions you want
@@ -96,7 +96,7 @@ tion drop-down button and select "Stack"
 1. Provide the local account number and the regions to deploy to, then click the blue "Next" button
 1. Download the Main Stack CloudFormation Template: [autotag_event_main-template.json](https://raw.githubusercontent.com/GorillaStack/auto-tag/master/cloud_formation/event_multi_region_template/autotag_event_main-template.json)
 1. Select "Upload a template file" and browse to the `autotag_event_main-template.json` file
-1. Name the stack "AutoTag" - this cannot be changed
+1. Name the stack "AutoTag" - this name cannot be changed
 1. In the parameter section:
 * CodeS3Bucket: The name of the code bucket in S3 (i.e. `gorillastack-autotag-releases-${region-name}`)
 * CodeS3Path: This is the version of AutoTag that you wish to deploy. The default value `autotag-0.5.0.zip` is the latest version

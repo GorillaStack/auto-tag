@@ -48,11 +48,12 @@ template do
   parameter 'LogRetentionInDays',
             Description: 'Number of days to retain AutoTag logs.',
             Type: 'Number',
-            Default: 731
+            Default: 90
 
   parameter 'CustomTags',
             Description: 'Define custom tags in a JSON document.',
-            Type: 'String'
+            Type: 'String',
+            Default: ''
 
   resource 'AutoTagLambdaFunction', Type: 'AWS::Lambda::Function', Properties: {
     Code: {
