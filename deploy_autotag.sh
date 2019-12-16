@@ -359,8 +359,9 @@ function update-stacks () {
     (
       cd "$TEMP_DIR"
       git clone --depth 1 "https://github.com/$REPO_NAME.git"
-      cd auto-tag
+      echo
 
+      cd auto-tag
       npm install
 
       build-package  'master'
@@ -486,7 +487,7 @@ function command_exists () {
     type "$1" &> /dev/null ;
 }
 
-function check-dependencies () {
+function check-min-dependencies () {
 
   if [ "${BASH_VERSINFO[0]}" -lt "$MIN_BASH_VERSION" ] ; then
     echo "Bash version $BASH_VERSION is unsupported, Bash must be at version $MIN_BASH_VERSION or greater."
@@ -557,7 +558,10 @@ function check-dependencies () {
       fi
     fi
   fi
+  echo
+}
 
+function check-build-dependencies () {
   # checking for git
   if ! command_exists 'git' ; then
     echo "Command 'git' is missing, installing it now..."
@@ -616,8 +620,6 @@ function check-dependencies () {
       sudo apt install -y zip
     fi
   fi
-
-  echo
 }
 
 function show-help {
@@ -767,7 +769,7 @@ fi
 [ -z "$INVOKED_BY" ]  && export INVOKED_BY=Enabled
 [ -z "$CUSTOM_TAGS" ] && export CUSTOM_TAGS=''
 
-check-dependencies
+check-min-dependencies
 
 if [ "$COMMAND" == 'create' ] ; then
   print-header 'Create Stacks'
@@ -786,10 +788,12 @@ elif [ "$COMMAND" == 'update-release' ] ; then
   update-stacks "$RELEASE_VERSION"
 
 elif [ "$COMMAND" == 'update-master' ] ; then
+  check-build-dependencies
   print-header  'Update Stacks from master'
   update-stacks 'master'
 
 elif [ "$COMMAND" == 'update-local' ] ; then
+  check-build-dependencies
   print-header  'Update Stacks from the local repo'
   update-stacks 'local'
 

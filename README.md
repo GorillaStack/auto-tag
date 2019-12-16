@@ -29,33 +29,7 @@ The infrastructure consists of:
   * CloudWatch Events Rule
   * SNS Topic
 
-## Prerequisites
-
-You will need at least 1 AWS Account, and CloudTrail should be enabled.
-
-## Deployment Methods
-
-We have documented two different ways to deploy the infrastructure to an AWS account. Since there are CloudFormation stacks that need to be deployed in multiple regions we've provided a script that uses the AWS CLI to deploy everything for you. The other deployment method has more steps and uses CloudFormation StackSets to deploy across multiple regions.
-
-### Script Deployment Method: Deploy through our script
-
-This deploy script `deploy_autotag.sh` will create, delete, or update all of the AutoTag infrastructure for a single AWS account.
-
-The script will attempt to auto-install its own dependencies: `aws-cli`, `jq`, `npm`, `git`, `zip`
-
-The `create` command will start by creating a dedicated AutoTag S3 Bucket for storing code deployment packages in your AWS account. Then it will download or build the code package, and create both the main CloudFormation stack and the collector CloudFormation stacks. When executing the `delete` command all resources will be removed except the S3 bucket.
-
-#### Credentials
-
-The deploy script can use all of the credential providers that the AWS CLI allows, see [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) and take a look at the examples below. A separate set of CLI credentials can be provided by the argument `--s3-profile` for utilizing a single S3 bucket when deploying infrastructure across multiple AWS accounts. The script will also secure the S3 bucket by blocking all public access configuration, and add the required S3 bucket-policy statement to allow the cross-account `GetObject` access if necessary. 
-
-#### IAM Policy Permissions
-
-The script needs at minimum the IAM permissions described in this policy: [deploy\_iam\_policy.json](deploy_iam_policy.json)
-
-Before using this IAM policy replace the 2 occurrences of `my-autotag-bucket` with the name of your actual AutoTag S3 bucket.
-
-#### Custom Tags
+## Custom Tags
 
 Add pre-defined static tagging or custom tagging from the CloudTrail event. Using a JSON document, define one or more tags with either a hard-coded value or a value extracted from the CloudTrail event using variable substitution. Hard-coded tags will be applied to all [supported AWS resources](#supported-resource-types). When using variable substitution more than one variable can be provided in a single tag value, and if all of the substitutions in the field fail to be resolved the tag will not be written. That will allow for custom tags to be created using certain CloudTrail event fields that may not exist in all CloudTrail event types. Check out the [CloudTrail Log Event Reference](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference.html) for the most common fields. Also, each AWS resource will have unique fields in the `requestParameters` and `responseElements` fields that can be used. Examples of specific AWS resource CloudTrail events can be found at [CloudTrail Log File Examples](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-examples.html) or by searching in the CloudTrail event history.
 
@@ -70,6 +44,32 @@ Example:
   "AutoTag_Ec2_ImageId": "$event.responseElements.instancesSet.items.0.imageId"
 }
 ```
+
+## Prerequisites
+
+You will need at least 1 AWS Account, and CloudTrail should be enabled.
+
+## Deployment Methods
+
+We have documented two different ways to deploy the infrastructure to an AWS account. Since there are CloudFormation stacks that need to be deployed in multiple regions we've provided a script that uses the AWS CLI to deploy everything for you. The other deployment method uses CloudFormation StackSets to deploy across multiple regions.
+
+### Script Deployment Method: Deploy through our script
+
+This deploy script `deploy_autotag.sh` will create, delete, or update all of the AutoTag infrastructure for a single AWS account.
+
+The script will attempt to auto-install its own dependencies: `aws-cli`, `jq`, `npm`, `git`, `zip`
+
+The `create` command will start by creating a dedicated AutoTag S3 Bucket for storing code deployment packages in your AWS account. Then it will download or build the code package, and create both the main CloudFormation stack and the collector CloudFormation stacks. When executing the `delete` command all resources will be removed except the S3 bucket. Use the `update-release` command to update existing CloudFormation stacks to a specific release, `update-master` to update to the master branch (build required), or `update-local` to update to the local cloned git repo (build required).
+
+#### Credentials
+
+The deploy script can use all of the credential providers that the AWS CLI allows, see [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) and take a look at the [deployment examples](#deployment-examples). A separate set of CLI credentials can be provided by the argument `--s3-profile` for utilizing a single S3 bucket when deploying infrastructure across multiple AWS accounts. The script will also secure the S3 bucket by blocking all public access configuration, and add the required S3 bucket-policy statement to allow the cross-account `GetObject` access if necessary. 
+
+#### IAM Policy Permissions
+
+The script needs at minimum the IAM permissions described in this policy: [deploy\_iam\_policy.json](deploy_iam_policy.json)
+
+Before using this IAM policy replace the 2 occurrences of `my-autotag-bucket` with the name of your actual AutoTag S3 bucket.
 
 #### Commands and Options
 
@@ -106,7 +106,7 @@ Follow these steps to prepare to run the `create` command.
 2. Pick a dedicated AutoTag `--s3-bucket` name, e.g. 'acme-autotag'
 3. Configure AWS credentials for the AWS CLI, see [Configure AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
 
-#### Deployment
+#### Deployment Examples
 
 Download the latest version of `deploy_autotag.sh`, or find it in the root of the repository.
 
