@@ -50,7 +50,7 @@ class AutotagS3Worker extends AutotagDefaultWorker {
         const bucketName = this.getBucketName();
         this.logTags(bucketName, tags, this.constructor.name);
         this.s3.putBucketTagging({
-          Bucket: this.getBucketName(),
+          Bucket: bucketName,
           Tagging: {
             TagSet: tags
           }
