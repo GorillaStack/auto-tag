@@ -207,7 +207,7 @@ function cf-parameters () {
       },
       {
         "ParameterKey": "CustomTags",
-        "ParameterValue": "${CUSTOM_TAGS//\"/\\\"}"
+        "ParameterValue": "${CUSTOM_TAGS//\"/\"}"
       }
     ]
 EOF
