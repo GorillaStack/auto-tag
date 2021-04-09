@@ -40,7 +40,7 @@ Example:
   "AutoTag_ManagedBy": "Site Reliability Engineering",
   "AutoTag_UserIdentityType": "$event.userIdentity.type",
   "AutoTag_UserName": "$event.userIdentity.userName",
-  "AutoTag_ClientInfo": "SourceIP: $event.sourceIPAddress, UserAgent: $event.userAgent",
+  "AutoTag_ClientInfo": "SourceIP: $event.sourceIPAddress - UserAgent: $event.userAgent",
   "AutoTag_Ec2_ImageId": "$event.responseElements.instancesSet.items.0.imageId"
 }
 ```
@@ -159,7 +159,7 @@ Interpolation with text in the value is supported and more than one field from t
 
 ```bash
 ./deploy_autotag.sh -r us-west-2 -s3bu my-autotag-bucket create \
---custom-tags '{"AutoTag_ClientInfo": "SourceIP: $event.sourceIPAddress, UserAgent: $event.userAgent"}'
+--custom-tags '{"AutoTag_ClientInfo": "SourceIP: $event.sourceIPAddress - UserAgent: $event.userAgent"}'
 ```
 
 Update the infrastructure to the bleeding edge (master).
