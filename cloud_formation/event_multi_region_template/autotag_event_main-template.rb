@@ -19,7 +19,13 @@ template do
   parameter 'CodeS3Path',
             Description: 'The path of the code zip file in the code bucket in S3.',
             Type: 'String',
-            Default: 'autotag-0.5.0.zip'
+            Default: 'autotag-0.5.3.zip'
+
+  parameter 'LambdaName',
+            Description: 'The name of the Lambda Function.',
+            Type: 'String',
+            AllowedValues: %w(AutoTag AutoTagDev),
+            Default: 'AutoTag'
 
   parameter 'AutoTagDebugLogging',
             Description: 'Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.',
@@ -61,7 +67,7 @@ template do
       S3Key: ref('CodeS3Path'),
     },
     Description: 'Auto Tag (Open Source by GorillaStack)',
-    FunctionName: 'AutoTag',
+    FunctionName: sub('${LambdaName}'),
     Handler: sub('autotag_event.handler'),
     Role: get_att('AutoTagExecutionRole', 'Arn'),
     Runtime: 'nodejs10.x',
