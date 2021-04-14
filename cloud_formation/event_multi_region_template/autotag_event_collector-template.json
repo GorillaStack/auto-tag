@@ -8,10 +8,14 @@
       "Type" : "String",
       "Default": "us-west-2"
     },
-    "MainTemplateName":{
-      "Description": "Name of the Main template that holds the Auto-Tagging Lambda Function this log collector template submits to",
+    "LambdaName": {
+      "Description": "The name of the Lambda Function of the Main Stack Set.",
       "Type": "String",
-      "Default": "AutoTag"
+      "Default": "AutoTag",
+      "AllowedValues":[
+        "AutoTag",
+        "AutoTagDev"
+      ]
     }
   },
 
@@ -132,7 +136,7 @@
     "AutoTagSNSSubscription": {
       "Type": "AWS::SNS::Subscription",
       "Properties": {
-        "Endpoint": { "Fn::Sub": "arn:aws:lambda:${MainAwsRegion}:${AWS::AccountId}:function:${MainTemplateName}" },
+        "Endpoint": { "Fn::Sub": "arn:aws:lambda:${MainAwsRegion}:${AWS::AccountId}:function:${LambdaName}" },
         "Protocol": "lambda",
         "TopicArn": {
           "Ref": "AutoTagSNSTopic"

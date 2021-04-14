@@ -2,6 +2,15 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Auto Tag Solution by Gorilla Stack - Deployed and Maintained by Guitar Center DevOps.",
   "Parameters": {
+    "LambdaName": {
+      "Description": "The name of the Lambda Function.",
+      "Type": "String",
+      "Default": "AutoTag",
+      "AllowedValues":[
+        "AutoTag",
+        "AutoTagDev"
+      ]
+    },
     "CodeS3Bucket": {
       "Description": "The name of the code bucket in S3.",
       "Type": "String",
@@ -73,7 +82,7 @@
         },
         "Description": "Auto Tag Solution by Gorilla Stack - Deployed and Maintained by Guitar Center DevOps.",
         "FunctionName": {
-          "Fn::Sub": "${AWS::StackName}"
+          "Fn::Sub": "${LambdaName}"
         },
         "Handler": {
           "Fn::Sub": "autotag_event.handler"
