@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Auto Tag (Open Source by GorillaStack)",
+  "Description": "Auto Tag Solution by Gorilla Stack - Deployed and Maintained by Guitar Center DevOps.",
   "Parameters": {
     "CodeS3Bucket": {
       "Description": "The name of the code bucket in S3.",
@@ -71,7 +71,7 @@
             "Ref": "CodeS3Path"
           }
         },
-        "Description": "Auto Tag (Open Source by GorillaStack)",
+        "Description": "Auto Tag Solution by Gorilla Stack - Deployed and Maintained by Guitar Center DevOps.",
         "FunctionName": {
           "Fn::Sub": "${AWS::StackName}"
         },

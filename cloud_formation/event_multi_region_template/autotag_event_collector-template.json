@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Auto Tag (Open Source by GorillaStack)",
+  "Description": "Auto Tag Solution by Gorilla Stack - Deployed and Maintained by Guitar Center DevOps.",
 
   "Parameters" : {
     "MainAwsRegion" : {
