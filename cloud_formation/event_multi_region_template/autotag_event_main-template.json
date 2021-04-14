@@ -10,7 +10,7 @@
     "CodeS3Path": {
       "Description": "The path of the code zip file in the code bucket in S3.",
       "Type": "String",
-      "Default": "autotag-0.5.0.zip"
+      "Default": "autotag-0.5.3.zip"
     },
     "AutoTagDebugLogging": {
       "Description": "Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.",
@@ -72,7 +72,9 @@
           }
         },
         "Description": "Auto Tag (Open Source by GorillaStack)",
-        "FunctionName": "AutoTag",
+        "FunctionName": {
+          "Fn::Sub": "${AWS::StackName}"
+        },
         "Handler": {
           "Fn::Sub": "autotag_event.handler"
         },
