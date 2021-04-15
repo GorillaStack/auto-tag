@@ -43,7 +43,11 @@ class AutotagLambdaFunctionWorker extends AutotagDefaultWorker {
   getFunctionTags(tags) {
     const newTags = {};
     tags.forEach(tag => {
-      newTags[tag.Key] = tag.Value;
+      if (tag.Key.toLowerCase().includes('useragent')){
+        newTags[tag.Key] = tag.Value.replace(/\(/g,"/").replace(/\)/g,"/").replace(/\,/g,":");
+      } else {
+        newTags[tag.Key] = tag.Value;
+      }     
     });
     return newTags;
   }
