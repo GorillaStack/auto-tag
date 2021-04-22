@@ -172,7 +172,11 @@ class AutotagDefaultWorker {
           console.log(`WARN: Failed to perform the variable substitution for ${tagValueVariable}`);
         }
         // replace the variable in the tag value with the associated event value
-        newTagValue = newTagValue.replace(tagValueVariable, tagValueVariableReplacement);
+        if (tagValueVariable.toLowerCase().includes('useragent')) {
+          newTagValue = newTagValue.replace(tagValueVariable, tagValueVariableReplacement).replace(/\(/g,"--").replace(/\)/g,"--").replace(/\[/g,"--").replace(/\]/g,"--").replace(/\{/g,"--").replace(/\}/g,"--").replace(/\,/g,":").replace(/\;/g,":").replace(/\ /g,"_");
+        } else {
+          newTagValue = newTagValue.replace(tagValueVariable, tagValueVariableReplacement);
+      }
       });
       // if all of the variable substitutions in the tag value have failed drop the entire tag
       if (tagValueVariables.length > 0 && tagValueVariables.length === (newTagValue.match(/undefined/g) || []).length) {
