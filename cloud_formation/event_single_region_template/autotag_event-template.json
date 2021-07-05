@@ -65,7 +65,7 @@
         "FunctionName" : "AutoTag",
         "Handler" : "autotag_event.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
-        "Runtime" : "nodejs10.x",
+        "Runtime" : "nodejs12.x",
         "Timeout" : 120,
         "Environment": {
           "Variables": {
