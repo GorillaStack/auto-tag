@@ -489,8 +489,8 @@ function command_exists () {
 
 function check-min-dependencies () {
 
-  if [ "${BASH_VERSINFO[0]}" -lt "$MIN_BASH_VERSION" ] ; then
-    echo "Bash version $BASH_VERSION is unsupported, Bash must be at version $MIN_BASH_VERSION or greater."
+  if [ "${BASH_VERSINFO[0]}" -lt "$MIN_BASH_VERSION" ] || [[ "${BASH_VERSINFO[0]}" -eq "$MIN_BASH_VERSION" && "${BASH_VERSINFO[1]}" -lt "$MIN_BASH_MINOR_VERSION" ]] ; then
+    echo "Bash version $BASH_VERSION is unsupported, Bash must be at version $MIN_BASH_VERSION.$MIN_BASH_MINOR_VERSION or greater."
     exit 1
   fi
 
@@ -743,6 +743,7 @@ EOF
 fi
 
 MIN_BASH_VERSION='4'
+MIN_BASH_MINOR_VERSION='3'
 REPO_NAME='GorillaStack/auto-tag'
 MAIN_STACK_NAME='AutoTag'
 COLLECTOR_STACK_NAME="${MAIN_STACK_NAME}-Collector"
