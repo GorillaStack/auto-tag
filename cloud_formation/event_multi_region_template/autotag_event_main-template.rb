@@ -70,7 +70,7 @@ template do
     FunctionName: sub('${LambdaName}'),
     Handler: sub('autotag_event.handler'),
     Role: get_att('AutoTagExecutionRole', 'Arn'),
-    Runtime: 'nodejs14.x',
+    Runtime: 'nodejs18.x',
     # the ec2 instance worker will wait for up to 45 seconds for a
     # opsworks stack or autoscaling group to be tagged with the creator
     # in case the events come out of order

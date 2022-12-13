@@ -21,8 +21,11 @@ each(cloudTrailEventConfig, (value, key) => {
 
 describe('AutoTag index file', () => {
   beforeAll(() => {
-    requireMock('../src/aws_cloud_trail_event_listener', AwsCloudTrailListenerMock);
-    sut = require('../src/autotag_event.js'); // eslint-disable-line global-require
+    requireMock(
+      '../src/aws_cloud_trail_event_listener',
+      AwsCloudTrailListenerMock
+    );
+    sut = require('../src/autotag_event'); // eslint-disable-line global-require
   });
 
   afterAll(() => {
