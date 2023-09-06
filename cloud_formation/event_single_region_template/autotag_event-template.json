@@ -12,7 +12,7 @@
     "CodeS3Path" : {
       "Description" : "The path of the code zip file in the code bucket in S3",
       "Type" : "String",
-      "Default" : "autotag-0.5.3.zip"
+      "Default" : "autotag-0.5.6.zip"
     },
     "AutoTagDebugLogging": {
       "Description": "Enable/Disable Debug Logging for the Lambda Function for all processed CloudTrail events.",
@@ -67,7 +67,7 @@
         },
         "Handler" : "autotag_event.handler",
         "Role" : { "Fn::GetAtt" : [ "AutoTagExecutionRole", "Arn" ] },
-        "Runtime" : "nodejs18.x",
+        "Runtime" : "nodejs16.x",
         "Timeout" : 120,
         "Environment": {
           "Variables": {
