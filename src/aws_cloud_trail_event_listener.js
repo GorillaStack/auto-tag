@@ -1,7 +1,7 @@
-import each from 'lodash/each';
-import constants from './cloud_trail_event_config';
-import AutotagFactory from './autotag_factory';
-import SETTINGS from './autotag_settings';
+import each from 'lodash/each.js';
+import constants from './cloud_trail_event_config.js';
+import AutotagFactory from './autotag_factory.js';
+import SETTINGS from './autotag_settings.js';
 
 class AwsCloudTrailEventListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {

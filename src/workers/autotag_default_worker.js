@@ -1,6 +1,6 @@
-import get from 'lodash/get';
+import get from 'lodash/get.js';
 import * as AWS from 'aws-sdk';
-import SETTINGS from '../autotag_settings';
+import SETTINGS from '../autotag_settings.js';
 
 export const AUTOTAG_TAG_NAME_PREFIX = 'AutoTag_';
 const AUTOTAG_CREATOR_TAG_NAME = `${AUTOTAG_TAG_NAME_PREFIX}Creator`;

@@ -1,9 +1,9 @@
-import zlib from 'zlib';
-import AWS from 'aws-sdk';
-import each from 'lodash/each';
-import constants from './cloud_trail_event_config';
-import AutotagFactory from './autotag_factory';
-import SETTINGS from './autotag_settings';
+import zlib from 'zlib.js';
+import AWS from 'aws-sdk.js';
+import each from 'lodash/each.js';
+import constants from './cloud_trail_event_config.js';
+import AutotagFactory from './autotag_factory.js';
+import SETTINGS from './autotag_settings.js';
 
 class AwsCloudTrailLogListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {

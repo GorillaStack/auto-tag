@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk';
-import AutotagDefaultWorker from './autotag_default_worker';
+import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagAutoscaleWorker extends AutotagDefaultWorker {
   /* tagResource

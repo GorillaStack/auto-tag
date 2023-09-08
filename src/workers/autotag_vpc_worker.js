@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk';
-import AutotagEC2Worker from './autotag_ec2_worker';
+import AutotagEC2Worker from './autotag_ec2_worker.js';
 
 class AutotagVPCWorker extends AutotagEC2Worker {
   /* tagResource

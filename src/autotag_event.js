@@ -1,4 +1,4 @@
-import AwsCloudTrailEventListener from './aws_cloud_trail_event_listener';
+import AwsCloudTrailEventListener from './aws_cloud_trail_event_listener.js';
 
 if (!global._babelPolyfill) {
   require('babel-polyfill'); // eslint-disable-line global-require

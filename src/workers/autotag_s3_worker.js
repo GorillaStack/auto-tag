@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk';
-import AutotagDefaultWorker, { AUTOTAG_TAG_NAME_PREFIX } from './autotag_default_worker';
+import AutotagDefaultWorker, { AUTOTAG_TAG_NAME_PREFIX } from './autotag_default_worker.js';
 
 class AutotagS3Worker extends AutotagDefaultWorker {
   /* tagResource

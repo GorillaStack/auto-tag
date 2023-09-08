@@ -1,4 +1,4 @@
-import AwsCloudTrailLogListener from './aws_cloud_trail_log_listener';
+import AwsCloudTrailLogListener from './aws_cloud_trail_log_listener.js';
 
 if (!global._babelPolyfill) {
   require('babel-polyfill'); // eslint-disable-line global-require
