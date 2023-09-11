@@ -23,8 +23,8 @@
     "rimraf": "^2.6.3"
   },
   "scripts": {
-    "compile": "rimraf lib/ && babel --config-file ./babelrc-node -d lib src",
-    "compile:dev": "rimraf lib/ && babel --config-file ./babelrc-node --watch -d lib src",
+    "compile": "rimraf lib/ && babel --config-file ./babel.config.json -d lib src",
+    "compile:dev": "rimraf lib/ && babel --config-file ./babel.config.json --watch -d lib src",
     "lint": "node_modules/.bin/eslint src spec --cache",
     "lint:fix": "node_modules/.bin/eslint src spec --fix --cache",
     "test": "babel-node --config-file ./babelrc-node ./node_modules/.bin/jasmine --random=false",
