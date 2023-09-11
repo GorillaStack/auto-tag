@@ -4,7 +4,6 @@
   "description": "Autotagging for AWS resources",
   "main": "autotag.js",
   "private": true,
-  "type": "module",
   "dependencies": {
     "aws-sdk": "^2.493.0",
     "babel-polyfill": "^6.7.4",

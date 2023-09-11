@@ -17,7 +17,7 @@ function build-package () {
 
   cp package.json lib/
   npm install --prefix lib/ --production
-  rm -rf lib/node_modules/aws-sdk
+  # rm -rf lib/node_modules/aws-sdk
 
   (
     cd lib
