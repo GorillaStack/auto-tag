@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { CloudWatchEvents } from "@aws-sdk/client-cloudwatch-events";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagCloudwatchEventsRuleWorker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagCloudwatchEventsRuleWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.cloudwatchEvents = new AWS.CloudWatchEvents({
+    this.cloudwatchEvents = new CloudWatchEvents({
       region: this.event.awsRegion,
       credentials
     });

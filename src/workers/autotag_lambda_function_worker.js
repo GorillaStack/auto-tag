@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { Lambda } from "@aws-sdk/client-lambda";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagLambdaFunctionWorker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagLambdaFunctionWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.lambda = new AWS.Lambda({
+    this.lambda = new Lambda({
       region: this.event.awsRegion,
       credentials
     });

@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { RDS } from "@aws-sdk/client-rds";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 
@@ -12,7 +12,7 @@ class AutotagRDSWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.rds = new AWS.RDS({
+    this.rds = new RDS({
       region: this.event.awsRegion,
       credentials
     });

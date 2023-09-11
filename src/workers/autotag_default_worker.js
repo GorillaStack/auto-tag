@@ -1,5 +1,5 @@
 import get from 'lodash/get.js';
-import * as AWS from 'aws-sdk';
+import { STS } from "@aws-sdk/client-sts";
 import SETTINGS from '../autotag_settings.js';
 
 export const AUTOTAG_TAG_NAME_PREFIX = 'AutoTag_';
@@ -45,10 +45,9 @@ class AutotagDefaultWorker {
   assumeRole(roleName) {
     return new Promise((resolve, reject) => {
       try {
-        AWS.config.region = 'us-east-1';
         //Uncomment line below for AWS STS logging
         //AWS.config.logger = console;
-        const sts = new AWS.STS();
+        const sts = new STS();
         sts.assumeRole({
           RoleArn: this.getAssumeRoleArn(roleName),
           RoleSessionName: `AutoTag-${(new Date()).getTime()}`,

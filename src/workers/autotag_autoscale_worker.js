@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { AutoScaling } from "@aws-sdk/client-auto-scaling";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagAutoscaleWorker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagAutoscaleWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.autoscaling = new AWS.AutoScaling({
+    this.autoscaling = new AutoScaling({
       region: this.event.awsRegion,
       credentials
     });

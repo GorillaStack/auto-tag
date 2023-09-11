@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { IAM } from "@aws-sdk/client-iam";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagIAMUserWorker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagIAMUserWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.iam = new AWS.IAM({
+    this.iam = new IAM({
       region: this.event.awsRegion,
       credentials
     });

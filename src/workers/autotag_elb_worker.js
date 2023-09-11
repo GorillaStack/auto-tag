@@ -1,4 +1,5 @@
-import AWS from 'aws-sdk';
+import { ElasticLoadBalancing as ELB } from "@aws-sdk/client-elastic-load-balancing";
+import { ElasticLoadBalancingV2 as ELBv2 } from "@aws-sdk/client-elastic-load-balancing-v2";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagELBWorker extends AutotagDefaultWorker {
@@ -12,13 +13,13 @@ class AutotagELBWorker extends AutotagDefaultWorker {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
     if (this.isLoadBalancerV2()) {
-      this.elbv2 = new AWS.ELBv2({
+      this.elbv2 = new ELBv2({
         region: this.event.awsRegion,
         credentials
       });
       await this.tagELBV2Resource();
     } else {
-      this.elb = new AWS.ELB({
+      this.elb = new ELB({
         region: this.event.awsRegion,
         credentials
       });

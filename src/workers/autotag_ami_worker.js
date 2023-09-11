@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { EC2 } from "@aws-sdk/client-ec2";
 import AutotagEC2Worker from './autotag_ec2_worker.js';
 
 class AutotagAMIWorker extends AutotagEC2Worker {
@@ -12,7 +12,7 @@ class AutotagAMIWorker extends AutotagEC2Worker {
     const resourceIds = [];
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.ec2 = new AWS.EC2({
+    this.ec2 = new EC2({
       region: this.event.awsRegion,
       credentials
     });

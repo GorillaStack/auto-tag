@@ -5,9 +5,26 @@
   "main": "autotag.js",
   "private": true,
   "dependencies": {
-    "aws-sdk": "^2.493.0",
     "babel-polyfill": "^6.7.4",
     "lodash": "^4.17.14"
+  },
+  "optionalDependencies": {
+    "@aws-sdk/client-auto-scaling": "^3.410.0",
+    "@aws-sdk/client-cloudwatch": "^3.410.0",
+    "@aws-sdk/client-cloudwatch-events": "^3.410.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.410.0",
+    "@aws-sdk/client-data-pipeline": "^3.410.0",
+    "@aws-sdk/client-dynamodb": "^3.410.0",
+    "@aws-sdk/client-ec2": "^3.410.0",
+    "@aws-sdk/client-elastic-load-balancing": "^3.410.0",
+    "@aws-sdk/client-elastic-load-balancing-v2": "^3.410.0",
+    "@aws-sdk/client-emr": "^3.410.0",
+    "@aws-sdk/client-iam": "^3.410.0",
+    "@aws-sdk/client-lambda": "^3.410.0",
+    "@aws-sdk/client-opsworks": "^3.410.0",
+    "@aws-sdk/client-rds": "^3.410.0",
+    "@aws-sdk/client-s3": "^3.410.0",
+    "@aws-sdk/client-sts": "^3.410.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.0",

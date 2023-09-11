@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { DataPipeline } from "@aws-sdk/client-data-pipeline";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagDataPipelineWorker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagDataPipelineWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.dataPipeline = new AWS.DataPipeline({
+    this.dataPipeline = new DataPipeline({
       region: this.event.awsRegion,
       credentials
     });

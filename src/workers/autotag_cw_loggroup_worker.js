@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { CloudWatchLogs } from "@aws-sdk/client-cloudwatch-logs";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagCloudwatchLogGroupWorker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagCloudwatchLogGroupWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.cloudwatchLogs = new AWS.CloudWatchLogs({
+    this.cloudwatchLogs = new CloudWatchLogs({
       region: this.event.awsRegion,
       credentials
     });

@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { S3 } from "@aws-sdk/client-s3";
 import AutotagDefaultWorker, { AUTOTAG_TAG_NAME_PREFIX } from './autotag_default_worker.js';
 
 class AutotagS3Worker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagS3Worker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.s3 = new AWS.S3({
+    this.s3 = new S3({
       region: this.event.awsRegion,
       credentials
     });

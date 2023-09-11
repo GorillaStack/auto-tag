@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagDynamoDBWorker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagDynamoDBWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.dynamoDB = new AWS.DynamoDB({
+    this.dynamoDB = new DynamoDB({
       region: this.event.awsRegion,
       credentials
     });

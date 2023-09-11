@@ -1,4 +1,6 @@
-import AWS from 'aws-sdk';
+import { AutoScaling } from "@aws-sdk/client-auto-scaling";
+import { EC2 } from "@aws-sdk/client-ec2";
+import { OpsWorks } from "@aws-sdk/client-opsworks";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagEC2Worker extends AutotagDefaultWorker {
@@ -14,13 +16,13 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     let parentTags;
     let opsworksInstances;
 
-    this.ec2 = new AWS.EC2({
+    this.ec2 = new EC2({
       region: this.event.awsRegion,
       credentials
     });
 
     if (this.isInvokedByAutoscaling()) {
-      this.autoscaling = new AWS.AutoScaling({
+      this.autoscaling = new AutoScaling({
         region: this.event.awsRegion,
         credentials
       });
@@ -30,7 +32,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
     }
 
     if (this.isInvokedByOpsworks()) {
-      this.opsworks = new AWS.OpsWorks({
+      this.opsworks = new OpsWorks({
         region: this.event.awsRegion,
         credentials
       });
@@ -39,7 +41,7 @@ class AutotagEC2Worker extends AutotagDefaultWorker {
       } catch (err) {
         if (err.name === 'ResourceNotFoundException') {
           // switch to the main OpsWorks region and try again
-          this.opsworks = new AWS.OpsWorks({
+          this.opsworks = new OpsWorks({
             region: 'us-east-1',
             credentials
           });

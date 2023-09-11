@@ -1,5 +1,5 @@
 import zlib from 'zlib.js';
-import AWS from 'aws-sdk.js';
+import { S3 } from "@aws-sdk/client-s3";
 import each from 'lodash/each.js';
 import constants from './cloud_trail_event_config.js';
 import AutotagFactory from './autotag_factory.js';
@@ -10,7 +10,7 @@ class AwsCloudTrailLogListener {
     this.cloudtrailEvent = cloudtrailEvent;
     this.applicationContext = applicationContext;
     this.enabledServices = enabledServices;
-    this.s3 = new AWS.S3();
+    this.s3 = new S3();
     this.s3Region = '';
   }
 

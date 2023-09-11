@@ -1,4 +1,4 @@
-import AWS from 'aws-sdk';
+import { OpsWorks } from "@aws-sdk/client-opsworks";
 import AutotagDefaultWorker from './autotag_default_worker.js';
 
 class AutotagOpsworksWorker extends AutotagDefaultWorker {
@@ -11,7 +11,7 @@ class AutotagOpsworksWorker extends AutotagDefaultWorker {
   async tagResource() {
     const roleName = this.roleName;
     const credentials = await this.assumeRole(roleName);
-    this.opsworks = new AWS.OpsWorks({
+    this.opsworks = new OpsWorks({
       region: this.event.awsRegion,
       credentials
     });
