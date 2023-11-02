@@ -29,7 +29,7 @@ class AutotagS3Worker extends AutotagDefaultWorker {
           Bucket: this.getBucketName(),
         }, (err, res) => {
           if (err) {
-            if (err.code === 'NoSuchTagSet' && err.statusCode === 404) {
+            if (err.Code === 'NoSuchTagSet' && err.statusCode === 404) {
               resolve([]);
             } else {
               reject(err);
