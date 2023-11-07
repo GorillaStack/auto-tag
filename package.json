@@ -6,7 +6,8 @@
   "private": true,
   "dependencies": {
     "babel-polyfill": "^6.7.4",
-    "lodash": "^4.17.14"
+    "lodash": "^4.17.14",
+    "zlib": "^1.0.5"
   },
   "optionalDependencies": {
     "@aws-sdk/client-auto-scaling": "^3.410.0",
