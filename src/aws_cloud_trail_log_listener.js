@@ -1,9 +1,9 @@
-import zlib from 'zlib.js';
-import { S3 } from "@aws-sdk/client-s3";
-import each from 'lodash/each.js';
-import constants from './cloud_trail_event_config.js';
-import AutotagFactory from './autotag_factory.js';
-import SETTINGS from './autotag_settings.js';
+import zlib from 'zlib';
+import { GetObjectCommand, S3 } from '@aws-sdk/client-s3';
+import each from 'lodash/each';
+import constants from './cloud_trail_event_config';
+import AutotagFactory from './autotag_factory';
+import SETTINGS from './autotag_settings';
 
 class AwsCloudTrailLogListener {
   constructor(cloudtrailEvent, applicationContext, enabledServices) {
@@ -94,16 +94,18 @@ class AwsCloudTrailLogListener {
     return rawContent;
   }
 
-  retrieveFromS3(logFile) {
-    return new Promise((resolve, reject) => {
-      this.s3.getObject(logFile, (err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res.Body);
-        }
-      });
+  async retrieveFromS3(logFile) {
+    const getObjectCommand = new GetObjectCommand(logFile);
+    const { Body } = await this.s3.send(getObjectCommand);
+
+    const streamToString = new Promise((resolve, reject) => {
+      const chunks = [];
+      Body.on('error', reject);
+      Body.on('data', chunk => chunks.push(chunk));
+      Body.on('end', () => resolve(Buffer.concat(chunks)));
     });
+
+    return streamToString;
   }
 
   unGzipContent(zippedContent) {
